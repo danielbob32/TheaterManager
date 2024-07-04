@@ -9,9 +9,9 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 
 public class SimpleServer extends AbstractServer {
 
+	private ServerDB db = new ServerDB();
 	public SimpleServer(int port) {
 		super(port);
-		
 	}
 
 	@Override

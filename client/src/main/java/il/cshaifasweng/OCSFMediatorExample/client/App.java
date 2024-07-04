@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -30,6 +31,8 @@ public class App extends Application {
         scene = new Scene(loadFXML("primary"), 640, 480);
         stage.setScene(scene);
         stage.show();
+        Movie movie = new Movie("The Matrix", "המטריקס", "האחים ווצ׳ובסקי", "קיאנו ריבס", 136, "https://upload.wikimedia.org/wikipedia/he/thumb/c/c1/The_Matrix_Poster.jpg/250px-The_Matrix_Poster.jpg", "סרט מדע בדיוני", "המטריקס הוא סרט מדע בדיוני אמריקאי משנת 1999, שבו הופיעו קיאנו ריבס, לורנס פישבורן וקרי-אן מוס. הסרט נכתב ובוצע על ידי האחים ווצ'ובסקי.", null);
+        System.out.println(movie.getActors());
     }
 
     static void setRoot(String fxml) throws IOException {

@@ -14,5 +14,6 @@ public class App
     {
         server = new SimpleServer(3000);
         server.listen();
+        System.out.println( "Hello World!" );
     }
 }
