@@ -12,9 +12,6 @@ public class Worker {
     private String password;
     private boolean isLoggedIn;
 
-    @ManyToOne
-    private Cinema cinema;
-
     // Constructors
     public Worker() {
     }
@@ -73,14 +70,5 @@ public class Worker {
     public void setLoggedIn(boolean loggedIn) {
         isLoggedIn = loggedIn;
     }
-
-    public Cinema getCinema() {
-        return cinema;
-    }
-
-    public void setCinema(Cinema cinema) {
-        this.cinema = cinema;
-    }
-
 
 }

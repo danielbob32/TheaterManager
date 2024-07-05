@@ -6,25 +6,25 @@ import java.util.List;
 @Entity
 public class CinemaManager extends Worker{
  
-    @OneToMany(mappedBy = "manager")
-    private List<Cinema> cinemas;
+    @OneToOne(mappedBy = "manager")
+    private Cinema cinema;
 
     // Constructors
     public CinemaManager() {
     }
 
-    public CinemaManager(String name, String password, int id, List<Cinema> cinemas) {
+    public CinemaManager(String name, String password, int id, Cinema cinema) {
         super(name, password, id);
-        this.cinemas = cinemas;
+        this.cinema = cinema;
     }
     
     // Getters and setters
    
-    public List<Cinema> getCinemas() {
-        return cinemas;
+    public Cinema getCinemas() {
+        return this.cinema;
     }
 
-    public void setCinemas(List<Cinema> cinemas) {
-        this.cinemas = cinemas;
+    public void setCinema(Cinema cinema) {
+        this.cinema = cinema;
     }
 }

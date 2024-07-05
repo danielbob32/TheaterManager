@@ -15,7 +15,7 @@ public class Cinema {
     @OneToMany(mappedBy = "cinema")
     private List<MovieHall> movieHalls;
 
-    @ManyToOne
+    @OneToOne
     private CinemaManager manager;
 
     // Constructors
