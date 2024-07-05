@@ -1,9 +1,12 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
-public class Worker {
+public class Worker implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     private int id;
 
@@ -15,6 +18,13 @@ public class Worker {
     // Constructors
     public Worker() {
     }
+
+    // Constructor for login purposes
+    public Worker(int id, String password) {
+        this.id = id;
+        this.password = password;
+    }
+
 
     public Worker(String name, String password, int id) {
         this.id = id;

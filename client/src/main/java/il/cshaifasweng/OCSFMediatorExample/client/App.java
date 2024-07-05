@@ -1,6 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,11 +9,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
-
-import java.io.IOException;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+
+import java.io.IOException;
 
 /**
  * JavaFX App
@@ -28,7 +27,7 @@ public class App extends Application {
     	EventBus.getDefault().register(this);
     	client = SimpleClient.getClient();
     	client.openConnection();
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        scene = new Scene(loadFXML("Loginpage"), 640, 480);
         stage.setScene(scene);
         stage.show();
         Movie movie = new Movie("The Matrix", "המטריקס", "האחים ווצ׳ובסקי", "קיאנו ריבס", 136, "https://upload.wikimedia.org/wikipedia/he/thumb/c/c1/The_Matrix_Poster.jpg/250px-The_Matrix_Poster.jpg", "סרט מדע בדיוני", "המטריקס הוא סרט מדע בדיוני אמריקאי משנת 1999, שבו הופיעו קיאנו ריבס, לורנס פישבורן וקרי-אן מוס. הסרט נכתב ובוצע על ידי האחים ווצ'ובסקי.", null);
@@ -43,8 +42,6 @@ public class App extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         return fxmlLoader.load();
     }
-    
-    
 
     @Override
 	public void stop() throws Exception {

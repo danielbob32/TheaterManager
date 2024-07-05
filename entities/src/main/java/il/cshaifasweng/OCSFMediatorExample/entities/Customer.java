@@ -1,11 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.io.Serializable;
 import java.util.List;
 
 
 @Entity
-public class Customer {
+public class Customer implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
     private int id;
 
@@ -26,6 +30,11 @@ public class Customer {
 
     // Constructors
     public Customer() {
+    }
+
+    // Constructor for login purposes
+    public Customer(int id) {
+        this.id = id;
     }
 
     public Customer(String name, String email, int id) {
