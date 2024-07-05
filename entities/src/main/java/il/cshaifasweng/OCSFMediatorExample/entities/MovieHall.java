@@ -17,6 +17,16 @@ public class MovieHall {
     @ManyToOne
     private Cinema cinema;
 
+    // constructors
+    public MovieHall() {
+    }
+
+    public MovieHall(int hallNumber, List<Seat> seats, Cinema cinema) {
+        this.hallNumber = hallNumber;
+        this.seats = seats;
+        this.cinema = cinema;
+    }
+
     // Getters and setters
     public int getId() {
         return id;

@@ -16,8 +16,20 @@ public class Cinema {
     private List<MovieHall> movieHalls;
 
     @ManyToOne
-    private BranchManager manager;
+    private CinemaManager manager;
 
+    // Constructors
+    public Cinema() {
+    }
+
+    public Cinema(String cinemaName, String location, List<MovieHall> movieHalls, CinemaManager manager) {
+        this.cinemaName = cinemaName;
+        this.location = location;
+        this.movieHalls = movieHalls;
+        this.manager = manager;
+    }
+
+    
     // Getters and setters
     public int getId() {
         return id;
@@ -51,11 +63,11 @@ public class Cinema {
         this.movieHalls = movieHalls;
     }
 
-    public BranchManager getManager() {
+    public CinemaManager getManager() {
         return manager;
     }
 
-    public void setManager(BranchManager manager) {
+    public void setManager(CinemaManager manager) {
         this.manager = manager;
     }
 }

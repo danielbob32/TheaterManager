@@ -23,6 +23,19 @@ public class Screening {
 
     private boolean isFull;
 
+    // constructors
+    public Screening() {
+    }
+
+    public Screening(Cinema cinema, MovieHall hall, Date time, List<Seat> seats, boolean isFull) {
+        this.cinema = cinema;
+        this.hall = hall;
+        this.time = time;
+        this.seats = seats;
+        this.isFull = isFull;
+    }
+    
+
     // Getters and setters
     public int getId() {
         return id;

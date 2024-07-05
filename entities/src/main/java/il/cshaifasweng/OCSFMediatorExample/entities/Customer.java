@@ -9,11 +9,12 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String name;
     private String email;
 
-   // @OneToMany(mappedBy = "customer")
-    //private List<Booking> bookings;
+    @OneToMany(mappedBy = "customer")
+    private List<Booking> bookings;
 
     @OneToMany(mappedBy = "customer")
     private List<HomeMovieLink> homeMovies;
@@ -24,6 +25,15 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Complaint> complaints;
 
+    // Constructors
+    public Customer() {
+    }
+
+    public Customer(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+    
     // Getters and setters
     public int getId() {
         return id;
@@ -49,13 +59,13 @@ public class Customer {
         this.email = email;
     }
 
-//    public List<Booking> getBookings() {
-//        return bookings;
-//    }
+   public List<Booking> getBookings() {
+       return bookings;
+   }
 
-//    public void setBookings(List<Booking> bookings) {
-//        this.bookings = bookings;
-//    }
+   public void setBookings(List<Booking> bookings) {
+       this.bookings = bookings;
+   }
 
     public List<HomeMovieLink> getHomeMovies() {
         return homeMovies;
@@ -80,4 +90,5 @@ public class Customer {
     public void setComplaints(List<Complaint> complaints) {
         this.complaints = complaints;
     }
+
 }

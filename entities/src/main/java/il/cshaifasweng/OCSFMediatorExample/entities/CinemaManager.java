@@ -1,31 +1,30 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
-public class Worker {
+public class CinemaManager {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String name;
-    private String workerType;
     private String password;
     private boolean isLoggedIn;
 
-    @ManyToOne
-    private Cinema cinema;
+    @OneToMany(mappedBy = "manager")
+    private List<Cinema> cinemas;
 
     // Constructors
-    public Worker(String email, String password2, String firstName, String lastName) {
+    public CinemaManager() {
     }
 
-    public Worker(String name, String workerType, String password, boolean isLoggedIn, Cinema cinema) {
+    public CinemaManager(String name, String password, boolean isLoggedIn, List<Cinema> cinemas) {
         this.name = name;
-        this.workerType = workerType;
         this.password = password;
         this.isLoggedIn = isLoggedIn;
-        this.cinema = cinema;
+        this.cinemas = cinemas;
     }
 
     
@@ -46,14 +45,6 @@ public class Worker {
         this.name = name;
     }
 
-    public String getWorkerType() {
-        return workerType;
-    }
-
-    public void setWorkerType(String workerType) {
-        this.workerType = workerType;
-    }
-
     public String getPassword() {
         return password;
     }
@@ -66,17 +57,15 @@ public class Worker {
         return isLoggedIn;
     }
 
-    public void setLoggedIn(boolean loggedIn) {
-        isLoggedIn = loggedIn;
+    public void setLoggedIn(boolean isLoggedIn) {
+        this.isLoggedIn = isLoggedIn;
     }
 
-    public Cinema getCinema() {
-        return cinema;
+    public List<Cinema> getCinemas() {
+        return cinemas;
     }
 
-    public void setCinema(Cinema cinema) {
-        this.cinema = cinema;
+    public void setCinemas(List<Cinema> cinemas) {
+        this.cinemas = cinemas;
     }
-
-
 }

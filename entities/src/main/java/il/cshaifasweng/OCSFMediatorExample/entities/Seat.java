@@ -15,6 +15,17 @@ public class Seat {
     @ManyToOne
     private MovieHall movieHall;
 
+    // Constructors
+    public Seat() {
+    }
+
+    public Seat(int seatNumber, int seatRow, boolean isAvailable, MovieHall movieHall) {
+        this.seatNumber = seatNumber;
+        this.seatRow = seatRow;
+        this.isAvailable = isAvailable;
+        this.movieHall = movieHall;
+    }
+
     // Getters and setters
     public int getId() {
         return id;

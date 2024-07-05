@@ -17,6 +17,19 @@ public class Complaint {
     @ManyToOne
     private Customer customer;
 
+    // Constructors
+    public Complaint() {
+    }
+
+    public Complaint(Date date, String description, boolean isActive, int refund, Customer customer) {
+        this.date = date;
+        this.description = description;
+        this.isActive = isActive;
+        this.refund = refund;
+        this.customer = customer;
+    }
+
+    
     // Getters and setters
     public int getId() {
         return id;

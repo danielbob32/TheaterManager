@@ -1,16 +1,18 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Product {
+public abstract class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int clientId;
     private int price;
     private boolean isActive;
+    private Date purchaseTime;
 
     @ManyToOne
     private Cinema cinema;
@@ -19,14 +21,14 @@ public class Product {
     public Product() {
     }
 
-    public Product(int clientId, int price, boolean isActive, Cinema cinema) {
+    public Product(int clientId, int price, boolean isActive, Cinema cinema, Date purchaseTime) {
         this.clientId = clientId;
         this.price = price;
         this.isActive = isActive;
         this.cinema = cinema;
+        this.purchaseTime = purchaseTime;
     }
 
-    
     // Getters and setters
     public int getId() {
         return id;
@@ -67,4 +69,13 @@ public class Product {
     public void setCinema(Cinema cinema) {
         this.cinema = cinema;
     }
+
+    public Date getPurchaseTime() {
+        return purchaseTime;
+    }
+
+    public void setPurchaseTime(Date purchaseTime) {
+        this.purchaseTime = purchaseTime;
+    }
+
 }
