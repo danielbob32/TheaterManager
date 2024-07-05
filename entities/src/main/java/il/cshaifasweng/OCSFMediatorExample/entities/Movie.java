@@ -23,6 +23,9 @@ public class Movie {
     public Movie(String s, String titlesEnglish, String string, String movieActor, String s1, String showTime) {
     }
 
+    public Movie() {
+    }
+    
     public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;

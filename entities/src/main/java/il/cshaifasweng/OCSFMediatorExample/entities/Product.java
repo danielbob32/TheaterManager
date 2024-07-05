@@ -15,6 +15,18 @@ public class Product {
     @ManyToOne
     private Cinema cinema;
 
+    // Constructors
+    public Product() {
+    }
+
+    public Product(int clientId, int price, boolean isActive, Cinema cinema) {
+        this.clientId = clientId;
+        this.price = price;
+        this.isActive = isActive;
+        this.cinema = cinema;
+    }
+
+    
     // Getters and setters
     public int getId() {
         return id;
