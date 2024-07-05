@@ -5,7 +5,6 @@ import javax.persistence.*;
 @Entity
 public class Worker {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String name;
@@ -17,18 +16,23 @@ public class Worker {
     private Cinema cinema;
 
     // Constructors
-    public Worker(String email, String password2, String firstName, String lastName) {
+    public Worker() {
     }
 
-    public Worker(String name, String workerType, String password, boolean isLoggedIn, Cinema cinema) {
+    public Worker(String name, String password, int id) {
+        this.id = id;
+        this.name = name;
+        this.password = password;
+    }
+
+    public Worker(String name, String workerType, String password, int id) {
+        this.id = id;
         this.name = name;
         this.workerType = workerType;
         this.password = password;
-        this.isLoggedIn = isLoggedIn;
-        this.cinema = cinema;
     }
 
-    
+   
     // Getters and setters
     public int getId() {
         return id;
