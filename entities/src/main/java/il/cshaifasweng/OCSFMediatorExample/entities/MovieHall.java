@@ -7,7 +7,7 @@ import java.util.List;
 public class MovieHall {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int movieHall_id;
 
     private int hallNumber;
 
@@ -28,12 +28,12 @@ public class MovieHall {
     }
 
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getMovieHall_id() {
+        return movieHall_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setMovieHall_id(int id) {
+        this.movieHall_id = id;
     }
 
     public int getHallNumber() {

@@ -8,7 +8,7 @@ import java.util.Date;
 public abstract class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int product_id;
     private int clientId;
     private int price;
     private boolean isActive;
@@ -30,12 +30,12 @@ public abstract class Product {
     }
 
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getProduct_id() {
+        return product_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setProduct_id(int id) {
+        this.product_id = id;
     }
 
     public int getClientId() {
