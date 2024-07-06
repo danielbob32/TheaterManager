@@ -43,37 +43,34 @@ public class SimpleServer extends AbstractServer {
 	}
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
-		System.out.println("Handling login request: " + loginRequest);
 		boolean loginSuccess = false;
 		String message = "";
 		try {
 			if (loginRequest instanceof Worker) {
 				Worker worker = (Worker) loginRequest;
-				System.out.println("Checking worker credentials for ID: " + worker.getId());
 				loginSuccess = db.checkWorkerCredentials(worker.getId(), worker.getPassword());
-				message = loginSuccess ? "Worker login successful" : "Invalid worker credentials";
+				if (loginSuccess) {
+					String workerType = db.getWorkerType(worker.getId());
+					message = "Worker login successful: " + workerType;
+				} else {
+					message = "Invalid worker credentials";
+				}
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
-				System.out.println("Checking customer credentials for ID: " + customer.getId());
 				loginSuccess = db.checkCustomerCredentials(customer.getId());
 				message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
 			} else {
-				message = "Invalid login request type: " + loginRequest.getClass().getName();
-				System.out.println(message);
+				message = "Invalid login request type";
 			}
 		} catch (Exception e) {
-			System.err.println("Error during login process: " + e.getMessage());
 			e.printStackTrace();
 			message = "An error occurred during login: " + e.getMessage();
 		}
 
-		System.out.println("Login result: " + message);
 		try {
 			Warning warning = new Warning(message);
 			client.sendToClient(warning);
-			System.out.println("Sent response to client: " + message);
 		} catch (IOException e) {
-			System.err.println("Error sending response to client: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

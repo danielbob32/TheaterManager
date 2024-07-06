@@ -1,10 +1,34 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 
 import java.io.IOException;
 
 public class WorkerMenuController {
+
+    @FXML
+    private Button updateContentButton;
+
+    private String workerType;
+
+    public void initialize() {
+        // This method is called after the FXML file has been loaded
+        updateButtonVisibility();
+    }
+
+    public void setWorkerType(String workerType) {
+        this.workerType = workerType;
+        updateButtonVisibility();
+    }
+
+    private void updateButtonVisibility() {
+        if (updateContentButton != null) {
+            updateContentButton.setVisible("Content manager".equals(workerType));
+            updateContentButton.setManaged("Content manager".equals(workerType));
+        }
+    }
+
 
     @FXML
     private void updateContent() throws IOException {

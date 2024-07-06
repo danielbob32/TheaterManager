@@ -62,19 +62,30 @@ public class ServerDB {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
 
-            // Add a test worker
-            Worker testWorker = new Worker("Test Worker", "password123", 1555);
-            session.save(testWorker);
+            try {
+                // Delete all existing workers and customers
+                session.createQuery("DELETE FROM Worker").executeUpdate();
+                session.createQuery("DELETE FROM Customer").executeUpdate();
 
-            // Add a test customer
-            Customer testCustomer = new Customer("Test Customer", "test@example.com", 1545);
-            session.save(testCustomer);
+                // Add test workers
+                Worker contentManager = new Worker("Content Manager", "Content manager", "password123", 1001);
+                Worker regularWorker = new Worker("Regular Worker", "Regular", "password456", 1002);
+                session.save(contentManager);
+                session.save(regularWorker);
 
-            transaction.commit();
-            System.out.println("Test data added successfully");
-        } catch (Exception e) {
-            System.err.println("Error adding test data: " + e.getMessage());
-            e.printStackTrace();
+                // Add test customers
+                Customer customer1 = new Customer("Test Customer 1", "customer1@example.com", 2001);
+                Customer customer2 = new Customer("Test Customer 2", "customer2@example.com", 2002);
+                session.save(customer1);
+                session.save(customer2);
+
+                transaction.commit();
+                System.out.println("Test data added successfully");
+            } catch (Exception e) {
+                transaction.rollback();
+                System.err.println("Error adding test data: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -137,6 +148,24 @@ public class ServerDB {
             System.err.println("Error checking customer credentials: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public String getWorkerType(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "SELECT W.workerType FROM Worker W WHERE W.id = :id";
+            Query<String> query = session.createQuery(hql, String.class);
+            query.setParameter("id", id);
+            String workerType = query.uniqueResult();
+
+            System.out.println("Fetching worker type for ID: " + id);
+            System.out.println("Found worker type: " + workerType);
+
+            return workerType != null ? workerType : "Unknown";
+        } catch (Exception e) {
+            System.err.println("Error fetching worker type: " + e.getMessage());
+            e.printStackTrace();
+            return "Unknown";
         }
     }
 
