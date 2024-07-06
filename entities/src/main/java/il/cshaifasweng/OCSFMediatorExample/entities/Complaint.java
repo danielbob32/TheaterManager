@@ -43,6 +43,7 @@ public class Complaint {
         return date;
     }
 
+
     public void setDate(Date date) {
         this.date = date;
     }
