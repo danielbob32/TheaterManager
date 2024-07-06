@@ -27,11 +27,9 @@ public class LoginPageController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Initialize the ComboBox with user types
+        System.out.println("LoginPageController initialized");
         userTypeComboBox.getItems().addAll("Worker", "Customer");
         userTypeComboBox.setOnAction(this::handleUserTypeSelection);
-
-        // Initially hide the password field
         passwordTextField.setVisible(false);
         passwordTextField.setManaged(false);
     }
@@ -40,20 +38,17 @@ public class LoginPageController implements Initializable {
     void handleUserTypeSelection(ActionEvent event) {
         String selectedUserType = userTypeComboBox.getValue();
         boolean isWorker = "Worker".equals(selectedUserType);
-
-        // Show/hide password field based on user type
         passwordTextField.setVisible(isWorker);
         passwordTextField.setManaged(isWorker);
     }
 
     @FXML
     void handleLogin(ActionEvent event) {
-        System.out.println("Login button clicked");
+        System.out.println("Login button pressed");
         String userType = userTypeComboBox.getValue();
         String idText = idTextField.getText();
         String password = passwordTextField.getText();
 
-        // Validate input
         if (userType == null || userType.isEmpty()) {
             showAlert("Error", "Please select a user type.");
             return;
@@ -77,8 +72,8 @@ public class LoginPageController implements Initializable {
             return;
         }
 
-        // Create and send login request
         try {
+            System.out.println("Sending login request to server");
             if ("Worker".equals(userType)) {
                 Worker worker = new Worker(id, password);
                 SimpleClient.getClient().sendToServer(worker);
