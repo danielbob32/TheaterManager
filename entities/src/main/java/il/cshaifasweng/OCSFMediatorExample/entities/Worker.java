@@ -1,9 +1,10 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
-public class Worker {
+public class Worker implements Serializable {
     @Id
     private int worker_id;
 
