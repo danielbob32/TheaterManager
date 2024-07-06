@@ -12,6 +12,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public class App extends Application {
 
@@ -33,6 +34,16 @@ public class App extends Application {
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
+
+    static void setRoot(String fxml, Consumer<Object> controllerConsumer) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        Parent root = fxmlLoader.load();
+        if (controllerConsumer != null) {
+            controllerConsumer.accept(fxmlLoader.getController());
+        }
+        scene.setRoot(root);
+    }
+
 
     private static Parent loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
