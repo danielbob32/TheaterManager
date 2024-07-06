@@ -20,4 +20,10 @@ public class WorkerMenuController {
     private void viewReports() throws IOException {
         App.setRoot("ViewReports");
     }
+
+    @FXML
+    private void handleLogout() throws IOException {
+        // TODO: Send logout request to server if necessary
+        App.setRoot("Loginpage");
+    }
 }

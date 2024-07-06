@@ -1,15 +1,21 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import javafx.util.Duration;
 
-import java.net.URL;
-import java.util.ResourceBundle;
 import java.io.IOException;
+import java.net.URL;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ResourceBundle;
 
 public class LoginPageController implements Initializable {
 
@@ -25,6 +31,9 @@ public class LoginPageController implements Initializable {
     @FXML
     private Button loginButton;
 
+    @FXML
+    private TextField timeField;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("LoginPageController initialized");
@@ -32,6 +41,16 @@ public class LoginPageController implements Initializable {
         userTypeComboBox.setOnAction(this::handleUserTypeSelection);
         passwordTextField.setVisible(false);
         passwordTextField.setManaged(false);
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
+            LocalTime currentTime = LocalTime.now();
+            timeField.setText(currentTime.format(dtf));
+        }),
+                new KeyFrame(Duration.seconds(1))
+        );
+        clock.setCycleCount(Animation.INDEFINITE);
+        clock.play();
     }
 
     @FXML

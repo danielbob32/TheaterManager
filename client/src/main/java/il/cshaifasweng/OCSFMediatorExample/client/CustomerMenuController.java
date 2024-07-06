@@ -35,4 +35,10 @@ public class CustomerMenuController {
     private void fileComplaint() throws IOException {
         App.setRoot("FileComplaint");
     }
+
+    @FXML
+    private void handleLogout() throws IOException {
+        // TODO: Send logout request to server if necessary
+        App.setRoot("LoginPage");
+    }
 }
