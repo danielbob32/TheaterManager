@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -14,24 +13,21 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     private static Scene scene;
+    private static Stage primaryStage;
     private SimpleClient client;
 
     @Override
     public void start(Stage stage) throws IOException {
-    	EventBus.getDefault().register(this);
-    	client = SimpleClient.getClient();
-    	client.openConnection();
+        EventBus.getDefault().register(this);
+        client = SimpleClient.getClient();
+        client.openConnection();
         scene = new Scene(loadFXML("Loginpage"), 640, 480);
+        primaryStage = stage;
         stage.setScene(scene);
         stage.show();
-        Movie movie = new Movie("The Matrix", "המטריקס", "האחים ווצ׳ובסקי", "קיאנו ריבס", 136, "https://upload.wikimedia.org/wikipedia/he/thumb/c/c1/The_Matrix_Poster.jpg/250px-The_Matrix_Poster.jpg", "סרט מדע בדיוני", "המטריקס הוא סרט מדע בדיוני אמריקאי משנת 1999, שבו הופיעו קיאנו ריבס, לורנס פישבורן וקרי-אן מוס. הסרט נכתב ובוצע על ידי האחים ווצ'ובסקי.", null);
-        System.out.println(movie.getActors());
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -44,27 +40,46 @@ public class App extends Application {
     }
 
     @Override
-	public void stop() throws Exception {
-		// TODO Auto-generated method stub
-    	EventBus.getDefault().unregister(this);
-		super.stop();
-	}
-    
+    public void stop() throws Exception {
+        EventBus.getDefault().unregister(this);
+        super.stop();
+    }
+
     @Subscribe
     public void onWarningEvent(WarningEvent event) {
-    	Platform.runLater(() -> {
-    		Alert alert = new Alert(AlertType.WARNING,
-        			String.format("Message: %s\nTimestamp: %s\n",
-        					event.getWarning().getMessage(),
-        					event.getWarning().getTime().toString())
-        	);
-        	alert.show();
-    	});
-    	
+        Platform.runLater(() -> {
+            String message = event.getWarning().getMessage();
+            if (message.contains("Customer login successful")) {
+                try {
+                    setRoot("CustomerMenu");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showAlert("Error", "Could not load customer menu.");
+                }
+            } else if (message.contains("Worker login successful")) {
+                try {
+                    setRoot("WorkerMenu");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showAlert("Error", "Could not load worker menu.");
+                }
+            } else {
+                showAlert("Warning", String.format("Message: %s\nTimestamp: %s\n",
+                        message,
+                        event.getWarning().getTime().toString()));
+            }
+        });
     }
 
-	public static void main(String[] args) {
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.show();
+    }
+
+    public static void main(String[] args) {
         launch();
     }
-
 }

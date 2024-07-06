@@ -124,7 +124,7 @@ public abstract class AbstractClient implements Runnable
    *
    * @exception IOException if an I/O error occurs when opening.
    */
-  final public void openConnection() throws IOException
+  public void openConnection() throws IOException
   {
     // Do not do anything if the connection is already open
     if(isConnected())
