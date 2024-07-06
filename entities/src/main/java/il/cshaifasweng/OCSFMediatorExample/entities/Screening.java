@@ -8,7 +8,7 @@ import java.util.List;
 public class Screening {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int screening_id;
 
     @ManyToOne
     private Cinema cinema;
@@ -18,7 +18,8 @@ public class Screening {
 
     private Date time;
 
-    @OneToMany(mappedBy = "screening")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "screening_id")
     private List<Seat> seats;
 
     private boolean isFull;
@@ -37,12 +38,12 @@ public class Screening {
     
 
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getScreening_id() {
+        return screening_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setScreening_id(int id) {
+        this.screening_id = id;
     }
 
     public Cinema getCinema() {

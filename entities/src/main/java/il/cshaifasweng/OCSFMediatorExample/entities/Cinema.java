@@ -7,7 +7,7 @@ import java.util.List;
 public class Cinema {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int cinema_id;
 
     private String cinemaName;
     private String location;
@@ -31,12 +31,12 @@ public class Cinema {
 
     
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getCinema_id() {
+        return cinema_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCinema_id(int id) {
+        this.cinema_id = id;
     }
 
     public String getCinemaName() {

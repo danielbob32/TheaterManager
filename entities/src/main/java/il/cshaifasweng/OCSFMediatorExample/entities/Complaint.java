@@ -7,7 +7,7 @@ import java.util.Date;
 public class Complaint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int complaint_id;
 
     private Date date;
     private String description;
@@ -31,12 +31,12 @@ public class Complaint {
 
     
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getComplaint_id() {
+        return complaint_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setComplaint_id(int id) {
+        this.complaint_id = id;
     }
 
     public Date getDate() {

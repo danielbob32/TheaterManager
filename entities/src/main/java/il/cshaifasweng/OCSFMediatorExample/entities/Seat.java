@@ -6,7 +6,7 @@ import javax.persistence.*;
 public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int seat_id;
 
     private int seatNumber;
     private int seatRow;
@@ -27,12 +27,12 @@ public class Seat {
     }
 
     // Getters and setters
-    public int getId() {
-        return id;
+    public int getSeat_id() {
+        return seat_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setSeat_id(int id) {
+        this.seat_id = id;
     }
 
     public int getSeatNumber() {
