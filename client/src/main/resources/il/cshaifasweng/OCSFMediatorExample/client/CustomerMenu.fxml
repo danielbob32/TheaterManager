@@ -15,5 +15,6 @@
         <Button text="Buy ticket tab" onAction="#buyTicketTab" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Refund tickets" onAction="#refundTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Complaint" onAction="#fileComplaint" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Logout" onAction="#handleLogout" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
     </VBox>
 </AnchorPane>

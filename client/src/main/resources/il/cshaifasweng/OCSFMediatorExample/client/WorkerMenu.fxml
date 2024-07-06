@@ -12,5 +12,6 @@
         <Button text="Update content" onAction="#updateContent" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Handle complaint" onAction="#handleComplaint" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Reports section" onAction="#viewReports" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Logout" onAction="#handleLogout" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
     </VBox>
 </AnchorPane>
