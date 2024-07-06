@@ -5,7 +5,7 @@ import javax.persistence.*;
 @Entity
 public class Worker {
     @Id
-    private int id;
+    private int worker_id;
 
     private String name;
     private String workerType;
@@ -16,27 +16,32 @@ public class Worker {
     public Worker() {
     }
 
-    public Worker(String name, String password, int id) {
-        this.id = id;
+    public Worker(String name, String password, int worker_id) {
+        this.worker_id = worker_id;
         this.name = name;
         this.password = password;
     }
 
-    public Worker(String name, String workerType, String password, int id) {
-        this.id = id;
+    public Worker(String name, String workerType, String password, int worker_id) {
+        this.worker_id = worker_id;
         this.name = name;
         this.workerType = workerType;
         this.password = password;
     }
 
-   
-    // Getters and setters
-    public int getId() {
-        return id;
+    public Worker(int id, String password) {
+        this.worker_id = id;
+        this.password = password;
     }
 
-    public void setId(int id) {
-        this.id = id;
+
+    // Getters and setters
+    public int getWorker_id() {
+        return worker_id;
+    }
+
+    public void setWorker_id(int id) {
+        this.worker_id = id;
     }
 
     public String getName() {
@@ -71,4 +76,7 @@ public class Worker {
         isLoggedIn = loggedIn;
     }
 
+    public int getId() {
+        return worker_id;
+    }
 }

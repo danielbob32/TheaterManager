@@ -2,7 +2,6 @@ package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.Entity;
 import java.util.Date;
-
 @Entity
 public class HomeMovieLink extends Product {
     private Date openTime;

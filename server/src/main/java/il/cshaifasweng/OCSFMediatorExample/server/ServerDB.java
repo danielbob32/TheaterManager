@@ -33,6 +33,7 @@ public class ServerDB {
             configuration.addAnnotatedClass(Complaint.class);
             configuration.addAnnotatedClass(Customer.class);
             configuration.addAnnotatedClass(HomeMovieLink.class);
+            configuration.addAnnotatedClass(Message.class);
             configuration.addAnnotatedClass(Movie.class);
             configuration.addAnnotatedClass(MovieHall.class);
             configuration.addAnnotatedClass(Product.class);

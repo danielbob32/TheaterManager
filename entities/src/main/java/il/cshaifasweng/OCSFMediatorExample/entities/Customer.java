@@ -1,13 +1,14 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 
 @Entity
 public class Customer {
     @Id
-    private int id;
+    private int customer_id;
 
     private String name;
     private String email;
@@ -15,11 +16,9 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Booking> bookings;
 
-    @OneToMany(mappedBy = "customer")
-    private List<HomeMovieLink> homeMovies;
-
-    @OneToMany(mappedBy = "customer")
-    private List<TicketTab> ticketTabs;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "customer_id")
+    private List<Product> products;
 
     @OneToMany(mappedBy = "customer")
     private List<Complaint> complaints;
@@ -29,24 +28,27 @@ public class Customer {
     }
 
     public Customer(String name, String email, int id) {
-        this.id = id;
+        this.customer_id = id;
         this.name = name;
         this.email = email;
     }
-    
+
+    public Customer(int id) {
+        this.customer_id = id;
+    }
+
     // Getters and setters
     public int getId() {
-        return id;
+        return customer_id;
     }
 
     public void setId(int id) {
-        this.id = id;
+        this.customer_id = id;
     }
 
     public String getName() {
         return name;
     }
-
 
     public void setName(String name) {
         this.name = name;
@@ -69,19 +71,37 @@ public class Customer {
    }
 
     public List<HomeMovieLink> getHomeMovies() {
-        return homeMovies;
+        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
+        for(Product product : products) {
+            if(product instanceof HomeMovieLink) {
+                homeLinks.add((HomeMovieLink) product);
+            }
+        }
+        return homeLinks;
     }
 
-    public void setHomeMovies(List<HomeMovieLink> homeMovies) {
-        this.homeMovies = homeMovies;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 
     public List<TicketTab> getTicketTabs() {
-        return ticketTabs;
+        List<TicketTab> tabs = new ArrayList<TicketTab>();
+        for(Product product : products) {
+            if(product instanceof TicketTab) {
+                tabs.add((TicketTab) product);
+            }
+        }
+        return tabs;
     }
 
-    public void setTicketTabs(List<TicketTab> ticketTabs) {
-        this.ticketTabs = ticketTabs;
+    public List<Ticket> getTickets() {
+        List<Ticket> tickets = new ArrayList<Ticket>();
+        for(Product product : products) {
+            if(product instanceof Ticket) {
+                tickets.add((Ticket) product);
+            }
+        }
+        return tickets;
     }
 
     public List<Complaint> getComplaints() {
