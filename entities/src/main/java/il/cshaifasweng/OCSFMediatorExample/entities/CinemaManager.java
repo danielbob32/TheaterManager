@@ -13,6 +13,7 @@ public class CinemaManager extends Worker{
     public CinemaManager() {
     }
 
+
     public CinemaManager(String name, String password, int id, Cinema cinema) {
         super(name, password, id);
         this.cinema = cinema;
