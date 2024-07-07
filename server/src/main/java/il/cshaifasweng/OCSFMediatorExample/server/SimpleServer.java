@@ -3,13 +3,17 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
+
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
 public class SimpleServer extends AbstractServer {
-
+	private ObjectMapper objectMapper = new ObjectMapper();
 	private ServerDB db;
 
 	public SimpleServer(int port) {
@@ -25,21 +29,41 @@ public class SimpleServer extends AbstractServer {
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
 		System.out.println("Received message from client: " + msg);
-		if (msg instanceof Worker || msg instanceof Customer) {
-			handleLoginRequest(msg, client);
-		} else {
-			System.out.println("Received unknown message type: " + msg.getClass().getName());
-			String msgString = msg.toString();
-			if (msgString.startsWith("#warning")) {
-				Warning warning = new Warning("Warning from server!");
-				try {
-					client.sendToClient(warning);
-					System.out.format("Sent warning to client %s\n", client.getInetAddress().getHostAddress());
-				} catch (IOException e) {
-					e.printStackTrace();
+		Message message = (Message) msg;
+		String request = message.getMessage();
+		try{
+			if(request.startsWith("login")){
+				String person = request.split(":")[1];
+				if(person.equals("worker"))
+				{
+					Worker worker = objectMapper.readValue(message.getData(), Worker.class);
+					handleLoginRequest(worker, client);
+				} else if (person.equals("customer")) {
+					Customer customer = objectMapper.readValue(message.getData(), Customer.class);
+					handleLoginRequest(customer, client);
 				}
 			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
+
+//		if (msg instanceof Worker || msg instanceof Customer) {
+//			handleLoginRequest(msg, client);
+//		} else {
+//			System.out.println("Received unknown message type: " + msg.getClass().getName());
+//			String msgString = msg.toString();
+//			if (msgString.startsWith("#warning")) {
+//				Warning warning = new Warning("Warning from server!");
+//				try {
+//					client.sendToClient(warning);
+//					System.out.format("Sent warning to client %s\n", client.getInetAddress().getHostAddress());
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
 	}
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
@@ -48,9 +72,9 @@ public class SimpleServer extends AbstractServer {
 		try {
 			if (loginRequest instanceof Worker) {
 				Worker worker = (Worker) loginRequest;
-				loginSuccess = db.checkWorkerCredentials(worker.getId(), worker.getPassword());
+				loginSuccess = db.checkWorkerCredentials(worker.getWorker_id(), worker.getPassword());
 				if (loginSuccess) {
-					String workerType = db.getWorkerType(worker.getId());
+					String workerType = db.getWorkerType(worker.getWorker_id());
 					message = "Worker login successful: " + workerType;
 				} else {
 					message = "Invalid worker credentials";

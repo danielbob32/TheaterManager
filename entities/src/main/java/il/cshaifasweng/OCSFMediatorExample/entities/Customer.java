@@ -4,10 +4,12 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
-public class Customer implements Serializable {
+public class Customer {
     @Id
     private int customer_id;
 
@@ -72,6 +74,7 @@ public class Customer implements Serializable {
        this.bookings = bookings;
    }
 
+    @JsonIgnore
     public List<HomeMovieLink> getHomeMovies() {
         List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
         for(Product product : products) {
@@ -86,6 +89,7 @@ public class Customer implements Serializable {
         this.products = products;
     }
 
+    @JsonIgnore
     public List<TicketTab> getTicketTabs() {
         List<TicketTab> tabs = new ArrayList<TicketTab>();
         for(Product product : products) {
@@ -95,7 +99,7 @@ public class Customer implements Serializable {
         }
         return tabs;
     }
-
+    @JsonIgnore
     public List<Ticket> getTickets() {
         List<Ticket> tickets = new ArrayList<Ticket>();
         for(Product product : products) {

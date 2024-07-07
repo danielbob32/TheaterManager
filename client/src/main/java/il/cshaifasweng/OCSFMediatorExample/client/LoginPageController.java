@@ -19,6 +19,8 @@ import java.util.ResourceBundle;
 
 public class LoginPageController implements Initializable {
 
+    private SimpleClient client = SimpleClient.getClient();
+
     @FXML
     private ComboBox<String> userTypeComboBox;
 
@@ -51,6 +53,10 @@ public class LoginPageController implements Initializable {
         );
         clock.setCycleCount(Animation.INDEFINITE);
         clock.play();
+    }
+
+    public void setClient(SimpleClient client) {
+        this.client = client;
     }
 
     @FXML
@@ -91,18 +97,15 @@ public class LoginPageController implements Initializable {
             return;
         }
 
-        try {
-            System.out.println("Sending login request to server");
-            if ("Worker".equals(userType)) {
-                Worker worker = new Worker(id, password);
-                SimpleClient.getClient().sendToServer(worker);
-            } else {
-                Customer customer = new Customer(id);
-                SimpleClient.getClient().sendToServer(customer);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Could not send login request to server.");
+        System.out.println("Sending login request to server");
+        if ("Worker".equals(userType)) {
+            Worker worker = new Worker(id, password);
+            client.tryWorkerLogin(worker);
+    //                SimpleClient.getClient().sendToServer(worker);
+        } else {
+            Customer customer = new Customer(id);
+            client.tryCustomerLogin(customer);
+//            SimpleClient.getClient().sendToServer(customer);
         }
     }
 

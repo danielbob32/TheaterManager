@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-public class Worker implements Serializable {
+public class Worker {
     @Id
     private int worker_id;
 
@@ -33,6 +33,9 @@ public class Worker implements Serializable {
     public Worker(int id, String password) {
         this.worker_id = id;
         this.password = password;
+        this.name = "";
+        this.workerType = "";
+        this.isLoggedIn = true;
     }
 
 
@@ -77,7 +80,5 @@ public class Worker implements Serializable {
         isLoggedIn = loggedIn;
     }
 
-    public int getId() {
-        return worker_id;
-    }
+
 }
