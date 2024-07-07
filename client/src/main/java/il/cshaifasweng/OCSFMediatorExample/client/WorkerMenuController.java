@@ -10,15 +10,14 @@ public class WorkerMenuController {
     @FXML
     private Button updateContentButton;
 
-    private String workerType;
+    public static String workerType;
 
     public void initialize() {
-        // This method is called after the FXML file has been loaded
         updateButtonVisibility();
     }
 
-    public void setWorkerType(String workerType) {
-        this.workerType = workerType;
+    public void setWorkerType(String type) {
+        workerType = type;
         updateButtonVisibility();
     }
 
@@ -47,7 +46,11 @@ public class WorkerMenuController {
 
     @FXML
     private void handleLogout() throws IOException {
-        // TODO: Send logout request to server if necessary
+        workerType = null;
         App.setRoot("Loginpage");
+    }
+
+    public static String getWorkerType() {
+        return workerType;
     }
 }

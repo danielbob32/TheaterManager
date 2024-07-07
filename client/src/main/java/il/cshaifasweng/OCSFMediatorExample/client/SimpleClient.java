@@ -25,13 +25,10 @@ public class SimpleClient extends AbstractClient {
 				String[] parts = message.split(":");
 				if (parts.length == 2) {
 					String workerType = parts[1].trim();
+					App.setWorkerType(workerType);
 					Platform.runLater(() -> {
 						try {
-							App.setRoot("WorkerMenu", controller -> {
-								if (controller instanceof WorkerMenuController) {
-									((WorkerMenuController) controller).setWorkerType(workerType);
-								}
-							});
+							App.setRoot("WorkerMenu");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

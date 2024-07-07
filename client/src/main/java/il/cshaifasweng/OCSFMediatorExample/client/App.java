@@ -14,6 +14,8 @@ import org.greenrobot.eventbus.Subscribe;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import static il.cshaifasweng.OCSFMediatorExample.client.WorkerMenuController.workerType;
+
 public class App extends Application {
 
     private static Scene scene;
@@ -44,11 +46,20 @@ public class App extends Application {
         scene.setRoot(root);
     }
 
-
     private static Parent loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
+        Parent root = fxmlLoader.load();
+        Object controller = fxmlLoader.getController();
+        if (controller instanceof WorkerMenuController) {
+            ((WorkerMenuController) controller).setWorkerType(workerType);
+        }
+        return root;
     }
+
+    public static void setWorkerType(String type) {
+        workerType = type;
+    }
+
 
     @Override
     public void stop() throws Exception {
