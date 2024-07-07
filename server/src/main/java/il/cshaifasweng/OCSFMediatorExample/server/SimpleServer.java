@@ -4,11 +4,16 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 
 public class SimpleServer extends AbstractServer {
-
+	private ObjectMapper objectMapper = new ObjectMapper();
 	private ServerDB db = new ServerDB();
 	public SimpleServer(int port) {
 		super(port);
