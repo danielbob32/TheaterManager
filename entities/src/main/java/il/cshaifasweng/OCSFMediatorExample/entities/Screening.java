@@ -14,6 +14,10 @@ public class Screening {
     private Cinema cinema;
 
     @ManyToOne
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
+
+    @ManyToOne
     private MovieHall hall;
 
     private Date time;
@@ -28,9 +32,10 @@ public class Screening {
     public Screening() {
     }
 
-    public Screening(Cinema cinema, MovieHall hall, Date time, List<Seat> seats, boolean isFull) {
+    public Screening(Cinema cinema, MovieHall hall, Movie movie, Date time, List<Seat> seats, boolean isFull) {
         this.cinema = cinema;
         this.hall = hall;
+        this.movie = movie;
         this.time = time;
         this.seats = seats;
         this.isFull = isFull;
@@ -85,4 +90,13 @@ public class Screening {
     public void setFull(boolean full) {
         isFull = full;
     }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    public void setMovie(Movie movie) {
+        this.movie = movie;
+    }
+
 }
