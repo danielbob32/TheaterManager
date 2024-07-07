@@ -3,6 +3,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
 import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 
 import java.io.IOException;
 
@@ -43,13 +44,17 @@ public class SimpleClient extends AbstractClient {
 					}
 				});
 			} else {
-				// Handle login failure
 				Platform.runLater(() -> {
-					// Show error message
-				});
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.setTitle("Login Failed");
+					alert.setHeaderText(null);
+					alert.setContentText(message);
+					alert.showAndWait();
+			});
 			}
 		}
 	}
+
 
 	public static SimpleClient getClient() {
 		if (client == null) {
