@@ -70,31 +70,7 @@ public class App extends Application {
         super.stop();
     }
 
-    @Subscribe
-    public void onWarningEvent(WarningEvent event) {
-        Platform.runLater(() -> {
-            String message = event.getWarning().getMessage();
-            if (message.contains("Customer login successful")) {
-                try {
-                    setRoot("CustomerMenu");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showAlert("Error", "Could not load customer menu.");
-                }
-            } else if (message.contains("Worker login successful")) {
-                try {
-                    setRoot("WorkerMenu");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showAlert("Error", "Could not load worker menu.");
-                }
-            } else {
-                showAlert("Warning", String.format("Message: %s\nTimestamp: %s\n",
-                        message,
-                        event.getWarning().getTime().toString()));
-            }
-        });
-    }
+
 
     private void showAlert(String title, String content) {
         Alert alert = new Alert(AlertType.WARNING);

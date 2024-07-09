@@ -33,10 +33,6 @@ public class Customer extends Person{
         this.email = email;
     }
 
-    public Customer(int id) {
-        this.customer_id = id;
-    }
-
     // Getters and setters
 
 
@@ -97,6 +93,16 @@ public class Customer extends Person{
 
     public void setComplaints(List<Complaint> complaints) {
         this.complaints = complaints;
+    }
+
+    public void addBooking(Booking b)
+    {
+        this.bookings.add(b);
+    }
+
+    public void addProduct(Product b)
+    {
+        this.products.add(b);
     }
 
 }

@@ -6,7 +6,7 @@ import javax.persistence.Id;
 @Entity
 public abstract class Person {
     @Id
-    private int person_id;
+    private int personId;
     private String name;
     private boolean isLoggedIn;
 
@@ -14,9 +14,9 @@ public abstract class Person {
     {
     }
 
-    public Person(String name, int person_id) {
+    public Person(String name, int personId) {
         this.name = name;
-        this.person_id = person_id;
+        this.personId = personId;
         this.isLoggedIn = false;
     }
     public String getName() {
@@ -26,12 +26,12 @@ public abstract class Person {
         this.name = name;
     }
 
-    public int getId() {
-        return person_id;
+    public int getPersonId() {
+        return personId;
     }
 
-    public void setId(int id) {
-        this.person_id = id;
+    public void setPersonId(int id) {
+        this.personId = id;
     }
 
     public boolean isLoggedIn() {
