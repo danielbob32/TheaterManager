@@ -20,11 +20,30 @@ public class Movie {
     private Date premier;
     private boolean isHome; // True if it's possible to buy links for this cinema
     private boolean isCinema;  // True if it's possible to buy tickets for this cinema
+    private int cinemaPrice;
+    private int homePrice;
 
     // Constructors
     public Movie() {
     }
-    
+
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
+                 String synopsis, String genre, Date premier, boolean isHome, boolean isCinema, int cinemaPrice, int homePrice) {
+        this.englishName = englishName;
+        this.hebrewName = hebrewName;
+        this.producer = producer;
+        this.actors = actors;
+        this.duration = duration;
+        this.movieIcon = movieIcon;
+        this.synopsis = synopsis;
+        this.genre = genre;
+        this.premier = premier;
+        this.isHome = isHome;
+        this.isCinema = isCinema;
+        this.cinemaPrice = cinemaPrice;
+        this.homePrice = homePrice;
+    }
+
     public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
                  String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
         this.englishName = englishName;
@@ -38,6 +57,8 @@ public class Movie {
         this.premier = premier;
         this.isHome = ishome;
         this.isCinema = iscinema;
+        this.cinemaPrice = 0;
+        this.homePrice = 0;
     }
 
     // Getters and setters
@@ -138,5 +159,13 @@ public class Movie {
     public void setIsCinema(boolean isCinema)
     {
         this.isCinema = isCinema;
+    }
+
+    public int getHomePrice() {
+        return homePrice;
+    }
+
+    public int getCinemaPrice() {
+        return cinemaPrice;
     }
 }
