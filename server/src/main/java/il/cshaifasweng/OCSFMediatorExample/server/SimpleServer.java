@@ -31,23 +31,39 @@ public class SimpleServer extends AbstractServer {
 		System.out.println("Received message from client: " + msg);
 		Message message = (Message) msg;
 		String request = message.getMessage();
-		try{
-			if(request.startsWith("login")){
+		try {
+			if (request.startsWith("login")) {
 				String person = request.split(":")[1];
-				if(person.equals("worker"))
-				{
+				if (person.equals("worker")) {
 					Worker worker = objectMapper.readValue(message.getData(), Worker.class);
 					handleLoginRequest(worker, client);
 				} else if (person.equals("customer")) {
 					Customer customer = objectMapper.readValue(message.getData(), Customer.class);
 					handleLoginRequest(customer, client);
 				}
+			} else if (request.startsWith("add movie")) {
+				String movieData = message.getData();
+				Movie movie = objectMapper.readValue(movieData, Movie.class);
+				db.addMovie(movie);
+				Warning warning = new Warning("Movie have been added successfully");
+				client.sendToClient(warning);
+			} else if (request.startsWith("add home movie")) {
+				String homeMovieLinkData = message.getData();
+				HomeMovieLink homeMovieLink = objectMapper.readValue(homeMovieLinkData, HomeMovieLink.class);
+				db.addHomeMovie(homeMovieLink);
+				Warning warning = new Warning("Home movie have been added successfully");
+				client.sendToClient(warning);
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			try {
+				client.sendToClient(new Warning("Error: " + e.getMessage()));
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
 		}
+	}
+
 
 //		if (msg instanceof Worker || msg instanceof Customer) {
 //			handleLoginRequest(msg, client);
@@ -64,7 +80,7 @@ public class SimpleServer extends AbstractServer {
 //				}
 //			}
 //		}
-	}
+
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
 		boolean loginSuccess = false;

@@ -18,6 +18,9 @@ public class Screening {
 
     private Date time;
 
+    @ManyToOne
+    private Movie movie;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "screening_id")
     private List<Seat> seats;
@@ -28,12 +31,13 @@ public class Screening {
     public Screening() {
     }
 
-    public Screening(Cinema cinema, MovieHall hall, Date time, List<Seat> seats, boolean isFull) {
+    public Screening(Cinema cinema, MovieHall hall, Date time, List<Seat> seats, boolean isFull, Movie movie) {
         this.cinema = cinema;
         this.hall = hall;
         this.time = time;
         this.seats = seats;
         this.isFull = isFull;
+        this.movie = movie;
     }
     
 

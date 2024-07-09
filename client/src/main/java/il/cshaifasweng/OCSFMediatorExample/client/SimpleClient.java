@@ -1,15 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
-import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Message;
+import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
+import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
-import org.greenrobot.eventbus.EventBus;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
-import java.util.List;
 
 
 public class SimpleClient extends AbstractClient {
@@ -27,7 +27,6 @@ public class SimpleClient extends AbstractClient {
 			Warning warning = (Warning) msg;
 			String message = warning.getMessage();
 			System.out.println("Warning received: " + message);
-
 			if (message.startsWith("Worker login successful")) {
 				String[] parts = message.split(":");
 				if (parts.length == 2) {
@@ -49,18 +48,25 @@ public class SimpleClient extends AbstractClient {
 						e.printStackTrace();
 					}
 				});
-			} else {
+			} else if (message.equals("Movie have been added successfully") || message.equals("Home movie have been added successfully")) {
 				Platform.runLater(() -> {
-					Alert alert = new Alert(Alert.AlertType.ERROR);
-					alert.setTitle("Login Failed");
+					Alert alert = new Alert(Alert.AlertType.INFORMATION);
+					alert.setTitle("Success");
 					alert.setHeaderText(null);
 					alert.setContentText(message);
 					alert.showAndWait();
-			});
+				});
+			} else {
+				Platform.runLater(() -> {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.setTitle("Error");
+					alert.setHeaderText(null);
+					alert.setContentText(message);
+					alert.showAndWait();
+				});
 			}
 		}
 	}
-
 
 	public static SimpleClient getClient() {
 		if (client == null) {

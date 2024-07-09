@@ -6,13 +6,18 @@ import java.io.IOException;
 public class UpdateContentController {
 
     @FXML
-    private void updateMovies() throws IOException {
-        App.setRoot("UpdateMovies");
+    private void deleteMovies() throws IOException {
+        App.setRoot("DeleteMovies");
     }
 
     @FXML
-    private void updateHomeMovies() throws IOException {
-        App.setRoot("UpdateHomeMovies");
+    private void deleteHomeMovies() throws IOException {
+        App.setRoot("DeleteHomeMovies");
+    }
+
+    @FXML
+    private void addMovie() throws IOException {
+        App.setRoot("AddMovie");
     }
 
     @FXML

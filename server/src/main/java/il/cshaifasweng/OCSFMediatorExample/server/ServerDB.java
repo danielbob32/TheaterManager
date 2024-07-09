@@ -169,6 +169,22 @@ public class ServerDB {
         }
     }
 
+    public void addMovie(Movie movie) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.save(movie);
+            session.getTransaction().commit();
+        }
+    }
+
+    public void addHomeMovie(HomeMovieLink homeMovieLink) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.save(homeMovieLink);
+            session.getTransaction().commit();
+        }
+    }
+
     // Close the session factory and session when the instance is no longer needed
     public void close() {
         if (session != null) {

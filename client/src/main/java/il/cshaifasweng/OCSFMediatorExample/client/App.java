@@ -40,22 +40,35 @@ public class App extends Application {
     static void setRoot(String fxml, Consumer<Object> controllerConsumer) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         Parent root = fxmlLoader.load();
+        Object controller = fxmlLoader.getController();
         if (controllerConsumer != null) {
-            controllerConsumer.accept(fxmlLoader.getController());
+            controllerConsumer.accept(controller);
+        }
+        if (controller instanceof WorkerMenuController) {
+            ((WorkerMenuController) controller).setWorkerType(workerType);
         }
         scene.setRoot(root);
     }
 
+
     private static Parent loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        Parent root = fxmlLoader.load();
-        Object controller = fxmlLoader.getController();
-        if (controller instanceof WorkerMenuController) {
-            ((WorkerMenuController) controller).setWorkerType(workerType);
+        Parent root = null;
+        try {
+            root = fxmlLoader.load();
+            Object controller = fxmlLoader.getController();
+            if (controller instanceof WorkerMenuController) {
+                ((WorkerMenuController) controller).setWorkerType(workerType);
+            }
+            System.out.println("Successfully loaded FXML: " + fxml);
+        } catch (IOException e) {
+            System.err.println("Failed to load FXML file: " + fxml);
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
         return root;
     }
-
     public static void setWorkerType(String type) {
         workerType = type;
     }
