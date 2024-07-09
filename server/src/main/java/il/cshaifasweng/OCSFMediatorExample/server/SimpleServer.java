@@ -1,78 +1,70 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SimpleServer extends AbstractServer {
 
+	private ObjectMapper objectMapper = new ObjectMapper();
 	private ServerDB db;
-
 	public SimpleServer(int port) {
 		super(port);
-		try {
-			this.db = new ServerDB();
-		} catch (Exception e) {
-			System.err.println("Failed to initialize ServerDB: " + e.getMessage());
-			e.printStackTrace();
-		}
+		db = new ServerDB();
+
 	}
 
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-		System.out.println("Received message from client: " + msg);
-		if (msg instanceof Worker || msg instanceof Customer) {
-			handleLoginRequest(msg, client);
-		} else {
-			System.out.println("Received unknown message type: " + msg.getClass().getName());
-			String msgString = msg.toString();
-			if (msgString.startsWith("#warning")) {
-				Warning warning = new Warning("Warning from server!");
-				try {
-					client.sendToClient(warning);
-					System.out.format("Sent warning to client %s\n", client.getInetAddress().getHostAddress());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+
+		Message message = (Message) msg;
+		String request = message.getMessage();
+		try {
+			message.setMessage("");
+			//we got an empty message, so we will send back an error message with the error details.
+			if (request.isBlank()){
+				message.setMessage("Error! we got an empty message");
+				client.sendToClient(message);
 			}
+			// we got a request to return a list of the movies we have in the system.
+			else if(request.startsWith("getMovies")){
+				System.out.println("in SimpleServer getMovies request");
+				movieListRequest(message, client);
+			}
+			else{
+				message.setMessage("Don't know how to handle this request");
+				client.sendToClient(message);
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+
 		}
 	}
 
-	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
-		boolean loginSuccess = false;
-		String message = "";
-		try {
-			if (loginRequest instanceof Worker) {
-				Worker worker = (Worker) loginRequest;
-				loginSuccess = db.checkWorkerCredentials(worker.getId(), worker.getPassword());
-				if (loginSuccess) {
-					String workerType = db.getWorkerType(worker.getId());
-					message = "Worker login successful: " + workerType;
-				} else {
-					message = "Invalid worker credentials";
-				}
-			} else if (loginRequest instanceof Customer) {
-				Customer customer = (Customer) loginRequest;
-				loginSuccess = db.checkCustomerCredentials(customer.getId());
-				message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
-			} else {
-				message = "Invalid login request type";
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			message = "An error occurred during login: " + e.getMessage();
-		}
 
-		try {
-			Warning warning = new Warning(message);
-			client.sendToClient(warning);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
+//      System.out.println("In SimpleServer, Handling getMovies.");
+		List<Movie> movies = db.getAllMovies();
+		System.out.println("got the movies from serverDB");
+//      System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
+		String jsonMovies = objectMapper.writeValueAsString(movies);
+		message.setData(jsonMovies);
+		message.setMessage("movieList");
+//                System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
+		client.sendToClient(message);
+
 	}
 
 	@Override

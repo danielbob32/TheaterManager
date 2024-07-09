@@ -25,7 +25,8 @@ public class Movie {
     public Movie() {
     }
     
-    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
+                 String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;

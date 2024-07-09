@@ -22,17 +22,31 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        EventBus.getDefault().register(this);
-        client = SimpleClient.getClient();
-        client.openConnection();
-        scene = new Scene(loadFXML("Loginpage"), 640, 480);
-        primaryStage = stage;
+
+    	EventBus.getDefault().register(this);
+    	client = SimpleClient.getClient();
+    	client.openConnection();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("CinemaMovieList.fxml"));
+        Parent root = loader.load();
+        CinemaMoviesListBoundary controller = loader.getController();
+        controller.setClient(client);
+
+        // Set isContentManager value
+        boolean isContentManager = true; // or false, depending on your logic
+        controller.initData(isContentManager);
+
+        scene = new Scene(root, 640, 480);
         stage.setScene(scene);
         stage.show();
     }
 
-    static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
+    static void setRoot(String fxml,Object controllerData) throws IOException  {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        scene.setRoot(loader.load());
+        Object controller = loader.getController();
+        if (controller instanceof DataInitializable) {
+            ((DataInitializable) controller).initData(controllerData);
+        }
     }
 
     static void setRoot(String fxml, Consumer<Object> controllerConsumer) throws IOException {

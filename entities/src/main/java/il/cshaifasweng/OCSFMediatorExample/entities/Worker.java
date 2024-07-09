@@ -4,27 +4,24 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-public class Worker implements Serializable {
-    @Id
-    private int worker_id;
+
+public class Worker extends Person{
 
     private String name;
     private String workerType;
     private String password;
-    private boolean isLoggedIn;
 
     // Constructors
     public Worker() {
     }
 
     public Worker(String name, String password, int worker_id) {
-        this.worker_id = worker_id;
-        this.name = name;
+        super(name, worker_id);
         this.password = password;
     }
 
     public Worker(String name, String workerType, String password, int worker_id) {
-        this.worker_id = worker_id;
+        super(name, worker_id);
         this.name = name;
         this.workerType = workerType;
         this.password = password;
@@ -37,21 +34,6 @@ public class Worker implements Serializable {
 
 
     // Getters and setters
-    public int getWorker_id() {
-        return worker_id;
-    }
-
-    public void setWorker_id(int id) {
-        this.worker_id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getWorkerType() {
         return workerType;
@@ -69,13 +51,7 @@ public class Worker implements Serializable {
         this.password = password;
     }
 
-    public boolean isLoggedIn() {
-        return isLoggedIn;
-    }
 
-    public void setLoggedIn(boolean loggedIn) {
-        isLoggedIn = loggedIn;
-    }
 
     public int getId() {
         return worker_id;

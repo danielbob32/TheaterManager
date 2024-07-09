@@ -7,11 +7,10 @@ import java.util.List;
 
 
 @Entity
-public class Customer implements Serializable {
-    @Id
-    private int customer_id;
 
-    private String name;
+public class Customer extends Person{
+
+
     private String email;
 
     @OneToMany(mappedBy = "customer")
@@ -30,8 +29,7 @@ public class Customer implements Serializable {
     }
 
     public Customer(String name, String email, int id) {
-        this.customer_id = id;
-        this.name = name;
+        super(name, id);
         this.email = email;
     }
 
@@ -40,21 +38,8 @@ public class Customer implements Serializable {
     }
 
     // Getters and setters
-    public int getId() {
-        return customer_id;
-    }
 
-    public void setId(int id) {
-        this.customer_id = id;
-    }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;

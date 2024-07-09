@@ -1,14 +1,24 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.greenrobot.eventbus.EventBus;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import il.cshaifasweng.OCSFMediatorExample.client.events.*;
+
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
-import javafx.application.Platform;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.List;
+
 
 public class SimpleClient extends AbstractClient {
 
 	private static SimpleClient client = null;
+	private ObjectMapper objectMapper = new ObjectMapper();
+	private Person connectedPerson = null;
+
 
 	private SimpleClient(String host, int port) {
 		super(host, port);
@@ -16,41 +26,30 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
-		if (msg instanceof Warning) {
-			Warning warning = (Warning) msg;
-			String message = warning.getMessage();
-			System.out.println("Warning received: " + message);
 
-			if (message.startsWith("Worker login successful")) {
-				String[] parts = message.split(":");
-				if (parts.length == 2) {
-					String workerType = parts[1].trim();
-					Platform.runLater(() -> {
-						try {
-							App.setRoot("WorkerMenu", controller -> {
-								if (controller instanceof WorkerMenuController) {
-									((WorkerMenuController) controller).setWorkerType(workerType);
-								}
-							});
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					});
-				}
-			} else if (message.equals("Customer login successful")) {
-				Platform.runLater(() -> {
-					try {
-						App.setRoot("CustomerMenu");
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				});
-			} else {
-				// Handle login failure
-				Platform.runLater(() -> {
-					// Show error message
-				});
+		Message message = (Message) msg;
+		if (message.getMessage().equals("movieList")) {
+			try {
+				List<Movie> movies= objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>(){});
+				EventBus.getDefault().post(new MovieListEvent(movies));
+			} catch (IOException e) {
+				e.printStackTrace();
+				EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
 			}
+
+		}
+		else {
+			System.out.println("Got an unknown message: " + message.getMessage());
+		}
+	}
+
+	public void getMovies() {
+		try {
+			sendToServer(new Message(0, "getMovies"));
+		} catch (IOException e) {
+			e.printStackTrace();
+			EventBus.getDefault().post(new FailureEvent("Failed to request movies"));
+
 		}
 	}
 
@@ -61,13 +60,15 @@ public class SimpleClient extends AbstractClient {
 		return client;
 	}
 
-	public void sendToServer(Object msg) throws IOException {
-		System.out.println("Sending to server: " + msg);
-		super.sendToServer(msg);
+	public void Login(Person p)
+	{
+		this.connectedPerson = p;
 	}
 
-	public void openConnection() throws IOException {
-		System.out.println("Opening connection to server");
-		super.openConnection();
+	public void Logout()
+	{
+		this.connectedPerson = null;
 	}
+
 }
+
