@@ -55,6 +55,7 @@ public class ServerDB {
         }
     }
 
+
     public void generateMovies() {
         try
         {
@@ -89,6 +90,7 @@ public class ServerDB {
         }catch (HibernateException e) {
             session.getTransaction().rollback();
             throw e;
+
         }
     }
 
@@ -116,6 +118,24 @@ public class ServerDB {
         return data;
     }
 
+
+    public String getWorkerType(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "SELECT W.workerType FROM Worker W WHERE W.id = :id";
+            Query<String> query = session.createQuery(hql, String.class);
+            query.setParameter("id", id);
+            String workerType = query.uniqueResult();
+
+            System.out.println("Fetching worker type for ID: " + id);
+            System.out.println("Found worker type: " + workerType);
+
+            return workerType != null ? workerType : "Unknown";
+        } catch (Exception e) {
+            System.err.println("Error fetching worker type: " + e.getMessage());
+            e.printStackTrace();
+            return "Unknown";
+        }
+    }
 
     // Close the session factory and session when the instance is no longer needed
     public void close() {

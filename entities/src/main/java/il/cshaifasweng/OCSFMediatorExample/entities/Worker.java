@@ -1,9 +1,12 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
+
 public class Worker extends Person{
+
     private String name;
     private String workerType;
     private String password;
@@ -24,7 +27,12 @@ public class Worker extends Person{
         this.password = password;
     }
 
-   
+    public Worker(int id, String password) {
+        this.worker_id = id;
+        this.password = password;
+    }
+
+
     // Getters and setters
 
     public String getWorkerType() {
@@ -45,4 +53,7 @@ public class Worker extends Person{
 
 
 
+    public int getId() {
+        return worker_id;
+    }
 }

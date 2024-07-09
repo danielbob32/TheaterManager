@@ -1,6 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
@@ -12,18 +14,19 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
-
 public class SimpleServer extends AbstractServer {
+
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private ServerDB db;
 	public SimpleServer(int port) {
 		super(port);
 		db = new ServerDB();
+
 	}
 
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+
 		Message message = (Message) msg;
 		String request = message.getMessage();
 		try {
@@ -46,8 +49,10 @@ public class SimpleServer extends AbstractServer {
 			e1.printStackTrace();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+
 		}
 	}
+
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
 //      System.out.println("In SimpleServer, Handling getMovies.");
@@ -59,6 +64,26 @@ public class SimpleServer extends AbstractServer {
 		message.setMessage("movieList");
 //                System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
+
 	}
 
+	@Override
+	protected void serverStarted() {
+		super.serverStarted();
+		System.out.println("Server started");
+	}
+
+	@Override
+	protected void serverStopped() {
+		super.serverStopped();
+		System.out.println("Server stopped");
+		db.close();
+	}
+
+	@Override
+	protected void serverClosed() {
+		super.serverClosed();
+		System.out.println("Server closed");
+		db.close();
+	}
 }

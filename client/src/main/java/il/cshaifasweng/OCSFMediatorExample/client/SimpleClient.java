@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
@@ -11,8 +12,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
 
+
 public class SimpleClient extends AbstractClient {
-	
+
 	private static SimpleClient client = null;
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private Person connectedPerson = null;
@@ -24,6 +26,7 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
+
 		Message message = (Message) msg;
 		if (message.getMessage().equals("movieList")) {
 			try {
@@ -46,6 +49,7 @@ public class SimpleClient extends AbstractClient {
 		} catch (IOException e) {
 			e.printStackTrace();
 			EventBus.getDefault().post(new FailureEvent("Failed to request movies"));
+
 		}
 	}
 
@@ -67,3 +71,4 @@ public class SimpleClient extends AbstractClient {
 	}
 
 }
+

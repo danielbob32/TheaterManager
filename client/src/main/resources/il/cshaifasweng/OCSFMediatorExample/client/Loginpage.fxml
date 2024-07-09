@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
+    <VBox alignment="CENTER" spacing="20" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50" AnchorPane.topAnchor="50" AnchorPane.bottomAnchor="50" style="-fx-background-color: rgba(255,255,255,0.8); -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+
+        <Text text="Welcome to Movie Theater" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+
+        <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+        <ImageView fitWidth="200" fitHeight="150" preserveRatio="true">
+            <Image url="@/Images/MovieTheater.jpg"/>
+        </ImageView>
+
+        <ComboBox fx:id="userTypeComboBox" promptText="Select User Type"/>
+        <TextField fx:id="idTextField" promptText="Enter ID"/>
+        <PasswordField fx:id="passwordTextField" promptText="Enter Password"/>
+        <Button text="Login" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+    </VBox>
+</AnchorPane>
+

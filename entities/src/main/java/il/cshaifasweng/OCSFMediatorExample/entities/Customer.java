@@ -1,12 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Entity
+
 public class Customer extends Person{
+
 
     private String email;
 
@@ -29,8 +32,13 @@ public class Customer extends Person{
         super(name, id);
         this.email = email;
     }
-    
+
+    public Customer(int id) {
+        this.customer_id = id;
+    }
+
     // Getters and setters
+
 
 
     public String getEmail() {
