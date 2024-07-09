@@ -28,15 +28,27 @@ public class App extends Application {
     	EventBus.getDefault().register(this);
     	client = SimpleClient.getClient();
     	client.openConnection();
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("CinemaMovieList.fxml"));
+        Parent root = loader.load();
+        CinemaMoviesListBoundary controller = loader.getController();
+        controller.setClient(client);
+
+        // Set isContentManager value
+        boolean isContentManager = true; // or false, depending on your logic
+        controller.initData(isContentManager);
+
+        scene = new Scene(root, 640, 480);
         stage.setScene(scene);
         stage.show();
-        Movie movie = new Movie("The Matrix", "המטריקס", "האחים ווצ׳ובסקי", "קיאנו ריבס", 136, "https://upload.wikimedia.org/wikipedia/he/thumb/c/c1/The_Matrix_Poster.jpg/250px-The_Matrix_Poster.jpg", "סרט מדע בדיוני", "המטריקס הוא סרט מדע בדיוני אמריקאי משנת 1999, שבו הופיעו קיאנו ריבס, לורנס פישבורן וקרי-אן מוס. הסרט נכתב ובוצע על ידי האחים ווצ'ובסקי.", null);
-        System.out.println(movie.getActors());
     }
 
-    static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
+    static void setRoot(String fxml,Object controllerData) throws IOException  {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        scene.setRoot(loader.load());
+        Object controller = loader.getController();
+        if (controller instanceof DataInitializable) {
+            ((DataInitializable) controller).initData(controllerData);
+        }
     }
 
     private static Parent loadFXML(String fxml) throws IOException {

@@ -6,11 +6,8 @@ import java.util.List;
 
 
 @Entity
-public class Customer {
-    @Id
-    private int customer_id;
+public class Customer extends Person{
 
-    private String name;
     private String email;
 
     @OneToMany(mappedBy = "customer")
@@ -29,28 +26,12 @@ public class Customer {
     }
 
     public Customer(String name, String email, int id) {
-        this.customer_id = id;
-        this.name = name;
+        super(name, id);
         this.email = email;
     }
     
     // Getters and setters
-    public int getId() {
-        return customer_id;
-    }
 
-    public void setId(int id) {
-        this.customer_id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;

@@ -13,6 +13,7 @@ import org.hibernate.service.ServiceRegistry;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -24,8 +25,6 @@ public class ServerDB {
         try {
             // Configure Hibernate
             Configuration configuration = new Configuration();
-            configuration.addProperties(getHibernateProperties());
-
             // Add all entity classes here
             configuration.addAnnotatedClass(Booking.class);
             configuration.addAnnotatedClass(Cinema.class);
@@ -40,7 +39,6 @@ public class ServerDB {
             configuration.addAnnotatedClass(Seat.class);
             configuration.addAnnotatedClass(Ticket.class);
             configuration.addAnnotatedClass(TicketTab.class);
-            configuration.addAnnotatedClass(Warning.class);
             configuration.addAnnotatedClass(Worker.class);
 
             // Build the SessionFactory
@@ -49,32 +47,48 @@ public class ServerDB {
             sessionFactory = configuration.buildSessionFactory(serviceRegistry);
             session = sessionFactory.openSession();
             System.out.println("Connected to database");
+            generateMovies(); // Initialize database with initial data
 
         } catch (HibernateException e) {
             System.err.println("Error connecting to database: " + e.getMessage());
             e.printStackTrace();
         }
-
-        addTestData();
     }
 
-    private void addTestData() {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
+    public void generateMovies() {
+        try
+        {
+            session.beginTransaction();
 
-            // Add a test worker
-            Worker testWorker = new Worker("Test Worker", "password123", 1555);
-            session.save(testWorker);
-
-            // Add a test customer
-            Customer testCustomer = new Customer("Test Customer", "test@example.com", 1545);
-            session.save(testCustomer);
-
-            transaction.commit();
-            System.out.println("Test data added successfully");
-        } catch (Exception e) {
-            System.err.println("Error adding test data: " + e.getMessage());
-            e.printStackTrace();
+//            System.out.println("Generating movies...");
+            String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב"};
+            String[] titles_english = {"Deadpool", "Smurfs", "Barbie", "Jump Street 22", "Hunger Games"};
+            String[] producer = {"Simon Kinberg", "Raja Gosnell", "Margot Robbie", "Jonah Hill", "Gary Ross"};
+            String[] movie_description = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fanatastic Movie"};
+            String[] movie_actors = {"Doston", "Yoni", "Yarden", "Dani", "Meshi"};
+            String[] genre = {"Action, Fantasy", "Family", "Drama", "Comedy", "Fantasy"};
+            String images_base_path = "il/cshaifasweng/OCSFMediatorExample/entities/";
+            String[] movie_icons = {"deadpool.jpg", "deadpool.jpg", "deadpool.jpg", "deadpool.jpg", "deadpool.jpg"};
+//            Date[] dates = {new Date(), new Date(), new Date(), new Date(), new Date()};
+            int[] duration = {120, 125, 96, 111, 150};
+            // Movie URL empty for now
+            for (int i = 0; i < 5; i++) {
+                Movie m = new Movie(titles_english[i],titles_hebrew[i], producer[i] , movie_actors[i],
+                        duration[i], images_base_path+movie_icons[i], movie_description[i], genre[i], new Date(),
+                        true, true );
+                session.save(m);
+                /*
+                 * The call to session.flush() updates the DB immediately without ending the transaction.
+                 * Recommended to do after an arbitrary unit of work.
+                 * MANDATORY to do if you are saving a large amount of data -otherwise you may get cache errors.
+                 */
+                session.flush();
+            }
+            session.getTransaction().commit();
+//            System.out.println("Movies Generated");
+        }catch (HibernateException e) {
+            session.getTransaction().rollback();
+            throw e;
         }
     }
 
@@ -94,6 +108,7 @@ public class ServerDB {
     }
 
     public List<Movie> getAllMovies() throws Exception {
+        System.out.println("in getAllMovies");
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
         query.from(Movie.class);
@@ -101,44 +116,6 @@ public class ServerDB {
         return data;
     }
 
-    public boolean checkWorkerCredentials(int id, String password) {
-        try (Session session = sessionFactory.openSession()) {
-            String hql = "FROM Worker W WHERE W.id = :id";
-            Query<Worker> query = session.createQuery(hql, Worker.class);
-            query.setParameter("id", id);
-            Worker worker = query.uniqueResult();
-
-            System.out.println("Checking worker credentials for ID: " + id);
-            System.out.println("Found worker: " + (worker != null));
-            if (worker != null) {
-                System.out.println("Password match: " + worker.getPassword().equals(password));
-            }
-
-            return worker != null && worker.getPassword().equals(password);
-        } catch (Exception e) {
-            System.err.println("Error checking worker credentials: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean checkCustomerCredentials(int id) {
-        try (Session session = sessionFactory.openSession()) {
-            String hql = "FROM Customer C WHERE C.id = :id";
-            Query<Customer> query = session.createQuery(hql, Customer.class);
-            query.setParameter("id", id);
-            Customer customer = query.uniqueResult();
-
-            System.out.println("Checking customer credentials for ID: " + id);
-            System.out.println("Found customer: " + (customer != null));
-
-            return customer != null;
-        } catch (Exception e) {
-            System.err.println("Error checking customer credentials: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     // Close the session factory and session when the instance is no longer needed
     public void close() {
