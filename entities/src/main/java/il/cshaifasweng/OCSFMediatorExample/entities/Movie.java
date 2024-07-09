@@ -14,6 +14,8 @@ public class Movie {
     private String producer;
     private String actors;
     private int duration;
+    private int cinemaPrice;
+    private int homePrice;
     private String movieIcon; // Assuming this is a URL or path to the image
     private String synopsis;
     private String genre;
@@ -25,6 +27,22 @@ public class Movie {
     public Movie() {
     }
     
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier, boolean ishome, boolean iscinema, int cinemaPrice, int homePrice) {
+        this.englishName = englishName;
+        this.hebrewName = hebrewName;
+        this.producer = producer;
+        this.actors = actors;
+        this.duration = duration;
+        this.movieIcon = movieIcon;
+        this.synopsis = synopsis;
+        this.genre = genre;
+        this.premier = premier;
+        this.isHome = ishome;
+        this.isCinema = iscinema;
+        this.cinemaPrice = cinemaPrice;
+        this.homePrice = homePrice;
+    }
+
     public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
@@ -124,6 +142,7 @@ public class Movie {
     {
         this.isHome = isHome;
     }
+
     public boolean getIsHome()
     {
         return isHome;
@@ -138,4 +157,13 @@ public class Movie {
     {
         this.isCinema = isCinema;
     }
+
+    public int getCinemaPrice() {return cinemaPrice;}
+
+    public void setCinemaPrice(int cinemaPrice) {this.cinemaPrice = cinemaPrice;}
+
+    public int getHomePrice() {return homePrice;}
+
+    public void setHomePrice(int homePrice) {this.homePrice = homePrice;}
+
 }

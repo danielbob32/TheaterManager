@@ -12,29 +12,26 @@
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
             </padding>
             <children>
-                <Text text="Add Movie/Home Movie" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;" />
-                <ComboBox fx:id="movieTypeComboBox" promptText="Select Movie Type" onAction="#handleMovieTypeSelection" />
-                <VBox fx:id="movieForm" prefWidth="600.0" spacing="10.0" visible="false" managed="false">
-                    <TextField fx:id="englishNameField" promptText="English Name" />
-                    <TextField fx:id="hebrewNameField" promptText="Hebrew Name" />
-                    <TextField fx:id="producerField" promptText="Producer" />
-                    <TextField fx:id="actorsField" promptText="Actors" />
-                    <TextField fx:id="durationField" promptText="Duration" />
-                    <TextField fx:id="movieIconField" promptText="Movie Icon URL" />
-                    <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
-                    <TextField fx:id="genreField" promptText="Genre" />
-                    <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
-                    <CheckBox fx:id="isHomeCheckBox" mnemonicParsing="false" text="Is Home Movie" />
-                    <Button mnemonicParsing="false" onAction="#submitMovie" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Text text="Add Movie" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;" />
+                <TextField fx:id="englishNameField" promptText="English Name" />
+                <TextField fx:id="hebrewNameField" promptText="Hebrew Name" />
+                <TextField fx:id="producerField" promptText="Producer" />
+                <TextField fx:id="actorsField" promptText="Actors" />
+                <TextField fx:id="durationField" promptText="Duration" />
+                <TextField fx:id="movieIconField" promptText="Movie Icon URL" />
+                <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
+                <TextField fx:id="genreField" promptText="Genre" />
+                <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
+                <CheckBox fx:id="isCinemaCheckBox" text="Is Cinema Movie" onAction="#toggleCinemaFields" />
+                <VBox fx:id="cinemaFields" visible="false" managed="false" spacing="10.0">
+                    <TextField fx:id="cinemaPriceField" promptText="Cinema Price" />
                 </VBox>
-                <VBox fx:id="homeMovieForm" prefWidth="600.0" spacing="10.0" visible="false" managed="false">
-                    <DatePicker fx:id="openTimeDatePicker" promptText="Open Time" />
-                    <DatePicker fx:id="closeTimeDatePicker" promptText="Close Time" />
+                <CheckBox fx:id="isHomeCheckBox" text="Is Home Movie" onAction="#toggleHomeMovieFields" />
+                <VBox fx:id="homeMovieFields" visible="false" managed="false" spacing="10.0">
                     <TextField fx:id="watchLinkField" promptText="Watch Link" />
-                    <TextField fx:id="priceField" promptText="Price" />
-                    <DatePicker fx:id="purchaseTimeDatePicker" promptText="Purchase Time" />
-                    <Button mnemonicParsing="false" onAction="#submitHomeMovie" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                    <TextField fx:id="homePriceField" promptText="Home Movie Price" />
                 </VBox>
+                <Button mnemonicParsing="false" onAction="#submitMovie" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
                 <Button mnemonicParsing="false" onAction="#goBack" text="Go Back" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
             </children>
         </VBox>

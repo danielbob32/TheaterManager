@@ -41,18 +41,20 @@ public class SimpleServer extends AbstractServer {
 					Customer customer = objectMapper.readValue(message.getData(), Customer.class);
 					handleLoginRequest(customer, client);
 				}
-			} else if (request.startsWith("add movie")) {
+			} else if (request.startsWith("add")) {
 				String movieData = message.getData();
 				Movie movie = objectMapper.readValue(movieData, Movie.class);
 				db.addMovie(movie);
-				Warning warning = new Warning("Movie have been added successfully");
-				client.sendToClient(warning);
-			} else if (request.startsWith("add home movie")) {
-				String homeMovieLinkData = message.getData();
-				HomeMovieLink homeMovieLink = objectMapper.readValue(homeMovieLinkData, HomeMovieLink.class);
-				db.addHomeMovie(homeMovieLink);
-				Warning warning = new Warning("Home movie have been added successfully");
-				client.sendToClient(warning);
+				if (movie.getIsHome()) {
+					String homeMovieLinkData = message.getAdditionalData();
+					HomeMovieLink homeMovieLink = objectMapper.readValue(homeMovieLinkData, HomeMovieLink.class);
+					db.addHomeMovie(homeMovieLink);
+					Warning warning = new Warning("Movie has been added successfully");
+					client.sendToClient(warning);
+				} else {
+					Warning warning = new Warning("Movie has been added successfully");
+					client.sendToClient(warning);
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -63,6 +65,8 @@ public class SimpleServer extends AbstractServer {
 			}
 		}
 	}
+
+
 
 
 //		if (msg instanceof Worker || msg instanceof Customer) {

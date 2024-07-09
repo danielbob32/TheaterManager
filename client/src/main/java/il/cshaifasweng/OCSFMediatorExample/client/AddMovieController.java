@@ -22,10 +22,8 @@ public class AddMovieController {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+
     @FXML private AnchorPane mainContainer;
-    @FXML private ComboBox<String> movieTypeComboBox;
-    @FXML private VBox movieForm;
-    @FXML private VBox homeMovieForm;
     @FXML private TextField englishNameField;
     @FXML private TextField hebrewNameField;
     @FXML private TextField producerField;
@@ -35,52 +33,31 @@ public class AddMovieController {
     @FXML private TextArea synopsisArea;
     @FXML private TextField genreField;
     @FXML private DatePicker premierDatePicker;
+    @FXML private CheckBox isCinemaCheckBox;
+    @FXML private VBox cinemaFields;
     @FXML private CheckBox isHomeCheckBox;
-    @FXML private DatePicker openTimeDatePicker;
-    @FXML private DatePicker closeTimeDatePicker;
+    @FXML private VBox homeMovieFields;
     @FXML private TextField watchLinkField;
-    @FXML private TextField priceField;
-    @FXML private DatePicker purchaseTimeDatePicker;
+    @FXML private TextField cinemaPriceField;
+    @FXML private TextField homePriceField;
 
     @FXML
     public void initialize() {
-        try {
-            EventBus.getDefault().register(this);
-            movieTypeComboBox.getItems().addAll("Regular Movie", "Home Movie");
-            movieForm.setVisible(false);
-            movieForm.setManaged(false);
-            homeMovieForm.setVisible(false);
-            homeMovieForm.setManaged(false);
-            System.out.println("AddMovieController initialized successfully");
-
-            Platform.runLater(() -> {
-                System.out.println("Main container width: " + mainContainer.getWidth());
-                System.out.println("Main container height: " + mainContainer.getHeight());
-                System.out.println("ComboBox items: " + movieTypeComboBox.getItems());
-            });
-        } catch (Exception e) {
-            System.err.println("Error initializing AddMovieController: " + e.getMessage());
-            e.printStackTrace();
-        }
+        EventBus.getDefault().register(this);
     }
 
     @FXML
-    private void handleMovieTypeSelection() {
-        String selectedType = movieTypeComboBox.getValue();
-        System.out.println("Selected type: " + selectedType);
-        if ("Regular Movie".equals(selectedType)) {
-            movieForm.setVisible(true);
-            movieForm.setManaged(true);
-            homeMovieForm.setVisible(false);
-            homeMovieForm.setManaged(false);
-        } else if ("Home Movie".equals(selectedType)) {
-            movieForm.setVisible(false);
-            movieForm.setManaged(false);
-            homeMovieForm.setVisible(true);
-            homeMovieForm.setManaged(true);
-        }
-        System.out.println("Movie form visible: " + movieForm.isVisible());
-        System.out.println("Home movie form visible: " + homeMovieForm.isVisible());
+    private void toggleHomeMovieFields() {
+        boolean isHomeMovie = isHomeCheckBox.isSelected();
+        homeMovieFields.setVisible(isHomeMovie);
+        homeMovieFields.setManaged(isHomeMovie);
+    }
+
+    @FXML
+    private void toggleCinemaFields() {
+        boolean isCinemaMovie = isCinemaCheckBox.isSelected();
+        cinemaFields.setVisible(isCinemaMovie);
+        cinemaFields.setManaged(isCinemaMovie);
     }
 
     @FXML
@@ -95,49 +72,43 @@ public class AddMovieController {
             String synopsis = validateField(synopsisArea, "Synopsis");
             String genre = validateField(genreField, "Genre");
             LocalDate premierDate = validateDatePicker(premierDatePicker, "Premier Date");
+            boolean isCinema = isCinemaCheckBox.isSelected();
             boolean isHome = isHomeCheckBox.isSelected();
-            boolean isCinema = true; // Always true for regular movies
+
+            int cinemaPrice = 0;
+            if (isCinema) {
+                cinemaPrice = Integer.parseInt(validateField(cinemaPriceField, "Cinema Price"));
+            }
+
+            int homePrice = 0;
+            String watchLink = "null";
+            if (isHome) {
+                homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
+                watchLink = validateField(watchLinkField, "Watch Link");
+            }
 
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-            Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, genre, premier, isHome, isCinema);
+            Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, genre, premier, isHome, isCinema, cinemaPrice, homePrice);
 
-            String movieData = objectMapper.writeValueAsString(movie);
-            Message msg = new Message(0, "add movie", movieData);
-            SimpleClient.getClient().sendToServer(msg);
+            if (isHome) {
+                HomeMovieLink homeMovieLink = new HomeMovieLink(null, null, true, watchLink, 0, homePrice, true, null, null);
+                String movieData = objectMapper.writeValueAsString(movie);
+                String homeMovieLinkData = objectMapper.writeValueAsString(homeMovieLink);
+
+                Message msg = new Message(0, "add home movie", movieData, homeMovieLinkData);
+                SimpleClient.getClient().sendToServer(msg);
+            } else {
+                String movieData = objectMapper.writeValueAsString(movie);
+                Message msg = new Message(0, "add movie", movieData);
+                SimpleClient.getClient().sendToServer(msg);
+            }
+
+            clearForms();
         } catch (NumberFormatException e) {
-            showAlert("Invalid Input", "Please enter a valid number for the Duration field.");
+            showAlert("Invalid Input", "Please enter valid numbers for Duration and Price fields.");
         } catch (IOException e) {
             showAlert("Error", "An error occurred while sending the movie data.");
-            e.printStackTrace();
-        } catch (ValidationException e) {
-            showAlert("Validation Error", e.getMessage());
-        }
-    }
-
-    @FXML
-    private void submitHomeMovie() {
-        try {
-            LocalDate openTime = validateDatePicker(openTimeDatePicker, "Open Time");
-            LocalDate closeTime = validateDatePicker(closeTimeDatePicker, "Close Time");
-            boolean isOpen = true; // Always true for home movies
-            String watchLink = validateField(watchLinkField, "Watch Link");
-            int price = Integer.parseInt(validateField(priceField, "Price"));
-            LocalDate purchaseTime = validateDatePicker(purchaseTimeDatePicker, "Purchase Time");
-
-            Date open = Date.from(openTime.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            Date close = Date.from(closeTime.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            Date purchase = Date.from(purchaseTime.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-            HomeMovieLink homeMovieLink = new HomeMovieLink(open, close, isOpen, watchLink, 0, price, true, null, purchase);
-
-            String homeMovieLinkData = objectMapper.writeValueAsString(homeMovieLink);
-            Message msg = new Message(0, "add home movie", homeMovieLinkData);
-            SimpleClient.getClient().sendToServer(msg);
-        } catch (NumberFormatException e) {
-            showAlert("Invalid Input", "Please enter a valid number for the Price field.");
-        } catch (IOException e) {
-            showAlert("Error", "An error occurred while sending the home movie data.");
             e.printStackTrace();
         } catch (ValidationException e) {
             showAlert("Validation Error", e.getMessage());
@@ -207,12 +178,6 @@ public class AddMovieController {
     }
 
     private void clearForms() {
-        // Reset ComboBox and hide forms
-        movieTypeComboBox.setValue(null);
-        movieForm.setVisible(false);
-        movieForm.setManaged(false);
-        homeMovieForm.setVisible(false);
-        homeMovieForm.setManaged(false);
 
         // Clear Movie form fields
         englishNameField.clear();
@@ -225,12 +190,15 @@ public class AddMovieController {
         genreField.clear();
         premierDatePicker.setValue(null);
         isHomeCheckBox.setSelected(false);
+        cinemaFields.setVisible(false);
+        cinemaFields.setManaged(false);
+        isCinemaCheckBox.setSelected(false);
+        homeMovieFields.setVisible(false);
+        homeMovieFields.setManaged(false);
 
         // Clear Home Movie form fields
-        openTimeDatePicker.setValue(null);
-        closeTimeDatePicker.setValue(null);
         watchLinkField.clear();
-        priceField.clear();
-        purchaseTimeDatePicker.setValue(null);
+        cinemaPriceField.clear();
+        homePriceField.clear();
     }
 }

@@ -8,6 +8,7 @@ public class Message implements Serializable {
     LocalDateTime timeStamp;
     String message;
     String data;
+    String additionalData;
 
     public Message(int id, LocalDateTime timeStamp, String message) {
         this.id = id;
@@ -28,6 +29,25 @@ public class Message implements Serializable {
         this.message = message;
         this.data = data;
     }
+
+    // Add a new constructor
+    public Message(int id, String message, String data, String additionalData) {
+        this.id = id;
+        this.timeStamp = LocalDateTime.now();
+        this.message = message;
+        this.data = data;
+        this.additionalData = additionalData;
+    }
+
+    // Add getter and setter for additionalData
+    public String getAdditionalData() {
+        return additionalData;
+    }
+
+    public void setAdditionalData(String additionalData) {
+        this.additionalData = additionalData;
+    }
+
 
     public int getId() {
         return id;

@@ -48,7 +48,7 @@ public class SimpleClient extends AbstractClient {
 						e.printStackTrace();
 					}
 				});
-			} else if (message.equals("Movie have been added successfully") || message.equals("Home movie have been added successfully")) {
+			} else if (message.equals("Movie has been added successfully") || message.equals("Home movie has been added successfully")) {
 				Platform.runLater(() -> {
 					Alert alert = new Alert(Alert.AlertType.INFORMATION);
 					alert.setTitle("Success");
