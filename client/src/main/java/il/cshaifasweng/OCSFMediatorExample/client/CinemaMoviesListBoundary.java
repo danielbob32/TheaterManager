@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CinemaMoviesListBoundary implements DataInitializable {
@@ -165,8 +164,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		HBox contentBox = new HBox(10);
 		contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
-		String path = "\\Users\\yarden_itzhaky\\Desktop\\Assigments\\labs\\FINAL PROJECT\\client\\src\\main\\resources\\Images\\deadpool.jpg";
-		Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(path)));
+		String imageName = "deadpool.jpg";
+		Image image = new Image(getClass().getResourceAsStream("/Images/" + imageName));
 		ImageView iv = new ImageView(image);
 		iv.setFitWidth(150);
 		iv.setFitHeight(200);

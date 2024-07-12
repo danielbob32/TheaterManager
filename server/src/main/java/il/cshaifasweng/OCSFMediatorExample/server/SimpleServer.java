@@ -1,17 +1,13 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
-
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -32,6 +28,7 @@ public class SimpleServer extends AbstractServer {
 		System.out.println("Received message from client: " + msg);
 		Message message = (Message) msg;
 		String request = message.getMessage();
+		System.out.println("Request type: " + request);
 		try {
 			if (request.startsWith("login")) {
 				String person = request.split(":")[1];
@@ -57,8 +54,37 @@ public class SimpleServer extends AbstractServer {
 					client.sendToClient(warning);
 				}
 			} else if (request.startsWith("getMovies")){
-				System.out.println("in SimpleServer getMovies request");
-				movieListRequest(message, client);
+				if (request.equals("getMoviesForPrices")) {
+					String movieType = message.getData();
+					System.out.println("Getting movies for type: " + movieType);
+					List<Map<String, Object>> movies = db.getMovies(movieType);
+					System.out.println("Retrieved " + movies.size() + " movies");
+					String jsonMovies = objectMapper.writeValueAsString(movies);
+					Message response = new Message(0, "movieListPrices", jsonMovies);
+					System.out.println("Sending movieListPrices response to client");
+					client.sendToClient(response);
+				}
+				else {
+					System.out.println("in SimpleServer getMovies request");
+					movieListRequest(message, client);
+				}
+			} else if (request.startsWith("updatePrice")) {
+				String[] parts = message.getData().split(",");
+				int movieId = Integer.parseInt(parts[0]);
+				String movieType = parts[1];
+				int newPrice = Integer.parseInt(parts[2]);
+				boolean success = db.updateMoviePrice(movieId, movieType, newPrice);
+				if (success) {
+					client.sendToClient(new Warning("Price updated successfully"));
+				} else {
+					client.sendToClient(new Warning("Failed to update price"));
+				}
+			} else if (request.equals("getScreeningsForMovie")) {
+				int movieId = Integer.parseInt(message.getData());
+				List<Screening> screenings = db.getScreeningsForMovie(movieId);
+				String jsonScreenings = objectMapper.writeValueAsString(screenings);
+				Message response = new Message(0, "screeningList", jsonScreenings);
+				client.sendToClient(response);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -68,7 +94,8 @@ public class SimpleServer extends AbstractServer {
 				ioException.printStackTrace();
 			}
 		} catch (Exception e) {
-            throw new RuntimeException(e);
+			System.err.println("Error handling client message: " + e.getMessage());
+			e.printStackTrace();
         }
     }
 

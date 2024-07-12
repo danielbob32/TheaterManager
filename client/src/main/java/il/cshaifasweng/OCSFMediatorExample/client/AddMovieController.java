@@ -18,7 +18,19 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-public class AddMovieController {
+public class AddMovieController implements DataInitializable {
+
+    private SimpleClient client;
+
+    @Override
+    public void setClient(SimpleClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public void initData(Object data) {
+        System.out.println("AddMovieController initialized");
+    }
 
     private ObjectMapper objectMapper = new ObjectMapper();
 

@@ -1,10 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
-import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,13 +16,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class HomeMoviesListBoundary implements DataInitializable {
@@ -87,7 +84,8 @@ public class HomeMoviesListBoundary implements DataInitializable {
         HBox contentBox = new HBox(10);
         contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 
-        Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("\\deadpool.jpg")));
+        String imageName = "deadpool.jpg";
+        Image image = new Image(getClass().getResourceAsStream("/Images/" + imageName));
         ImageView iv = new ImageView(image);
         iv.setFitWidth(150);
         iv.setFitHeight(200);

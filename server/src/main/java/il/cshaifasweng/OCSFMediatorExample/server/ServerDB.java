@@ -248,6 +248,19 @@ public class ServerDB {
             Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
                     durations[i], movie_icons[i], movie_descriptions[i], genres[i], premierDate,
                     isHome[i], true);
+
+            // Ensure some movies are both cinema and home movies
+            if (i % 3 == 0) {
+                movie.setIsHome(true);
+                movie.setIsCinema(true);
+            } else if (i % 3 == 1) {
+                movie.setIsHome(true);
+                movie.setIsCinema(false);
+            } else {
+                movie.setIsHome(false);
+                movie.setIsCinema(true);
+            }
+
             session.save(movie);
             movies.add(movie);
         }
@@ -290,6 +303,79 @@ public class ServerDB {
                 session.save(screening);
                 session.flush();
             }
+        }
+    }
+
+    public List<Map<String, Object>> getMovies(String movieType) {
+        System.out.println("ServerDB: Getting movies for type: " + movieType);
+        try (Session session = sessionFactory.openSession()) {
+            String hql;
+            if (movieType.equals("Cinema Movies")) {
+                hql = "SELECT new map(m.id as id, m.englishName as englishName, m.hebrewName as hebrewName, " +
+                        "m.producer as producer, m.actors as actors, m.duration as duration, m.movieIcon as movieIcon, " +
+                        "m.synopsis as synopsis, m.genre as genre, m.premier as premier, m.isHome as isHome, " +
+                        "m.isCinema as isCinema, m.cinemaPrice as cinemaPrice, m.homePrice as homePrice) " +
+                        "FROM Movie m WHERE m.isCinema = true";
+            } else if (movieType.equals("Home Movies")) {
+                hql = "SELECT new map(m.id as id, m.englishName as englishName, m.hebrewName as hebrewName, " +
+                        "m.producer as producer, m.actors as actors, m.duration as duration, m.movieIcon as movieIcon, " +
+                        "m.synopsis as synopsis, m.genre as genre, m.premier as premier, m.isHome as isHome, " +
+                        "m.isCinema as isCinema, m.cinemaPrice as cinemaPrice, m.homePrice as homePrice) " +
+                        "FROM Movie m WHERE m.isHome = true";
+            } else {
+                hql = "SELECT new map(m.id as id, m.englishName as englishName, m.hebrewName as hebrewName, " +
+                        "m.producer as producer, m.actors as actors, m.duration as duration, m.movieIcon as movieIcon, " +
+                        "m.synopsis as synopsis, m.genre as genre, m.premier as premier, m.isHome as isHome, " +
+                        "m.isCinema as isCinema, m.cinemaPrice as cinemaPrice, m.homePrice as homePrice) " +
+                        "FROM Movie m";
+            }
+            System.out.println("ServerDB: Executing HQL query: " + hql);
+            @SuppressWarnings("unchecked")
+            Query<Map<String, Object>> query = (Query<Map<String, Object>>) session.createQuery(hql);
+            List<Map<String, Object>> movies = query.getResultList();
+            System.out.println("ServerDB: Retrieved " + movies.size() + " " + movieType);
+            return movies;
+        } catch (Exception e) {
+            System.err.println("ServerDB: Error retrieving movies: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean updateMoviePrice(int movieId, String movieType, int newPrice) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                Movie movie = session.get(Movie.class, movieId);
+                if (movie != null) {
+                    if (movieType.equals("Cinema Movies")) {
+                        movie.setCinemaPrice(newPrice);
+                    } else {
+                        movie.setHomePrice(newPrice);
+                    }
+                    session.update(movie);
+                    transaction.commit();
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                transaction.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+
+    public List<Screening> getScreeningsForMovie(int movieId) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Screening WHERE movie.id = :movieId";
+            Query<Screening> query = session.createQuery(hql, Screening.class);
+            query.setParameter("movieId", movieId);
+            return query.list();
+        } catch (Exception e) {
+            System.err.println("Error retrieving screenings for movie " + movieId + ": " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }

@@ -13,7 +13,10 @@ import javafx.scene.control.Alert;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class SimpleClient extends AbstractClient {
@@ -35,8 +38,10 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
+		System.out.println("Received message from server: " + msg);
 		if (msg instanceof Message){
 			Message message = (Message) msg;
+			System.out.println("Message type: " + message.getMessage());
 			if (message.getMessage().equals("movieList")) {
 				try {
 					List<Movie> movies= objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>(){});
@@ -45,7 +50,6 @@ public class SimpleClient extends AbstractClient {
 					e.printStackTrace();
 					EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
 				}
-
 			} else if (message.getMessage().startsWith("Customer login:")) {
 				String success = message.getMessage().split(":")[1];
 				if (success.equals("successful")) {
@@ -63,7 +67,7 @@ public class SimpleClient extends AbstractClient {
 						Alert alert = new Alert(Alert.AlertType.ERROR);
 						alert.setTitle("Error");
 						alert.setHeaderText(null);
-						alert.setContentText("Failed to login as customer");
+						alert.setContentText("Failed to login as customer, check credentials");
 						alert.showAndWait();
 					});
 				}
@@ -82,12 +86,41 @@ public class SimpleClient extends AbstractClient {
 							e.printStackTrace();
 						}
 					});
-				} else {
+				} else if (message.getMessage().equals("movieListPrices")) {
+					try {
+						List<Map<String, Object>> movieMaps = objectMapper.readValue(message.getData(), new TypeReference<List<Map<String, Object>>>(){});
+						List<Movie> movies = movieMaps.stream()
+								.map(map -> {
+									Movie movie = new Movie();
+									movie.setId((Integer) map.get("id"));
+									movie.setEnglishName((String) map.get("englishName"));
+									movie.setHebrewName((String) map.get("hebrewName"));
+									movie.setProducer((String) map.get("producer"));
+									movie.setActors((String) map.get("actors"));
+									movie.setDuration((Integer) map.get("duration"));
+									movie.setMovieIcon((String) map.get("movieIcon"));
+									movie.setSynopsis((String) map.get("synopsis"));
+									movie.setGenre((String) map.get("genre"));
+									movie.setPremier(new Date((Long) map.get("premier")));
+									movie.setIsHome((Boolean) map.get("isHome"));
+									movie.setIsCinema((Boolean) map.get("isCinema"));
+									movie.setCinemaPrice((Integer) map.get("cinemaPrice"));
+									movie.setHomePrice((Integer) map.get("homePrice"));
+									return movie;
+								})
+								.collect(Collectors.toList());
+						EventBus.getDefault().post(new MovieListEvent(movies));
+					} catch (IOException e) {
+						e.printStackTrace();
+						EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies for prices"));
+					}
+				}}
+				else {
 					Platform.runLater(() -> {
 						Alert alert = new Alert(Alert.AlertType.ERROR);
 						alert.setTitle("Error");
 						alert.setHeaderText(null);
-						alert.setContentText("Failed to login as worker");
+						alert.setContentText("Failed to login as worker, check credentials");
 						alert.showAndWait();
 					});
 				}
@@ -137,7 +170,7 @@ public class SimpleClient extends AbstractClient {
 //				});
 //			}
 //		}
-	}
+
 
 	public static SimpleClient getClient() {
 		if (client == null) {
@@ -214,5 +247,13 @@ public class SimpleClient extends AbstractClient {
 	public Person getConnectedPerson()
 	{
 		return connectedPerson;
+	}
+
+	public void getMoviesPrices(String movieType) {
+		try {
+			sendToServer(new Message(0, "getMoviesForPrices", movieType));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

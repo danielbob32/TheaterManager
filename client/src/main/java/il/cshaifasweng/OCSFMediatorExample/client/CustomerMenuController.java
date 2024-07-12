@@ -19,6 +19,16 @@ public class CustomerMenuController implements DataInitializable{
     }
 
     @FXML
+    private void viewFutureMovies() throws IOException {
+        App.setRoot("FutureMoviesPage", null);
+    }
+
+    @FXML
+    private void viewHomeMovies() throws IOException {
+        App.setRoot("HomeMovieList", null);
+    }
+
+    @FXML
     private void viewMovieList() throws IOException {
         App.setRoot("CinemaMovieList", null);
     }
