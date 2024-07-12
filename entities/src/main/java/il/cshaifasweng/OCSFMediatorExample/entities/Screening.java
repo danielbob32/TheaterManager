@@ -1,10 +1,18 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
+
+
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
 @Entity
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "screening_id")
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Screening {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,12 +22,14 @@ public class Screening {
     private Cinema cinema;
 
     @ManyToOne
+    @JoinColumn(name = "movie_id")
+    @JsonBackReference(value = "movie-screenings")
+    private Movie movie;
+
+    @ManyToOne
     private MovieHall hall;
 
     private Date time;
-
-    @ManyToOne
-    private Movie movie;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "screening_id")
@@ -31,13 +41,14 @@ public class Screening {
     public Screening() {
     }
 
-    public Screening(Cinema cinema, MovieHall hall, Date time, List<Seat> seats, boolean isFull, Movie movie) {
+    public Screening(Cinema cinema, MovieHall hall, Movie movie, Date time, List<Seat> seats, boolean isFull) {
         this.cinema = cinema;
         this.hall = hall;
+        this.movie = movie;
         this.time = time;
         this.seats = seats;
         this.isFull = isFull;
-        this.movie = movie;
+        setMovie(movie);
     }
     
 
@@ -89,4 +100,20 @@ public class Screening {
     public void setFull(boolean full) {
         isFull = full;
     }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    // Updated setMovie method
+    public void setMovie(Movie movie) {
+        if (this.movie != null) {
+            this.movie.getScreenings().remove(this);
+        }
+        this.movie = movie;
+        if (movie != null && !movie.getScreenings().contains(this)) {
+            movie.addScreening(this);
+        }
+    }
+
 }

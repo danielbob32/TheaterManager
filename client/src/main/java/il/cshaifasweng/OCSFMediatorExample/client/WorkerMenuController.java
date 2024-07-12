@@ -5,7 +5,9 @@ import javafx.scene.control.Button;
 
 import java.io.IOException;
 
-public class WorkerMenuController {
+public class WorkerMenuController implements DataInitializable {
+
+    private SimpleClient client;
 
     @FXML
     private Button updateContentButton;
@@ -13,10 +15,11 @@ public class WorkerMenuController {
     public static String workerType;
 
     public void initialize() {
-        updateButtonVisibility();
+        //updateButtonVisibility();
     }
 
     public void setWorkerType(String type) {
+        System.out.println("Setting worker type to " + type);
         workerType = type;
         updateButtonVisibility();
     }
@@ -28,26 +31,41 @@ public class WorkerMenuController {
         }
     }
 
+    @Override
+    public void setClient(SimpleClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public void initData(Object data) {
+        if (data instanceof String) {
+            workerType = (String) data;
+            System.out.println("1111Setting worker type to " + data);
+            updateButtonVisibility();
+        }
+        System.out.println("CustomerMenuController initialized");
+    }
+
 
     @FXML
     private void updateContent() throws IOException {
-        App.setRoot("UpdateContent");
+        App.setRoot("UpdateContent", null);
     }
 
     @FXML
     private void handleComplaint() throws IOException {
-        App.setRoot("HandleComplaint");
+        App.setRoot("HandleComplaint", null);
     }
 
     @FXML
     private void viewReports() throws IOException {
-        App.setRoot("ViewReports");
+        App.setRoot("ViewReports", null);
     }
 
     @FXML
     private void handleLogout() throws IOException {
         workerType = null;
-        App.setRoot("Loginpage");
+        App.setRoot("Loginpage", null);
     }
 
     public static String getWorkerType() {

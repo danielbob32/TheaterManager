@@ -1,9 +1,18 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,20 +23,32 @@ public class Movie {
     private String producer;
     private String actors;
     private int duration;
-    private int cinemaPrice;
-    private int homePrice;
     private String movieIcon; // Assuming this is a URL or path to the image
     private String synopsis;
     private String genre;
     private Date premier;
     private boolean isHome; // True if it's possible to buy links for this cinema
     private boolean isCinema;  // True if it's possible to buy tickets for this cinema
+    private int cinemaPrice;
+    private int homePrice;
+
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "movie-screenings")
+    @JoinTable(
+            name = "movie_screenings",
+            joinColumns = @JoinColumn(name = "id"),
+            inverseJoinColumns = @JoinColumn(name = "screening_id")
+    )
+    private List<Screening> screenings = new ArrayList<>();
+
 
     // Constructors
     public Movie() {
     }
-    
-    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier, boolean ishome, boolean iscinema, int cinemaPrice, int homePrice) {
+
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
+                 String synopsis, String genre, Date premier, boolean isHome, boolean isCinema, int cinemaPrice, int homePrice) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;
@@ -37,13 +58,16 @@ public class Movie {
         this.synopsis = synopsis;
         this.genre = genre;
         this.premier = premier;
-        this.isHome = ishome;
-        this.isCinema = iscinema;
+        this.isHome = isHome;
+        this.isCinema = isCinema;
         this.cinemaPrice = cinemaPrice;
         this.homePrice = homePrice;
+        this.screenings = new ArrayList<>();
+//        this.cinemas = new ArrayList<>();
     }
 
-    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon, String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
+                 String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;
@@ -55,7 +79,12 @@ public class Movie {
         this.premier = premier;
         this.isHome = ishome;
         this.isCinema = iscinema;
+        this.cinemaPrice = 0;
+        this.homePrice = 0;
+        this.screenings = new ArrayList<>();
     }
+
+
 
     // Getters and setters
     public int getId() {
@@ -158,12 +187,39 @@ public class Movie {
         this.isCinema = isCinema;
     }
 
-    public int getCinemaPrice() {return cinemaPrice;}
+    public int getHomePrice() {
+        return homePrice;
+    }
 
-    public void setCinemaPrice(int cinemaPrice) {this.cinemaPrice = cinemaPrice;}
+    public int getCinemaPrice() {
+        return cinemaPrice;
+    }
 
-    public int getHomePrice() {return homePrice;}
+    public void setCinemaPrice(int cinemaPrice) {
+        this.cinemaPrice = cinemaPrice;
+    }
+    public void setHomePrice(int homePrice) {
+        this.homePrice = homePrice;
+    }
 
-    public void setHomePrice(int homePrice) {this.homePrice = homePrice;}
+    // New method to add a screening
+    public void addScreening(Screening screening) {
+        screenings.add(screening);
+    }
+
+    // New method to remove a screening
+    public void removeScreening(Screening screening) {
+        screenings.remove(screening);
+        screening.setMovie(null);
+    }
+
+    // Getter and setter for screenings
+    public List<Screening> getScreenings() {
+        return screenings;
+    }
+
+    public void setScreenings(List<Screening> screenings) {
+        this.screenings = screenings;
+    }
 
 }

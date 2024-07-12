@@ -1,9 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "cinema_id")
 public class Cinema {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,9 +19,11 @@ public class Cinema {
     private String location;
 
     @OneToMany(mappedBy = "cinema")
+    @JsonIgnore
     private List<MovieHall> movieHalls;
 
     @OneToOne
+    @JsonIgnore
     private CinemaManager manager;
 
     // Constructors

@@ -11,6 +11,7 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.List;
 
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -55,6 +56,9 @@ public class SimpleServer extends AbstractServer {
 					Warning warning = new Warning("Movie has been added successfully");
 					client.sendToClient(warning);
 				}
+			} else if (request.startsWith("getMovies")){
+				System.out.println("in SimpleServer getMovies request");
+				movieListRequest(message, client);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -63,8 +67,10 @@ public class SimpleServer extends AbstractServer {
 			} catch (IOException ioException) {
 				ioException.printStackTrace();
 			}
-		}
-	}
+		} catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 
@@ -87,22 +93,24 @@ public class SimpleServer extends AbstractServer {
 
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
+		Person p = (Person) loginRequest;
 		boolean loginSuccess = false;
 		String message = "";
 		try {
 			if (loginRequest instanceof Worker) {
 				Worker worker = (Worker) loginRequest;
-				loginSuccess = db.checkWorkerCredentials(worker.getWorker_id(), worker.getPassword());
-				if (loginSuccess) {
-					String workerType = db.getWorkerType(worker.getWorker_id());
-					message = "Worker login successful: " + workerType;
+				worker = db.checkWorkerCredentials(worker.getPersonId(), worker.getPassword());
+				if (worker != null) {
+					p = worker;
+					message = "Worker login:successful";
 				} else {
-					message = "Invalid worker credentials";
+					message = "Worker login:failed";
 				}
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
-				loginSuccess = db.checkCustomerCredentials(customer.getId());
-				message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
+				loginSuccess = db.checkCustomerCredentials(customer.getPersonId());
+				//message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
+				message = loginSuccess ? "Customer login:successful" : "Customer login:failed";
 			} else {
 				message = "Invalid login request type";
 			}
@@ -113,7 +121,8 @@ public class SimpleServer extends AbstractServer {
 
 		try {
 			Warning warning = new Warning(message);
-			client.sendToClient(warning);
+			Message message1 = new Message(0, message, objectMapper.writeValueAsString(p));
+			client.sendToClient(message1);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -137,5 +146,18 @@ public class SimpleServer extends AbstractServer {
 		super.serverClosed();
 		System.out.println("Server closed");
 		db.close();
+	}
+
+	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
+        System.out.println("In SimpleServer, Handling getMovies.");
+		List<Movie> movies = db.getAllMovies();
+		System.out.println("got the movies from serverDB");
+		System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
+		String jsonMovies = objectMapper.writeValueAsString(movies);
+		message.setData(jsonMovies);
+		message.setMessage("movieList");
+		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
+		client.sendToClient(message);
+
 	}
 }

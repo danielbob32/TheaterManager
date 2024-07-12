@@ -8,7 +8,7 @@ public class Ticket extends Product {
     @ManyToOne
     private Movie movie;
 
-    @ManyToOne
+    @OneToOne
     private Seat seat;
 
     @ManyToOne

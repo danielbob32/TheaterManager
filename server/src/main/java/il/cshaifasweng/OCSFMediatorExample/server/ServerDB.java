@@ -13,8 +13,7 @@ import org.hibernate.service.ServiceRegistry;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class ServerDB {
     private SessionFactory sessionFactory;
@@ -56,6 +55,7 @@ public class ServerDB {
         }
 
         addTestData();
+        generateData();
     }
 
     private void addTestData() {
@@ -112,7 +112,7 @@ public class ServerDB {
         return data;
     }
 
-    public boolean checkWorkerCredentials(int id, String password) {
+    public Worker checkWorkerCredentials(int id, String password) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Worker W WHERE W.id = :id";
             Query<Worker> query = session.createQuery(hql, Worker.class);
@@ -121,15 +121,19 @@ public class ServerDB {
 
             System.out.println("Checking worker credentials for ID: " + id);
             System.out.println("Found worker: " + (worker != null));
+            boolean passcode = false;
             if (worker != null) {
+                passcode = worker.getPassword().equals(password);
                 System.out.println("Password match: " + worker.getPassword().equals(password));
+                if (passcode) {
+                    return worker;
+                }
             }
-
-            return worker != null && worker.getPassword().equals(password);
+            return null;
         } catch (Exception e) {
             System.err.println("Error checking worker credentials: " + e.getMessage());
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -192,6 +196,100 @@ public class ServerDB {
         }
         if (sessionFactory != null) {
             sessionFactory.close();
+        }
+    }
+
+    public void generateData() {
+        try {
+            session.beginTransaction();
+            System.out.println("Generating data...");
+            List<Cinema> cinemas = generateCinemas();
+            System.out.println("1. Cinemas generated: " + cinemas.size());
+            List<Movie> movies = generateMovies();
+            System.out.println("2. Movies generated: " + movies.size());
+            generateScreenings(movies, cinemas);
+            System.out.println("3. Screenings generated");
+
+            session.getTransaction().commit();
+            System.out.println("Data generated successfully");
+
+        } catch (HibernateException e) {
+            session.getTransaction().rollback();
+            throw e;
+        }
+    }
+
+
+
+    private List<Movie> generateMovies() {
+        String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב", "אוואטר", "טיטניק", "מלחמת הכוכבים", "שר הטבעות", "הארי פוטר"};
+        String[] titles_english = {"Deadpool", "Smurfs", "Barbie", "Jump Street 22", "Hunger Games", "Avatar", "Titanic", "Star Wars", "Lord of the Rings", "Harry Potter"};
+        String[] producers = {"Simon Kinberg", "Raja Gosnell", "Margot Robbie", "Jonah Hill", "Gary Ross", "James Cameron", "James Cameron", "George Lucas", "Peter Jackson", "David Heyman"};
+        String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
+        String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
+        String[] genres = {"Action, Fantasy", "Family", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
+        String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hungergames.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
+        int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
+        boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
+
+        List<Movie> movies = new ArrayList<>();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, 20); // Set premier date 20 days from now
+
+        for (int i = 0; i < 10; i++) {
+            Date premierDate;
+            if (i < 3) {
+                premierDate = calendar.getTime(); // Use the calculated future date for the first 3 movies
+            } else {
+                premierDate = new Date(); // For other movies, use current date
+            }
+
+            Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
+                    durations[i], movie_icons[i], movie_descriptions[i], genres[i], premierDate,
+                    isHome[i], true);
+            session.save(movie);
+            movies.add(movie);
+        }
+        session.flush();
+        return movies;
+    }
+    private List<Cinema> generateCinemas() {
+        String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
+        String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
+
+        List<Cinema> cinemas = new ArrayList<>();
+        Random random = new Random();
+
+        for (int i = 0; i < 4; i++) {
+            Cinema cinema = new Cinema(cinemaNames[i], locations[i], new ArrayList<>(), null);
+            session.save(cinema);
+
+            // Generate 5 halls for each cinema
+            for (int j = 0; j < 5; j++) {
+                MovieHall hall = new MovieHall(j + 1, new ArrayList<>(), cinema);
+                session.save(hall);
+                cinema.getMovieHalls().add(hall);
+            }
+            session.update(cinema);
+            cinemas.add(cinema);
+        }
+        session.flush();
+        return cinemas;
+    }
+
+    private void generateScreenings(List<Movie> movies, List<Cinema> cinemas) {
+        Random random = new Random();
+        for (Movie movie : movies) {
+            for (int i = 0; i < 10; i++) {
+                Cinema cinema = cinemas.get(random.nextInt(cinemas.size()));
+                MovieHall hall = cinema.getMovieHalls().get(random.nextInt(cinema.getMovieHalls().size()));
+                Date screeningTime = new Date(System.currentTimeMillis() + random.nextInt(1000000000)); // Different times
+
+                Screening screening = new Screening(cinema, hall, movie, screeningTime, new ArrayList<>(), false);
+                session.save(screening);
+                session.flush();
+            }
         }
     }
 }

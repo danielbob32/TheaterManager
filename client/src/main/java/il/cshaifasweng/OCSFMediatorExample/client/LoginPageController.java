@@ -11,15 +11,16 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.util.Duration;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
-public class LoginPageController implements Initializable {
+public class LoginPageController implements Initializable, DataInitializable {
 
-    private SimpleClient client = SimpleClient.getClient();
+
+
+    private SimpleClient client;
 
     @FXML
     private ComboBox<String> userTypeComboBox;
@@ -35,6 +36,16 @@ public class LoginPageController implements Initializable {
 
     @FXML
     private TextField timeField;
+
+    @Override
+    public void setClient(SimpleClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public void initData(Object data) {
+        System.out.println("CustomerMenuController initialized");
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -55,9 +66,6 @@ public class LoginPageController implements Initializable {
         clock.play();
     }
 
-    public void setClient(SimpleClient client) {
-        this.client = client;
-    }
 
     @FXML
     void handleUserTypeSelection(ActionEvent event) {
@@ -99,11 +107,11 @@ public class LoginPageController implements Initializable {
 
         System.out.println("Sending login request to server");
         if ("Worker".equals(userType)) {
-            Worker worker = new Worker(id, password);
+            Worker worker = new Worker("Yaren", password, id);
             client.tryWorkerLogin(worker);
     //                SimpleClient.getClient().sendToServer(worker);
         } else {
-            Customer customer = new Customer(id);
+            Customer customer = new Customer("Yarden", "yarden@gmail.com", id);
             client.tryCustomerLogin(customer);
 //            SimpleClient.getClient().sendToServer(customer);
         }

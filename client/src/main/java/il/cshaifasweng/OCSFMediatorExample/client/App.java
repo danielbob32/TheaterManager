@@ -20,24 +20,41 @@ public class App extends Application {
 
     private static Scene scene;
     private static Stage primaryStage;
-    private SimpleClient client;
+    private static SimpleClient client;
 
     @Override
     public void start(Stage stage) throws IOException {
         EventBus.getDefault().register(this);
         client = SimpleClient.getClient();
         client.openConnection();
-        scene = new Scene(loadFXML("Loginpage"), 640, 480);
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Loginpage.fxml"));
+        Parent root = loader.load();
+        Object controller = loader.getController();
+        ((DataInitializable)controller).setClient(client);
+
+        scene = new Scene(root, 640, 480);
         primaryStage = stage;
         stage.setScene(scene);
         stage.show();
     }
 
-    static void setRoot(String fxml) throws IOException {
+    public static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
 
-    static void setRoot(String fxml, Consumer<Object> controllerConsumer) throws IOException {
+
+    public static void setRoot(String fxml,Object controllerData) throws IOException  {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        scene.setRoot(loader.load());
+        Object controller = loader.getController();
+        if (controller instanceof DataInitializable) {
+            ((DataInitializable)controller).setClient(client);
+            ((DataInitializable) controller).initData(controllerData);
+        }
+    }
+
+    public static void setRoot2(String fxml, Consumer<Object> controllerConsumer) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         Parent root = fxmlLoader.load();
         Object controller = fxmlLoader.getController();

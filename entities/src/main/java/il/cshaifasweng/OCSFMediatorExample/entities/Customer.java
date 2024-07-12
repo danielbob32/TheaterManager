@@ -1,19 +1,18 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 @Entity
-public class Customer {
-    @Id
-    private int customer_id;
 
-    private String name;
+public class Customer extends Person{
+
+
     private String email;
 
     @OneToMany(mappedBy = "customer")
@@ -32,31 +31,16 @@ public class Customer {
     }
 
     public Customer(String name, String email, int id) {
-        this.customer_id = id;
-        this.name = name;
+        super(name, id);
         this.email = email;
-    }
-
-    public Customer(int id) {
-        this.customer_id = id;
+        this.products = new ArrayList<Product>();
+        this.bookings = new ArrayList<Booking>();
+        this.complaints = new ArrayList<Complaint>();
     }
 
     // Getters and setters
-    public int getId() {
-        return customer_id;
-    }
 
-    public void setId(int id) {
-        this.customer_id = id;
-    }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;
@@ -74,41 +58,39 @@ public class Customer {
        this.bookings = bookings;
    }
 
-    @JsonIgnore
-    public List<HomeMovieLink> getHomeMovies() {
-        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
-        for(Product product : products) {
-            if(product instanceof HomeMovieLink) {
-                homeLinks.add((HomeMovieLink) product);
-            }
-        }
-        return homeLinks;
-    }
+//    public List<HomeMovieLink> getHomeMovies() {
+//        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
+//        for(Product product : products) {
+//            if(product instanceof HomeMovieLink) {
+//                homeLinks.add((HomeMovieLink) product);
+//            }
+//        }
+//        return homeLinks;
+//    }
 
     public void setProducts(List<Product> products) {
         this.products = products;
     }
 
-    @JsonIgnore
-    public List<TicketTab> getTicketTabs() {
-        List<TicketTab> tabs = new ArrayList<TicketTab>();
-        for(Product product : products) {
-            if(product instanceof TicketTab) {
-                tabs.add((TicketTab) product);
-            }
-        }
-        return tabs;
-    }
-    @JsonIgnore
-    public List<Ticket> getTickets() {
-        List<Ticket> tickets = new ArrayList<Ticket>();
-        for(Product product : products) {
-            if(product instanceof Ticket) {
-                tickets.add((Ticket) product);
-            }
-        }
-        return tickets;
-    }
+//    public List<TicketTab> getTicketTabs() {
+//        List<TicketTab> tabs = new ArrayList<TicketTab>();
+//        for(Product product : products) {
+//            if(product instanceof TicketTab) {
+//                tabs.add((TicketTab) product);
+//            }
+//        }
+//        return tabs;
+//    }
+
+//    public List<Ticket> getTickets() {
+//        List<Ticket> tickets = new ArrayList<Ticket>();
+//        for(Product product : products) {
+//            if(product instanceof Ticket) {
+//                tickets.add((Ticket) product);
+//            }
+//        }
+//        return tickets;
+//    }
 
     public List<Complaint> getComplaints() {
         return complaints;
@@ -116,6 +98,16 @@ public class Customer {
 
     public void setComplaints(List<Complaint> complaints) {
         this.complaints = complaints;
+    }
+
+    public void addBooking(Booking b)
+    {
+        this.bookings.add(b);
+    }
+
+    public void addProduct(Product b)
+    {
+        this.products.add(b);
     }
 
 }

@@ -7,12 +7,12 @@ public class UpdateContentController {
 
     @FXML
     private void deleteMovies() throws IOException {
-        App.setRoot("DeleteMovies");
+        App.setRoot("CinemaMovieList");
     }
 
     @FXML
     private void deleteHomeMovies() throws IOException {
-        App.setRoot("DeleteHomeMovies");
+        App.setRoot("CinemaHomeMovieList");
     }
 
     @FXML

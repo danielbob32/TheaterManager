@@ -1,5 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -12,9 +15,11 @@ public class MovieHall {
     private int hallNumber;
 
     @OneToMany(mappedBy = "movieHall")
+    @JsonManagedReference
     private List<Seat> seats;
 
     @ManyToOne
+    @JsonBackReference
     private Cinema cinema;
 
     // constructors
