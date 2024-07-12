@@ -1,13 +1,17 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
+import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
+
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -54,20 +58,8 @@ public class SimpleServer extends AbstractServer {
 					client.sendToClient(warning);
 				}
 			} else if (request.startsWith("getMovies")){
-				if (request.equals("getMoviesForPrices")) {
-					String movieType = message.getData();
-					System.out.println("Getting movies for type: " + movieType);
-					List<Map<String, Object>> movies = db.getMovies(movieType);
-					System.out.println("Retrieved " + movies.size() + " movies");
-					String jsonMovies = objectMapper.writeValueAsString(movies);
-					Message response = new Message(0, "movieListPrices", jsonMovies);
-					System.out.println("Sending movieListPrices response to client");
-					client.sendToClient(response);
-				}
-				else {
 					System.out.println("in SimpleServer getMovies request");
 					movieListRequest(message, client);
-				}
 			} else if (request.startsWith("updatePrice")) {
 				String[] parts = message.getData().split(",");
 				int movieId = Integer.parseInt(parts[0]);
@@ -176,15 +168,33 @@ public class SimpleServer extends AbstractServer {
 	}
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
+		String movieType = message.getData();
         System.out.println("In SimpleServer, Handling getMovies.");
 		List<Movie> movies = db.getAllMovies();
+		filterMoviesByType(movies, movieType);
 		System.out.println("got the movies from serverDB");
 		System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
 		String jsonMovies = objectMapper.writeValueAsString(movies);
 		message.setData(jsonMovies);
-		message.setMessage("movieList");
+		if (movieType.equals("Cinema movie"))
+			message.setMessage("movieListCinema");
+		else if (movieType.equals("Home movie"))
+			message.setMessage("movieListHome");
+		else {
+			message.setMessage("movieList");
+		}
 		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
+	}
+
+	public static void filterMoviesByType(List<Movie> movies, String movieType) {
+		if (movieType.equals("Cinema movie")) {
+			movies.removeIf(movie -> !movie.getIsCinema());
+		} else if (movieType.equals("Home movie")) {
+			movies.removeIf(movie -> !movie.getIsHome());
+		} else {
+			System.out.println("ok");
+		}
 	}
 }

@@ -5,7 +5,6 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
@@ -22,7 +21,7 @@ public class UpdatePricesController implements DataInitializable {
     @FXML
     private ComboBox<String> movieTypeComboBox;
     @FXML
-    private ComboBox<Movie> movieComboBox;
+    private ComboBox<String> movieComboBox;
     @FXML
     private Label currentPriceLabel;
     @FXML
@@ -30,6 +29,7 @@ public class UpdatePricesController implements DataInitializable {
 
     private SimpleClient client;
     private List<Movie> movies;
+    private String stringMovies;
     private Person connectedPerson;
 
     @FXML
@@ -70,8 +70,14 @@ public class UpdatePricesController implements DataInitializable {
         String movieType = movieTypeComboBox.getValue();
         System.out.println("loadMovies called with type: " + movieType);
         if (movieType != null) {
-            System.out.println("Sending getMoviesForPrices request to server");
-            client.getMoviesPrices(movieType);
+            try {
+                System.out.println("Sending getMoviesForPrices request to server");
+                client.sendToServer(new Message(0, "getMovies", movieType));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("Failed to send getMoviesForPrices request: " + e.getMessage());
+                showAlert("Error", "Failed to request movies from server");
+            }
         } else {
             System.out.println("Movie type is null, not sending request");
         }
@@ -79,30 +85,33 @@ public class UpdatePricesController implements DataInitializable {
 
     @Subscribe
     public void onMovieListEvent(MovieListEvent event) {
-        Platform.runLater(() -> {
-            movies = event.getMovies();
-            System.out.println("Received " + (movies != null ? movies.size() : 0) + " movies");
+        stringMovies = event.getMoviesString();
+        System.out.println("Received " + (movies != null ? movies.size() : 0) + " movies");
 
+        // Check if the ComboBox is already empty
+        if (!movieComboBox.getItems().isEmpty()) {
             movieComboBox.getItems().clear();
+        }
 
-            if (movies != null && !movies.isEmpty()) {
-                movieComboBox.getItems().addAll(movies);
-                System.out.println("Added " + movies.size() + " movies to ComboBox");
-            } else {
-                movieComboBox.setPromptText("No movies available");
-                System.out.println("No movies available");
-            }
-        });
-    }
-
-    private void updateCurrentPrice() {
-        Movie selectedMovie = movieComboBox.getValue();
-        if (selectedMovie != null) {
-            int price = movieTypeComboBox.getValue().equals("Cinema Movies") ?
-                    selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
-            currentPriceLabel.setText("Current Price: " + price);
+        // Add the new movies only if the list is not empty
+        if (movies != null && !movies.isEmpty()) {
+            movieComboBox.getItems().add(stringMovies);
+            System.out.println("Added " + movies.size() + " movies to ComboBox");
+        } else {
+            // Optionally, you can add a placeholder item or show a message
+            movieComboBox.setPromptText("No movies available");
+            System.out.println("No movies available");
         }
     }
+
+//    private void updateCurrentPrice() {
+//        Movie selectedMovie = movieComboBox.getValue();
+//        if (selectedMovie != null) {
+//            int price = movieTypeComboBox.getValue().equals("Cinema Movies") ?
+//                    selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
+//            currentPriceLabel.setText("Current Price: " + price);
+//        }
+//    }
 
     @FXML
     private void updatePrice() {

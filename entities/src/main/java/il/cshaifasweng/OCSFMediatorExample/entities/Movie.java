@@ -1,7 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
@@ -12,7 +10,6 @@ import java.util.List;
 @Entity
 //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 //@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIgnoreProperties({"screenings"})
 public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +37,6 @@ public class Movie {
             joinColumns = @JoinColumn(name = "id"),
             inverseJoinColumns = @JoinColumn(name = "screening_id")
     )
-    @JsonIgnore
     private List<Screening> screenings = new ArrayList<>();
 
 
@@ -221,11 +217,6 @@ public class Movie {
 
     public void setScreenings(List<Screening> screenings) {
         this.screenings = screenings;
-    }
-
-    @Override
-    public String toString() {
-        return this.getEnglishName();
     }
 
 }
