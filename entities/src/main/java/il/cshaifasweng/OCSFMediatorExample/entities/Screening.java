@@ -1,10 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.annotation.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -21,9 +17,14 @@ public class Screening {
     @ManyToOne
     private Cinema cinema;
 
+//    @ManyToOne
+//    @JoinColumn(name = "movie_id")
+//    @JsonBackReference(value = "movie-screenings")
+//    private Movie movie;
+
     @ManyToOne
     @JoinColumn(name = "movie_id")
-    @JsonBackReference(value = "movie-screenings")
+    @JsonIgnoreProperties("screenings")
     private Movie movie;
 
     @ManyToOne
@@ -105,14 +106,11 @@ public class Screening {
         return movie;
     }
 
-    // Updated setMovie method
     public void setMovie(Movie movie) {
-        if (this.movie != null) {
-            this.movie.getScreenings().remove(this);
-        }
         this.movie = movie;
         if (movie != null && !movie.getScreenings().contains(this)) {
-            movie.addScreening(this);
+            System.out.println("Adding screening to movie on the screening entity");
+            movie.getScreenings().add(this);
         }
     }
 

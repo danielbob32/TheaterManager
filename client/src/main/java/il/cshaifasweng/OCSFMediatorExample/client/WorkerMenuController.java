@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
@@ -11,6 +12,8 @@ public class WorkerMenuController implements DataInitializable {
 
     @FXML
     private Button updateContentButton;
+
+    @FXML Button managePriceRequestsButton;
 
     public static String workerType;
 
@@ -25,9 +28,15 @@ public class WorkerMenuController implements DataInitializable {
     }
 
     private void updateButtonVisibility() {
-        if (updateContentButton != null) {
+        if (updateContentButton != null && workerType == "Content manager") {
             updateContentButton.setVisible("Content manager".equals(workerType));
             updateContentButton.setManaged("Content manager".equals(workerType));
+        }
+        if (managePriceRequestsButton != null && workerType == "Chain manager") {
+            managePriceRequestsButton.setVisible("Chain manager".equals(workerType));
+            managePriceRequestsButton.setManaged("Chain manager".equals(workerType));
+            updateContentButton.setVisible("Chain manager".equals(workerType));
+            updateContentButton.setManaged("Chain manager".equals(workerType));
         }
     }
 
@@ -49,12 +58,16 @@ public class WorkerMenuController implements DataInitializable {
 
     @FXML
     private void updateContent() throws IOException {
-        App.setRoot("UpdateContent", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("UpdateContent", connectedPerson);
     }
 
     @FXML
     private void handleComplaint() throws IOException {
-        App.setRoot("HandleComplaint", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("HandleComplaint", connectedPerson);
     }
 
     @FXML
@@ -66,6 +79,13 @@ public class WorkerMenuController implements DataInitializable {
     private void handleLogout() throws IOException {
         workerType = null;
         App.setRoot("Loginpage", null);
+    }
+
+    @FXML
+    private void managePriceRequests() throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("ManagePriceRequests", connectedPerson);
     }
 
     public static String getWorkerType() {

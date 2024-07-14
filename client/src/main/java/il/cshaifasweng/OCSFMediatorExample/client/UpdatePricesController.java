@@ -1,10 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
-import il.cshaifasweng.OCSFMediatorExample.entities.Message;
-import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
-import il.cshaifasweng.OCSFMediatorExample.entities.Person;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
@@ -14,6 +13,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class UpdatePricesController implements DataInitializable {
@@ -21,7 +21,7 @@ public class UpdatePricesController implements DataInitializable {
     @FXML
     private ComboBox<String> movieTypeComboBox;
     @FXML
-    private ComboBox<String> movieComboBox;
+    private ComboBox<Movie> movieComboBox;
     @FXML
     private Label currentPriceLabel;
     @FXML
@@ -29,8 +29,10 @@ public class UpdatePricesController implements DataInitializable {
 
     private SimpleClient client;
     private List<Movie> movies;
-    private String stringMovies;
     private Person connectedPerson;
+    private boolean isUpdating = false;
+    private ObjectMapper objectMapper;
+
 
     @FXML
     public void initialize() {
@@ -45,7 +47,6 @@ public class UpdatePricesController implements DataInitializable {
         this.client = client;
     }
 
-    @Override
     public void initData(Object data) {
         if (data instanceof Person) {
             this.connectedPerson = (Person) data;
@@ -64,54 +65,50 @@ public class UpdatePricesController implements DataInitializable {
             }
         }
     }
-
-
     private void loadMovies() {
         String movieType = movieTypeComboBox.getValue();
-        System.out.println("loadMovies called with type: " + movieType);
-        if (movieType != null) {
-            try {
-                System.out.println("Sending getMoviesForPrices request to server");
-                client.sendToServer(new Message(0, "getMovies", movieType));
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.err.println("Failed to send getMoviesForPrices request: " + e.getMessage());
-                showAlert("Error", "Failed to request movies from server");
-            }
-        } else {
-            System.out.println("Movie type is null, not sending request");
+        try {
+            client.sendToServer(new Message(0, "getMovies", movieType));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Subscribe
     public void onMovieListEvent(MovieListEvent event) {
-        stringMovies = event.getMoviesString();
-        System.out.println("Received " + (movies != null ? movies.size() : 0) + " movies");
+        System.out.println("in onMovieListEvent");
+        Platform.runLater(() -> {
+            movies = event.getMovies();
 
-        // Check if the ComboBox is already empty
-        if (!movieComboBox.getItems().isEmpty()) {
-            movieComboBox.getItems().clear();
-        }
+            if (!movieComboBox.getItems().isEmpty()) {
+                movieComboBox.getItems().clear();
+            }
+            for (Movie movie : movieComboBox.getItems()) {
+                System.out.println("movie in combo box: " + movie);
+            }
 
-        // Add the new movies only if the list is not empty
-        if (movies != null && !movies.isEmpty()) {
-            movieComboBox.getItems().add(stringMovies);
-            System.out.println("Added " + movies.size() + " movies to ComboBox");
-        } else {
-            // Optionally, you can add a placeholder item or show a message
-            movieComboBox.setPromptText("No movies available");
-            System.out.println("No movies available");
-        }
+            if (movies != null && !movies.isEmpty()) {
+                for (Movie movie : movies) {
+                    movieComboBox.getItems().add(movie);
+                    System.out.println("movie price: " + movie.getCinemaPrice());
+                }
+                updateCurrentPrice();
+            } else {
+                movieComboBox.setPromptText("No movies available");
+            }
+        });
     }
 
-//    private void updateCurrentPrice() {
-//        Movie selectedMovie = movieComboBox.getValue();
-//        if (selectedMovie != null) {
-//            int price = movieTypeComboBox.getValue().equals("Cinema Movies") ?
-//                    selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
-//            currentPriceLabel.setText("Current Price: " + price);
-//        }
-//    }
+    private void updateCurrentPrice() {
+        Movie selectedMovie = movieComboBox.getValue();
+        if (selectedMovie != null) {
+            System.out.println("selected movie is:" + selectedMovie);
+            String movieType = movieTypeComboBox.getValue();
+            int price = movieType.equals("Cinema Movies") ? selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
+            System.out.println("new price is:" + price);
+            currentPriceLabel.setText("Current Price: " + price);
+        }
+    }
 
     @FXML
     private void updatePrice() {
@@ -121,24 +118,39 @@ public class UpdatePricesController implements DataInitializable {
             try {
                 int newPrice = Integer.parseInt(newPriceStr);
                 String movieType = movieTypeComboBox.getValue();
-                Message updateMsg = new Message(0, "updatePrice",
-                        selectedMovie.getId() + "," + movieType + "," + newPrice);
-                client.sendToServer(updateMsg);
+                int oldPrice = movieType.equals("Cinema Movies") ? selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
+
+                PriceChangeRequest request = new PriceChangeRequest(
+                        selectedMovie,
+                        movieType,
+                        oldPrice,
+                        newPrice,
+                        new Date(),
+                        "Pending"
+                );
+
+                Message requestMsg = new Message(0, "createPriceChangeRequest", objectMapper.writeValueAsString(request));
+                client.sendToServer(requestMsg);
+
+                showAlert("Request Submitted", "Price change request has been submitted for approval.");
             } catch (NumberFormatException e) {
                 showAlert("Invalid price", "Please enter a valid number for the price.");
             } catch (IOException e) {
                 e.printStackTrace();
+                showAlert("Error", "Failed to submit price change request.");
             }
         }
     }
 
     @FXML
     private void goBack() throws IOException {
-        App.setRoot("UpdateContent");
+        Person connectedPerson = client.getConnectedPerson();
+        cleanup();
+        App.setRoot("UpdateContent", connectedPerson);
     }
 
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
@@ -146,6 +158,20 @@ public class UpdatePricesController implements DataInitializable {
 
     @Subscribe
     public void onWarningEvent(WarningEvent event) {
-        showAlert("Update Result", event.getWarning().getMessage());
+        Platform.runLater(() -> {
+            if (!isUpdating) {
+                isUpdating = true;
+                //showAlert("Update Result", event.getWarning().getMessage());
+                if (event.getWarning().getMessage().contains("successfully")) {
+                    updateCurrentPrice(); // Update the current price label
+                    loadMovies(); // Reload the movies to reflect the updated price
+                }
+                isUpdating = false;
+            }
+        });
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 }

@@ -70,8 +70,10 @@ public class ServerDB {
                 // Add test workers
                 Worker contentManager = new Worker("Content Manager", "Content manager", "password123", 1001);
                 Worker regularWorker = new Worker("Regular Worker", "Regular", "password456", 1002);
+                Worker chainManager = new Worker("Chain Worker", "Chain manager", "password789", 1003);
                 session.save(contentManager);
                 session.save(regularWorker);
+                session.save(chainManager);
 
                 // Add test customers
                 Customer customer1 = new Customer("Test Customer 1", "customer1@example.com", 2001);
@@ -109,8 +111,16 @@ public class ServerDB {
         CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
         query.from(Movie.class);
         List<Movie> data = session.createQuery(query).getResultList();
+        for (Movie movie : data) {
+            if (movie.getEnglishName().equals("Deadpool")){
+                System.out.println("Movie: " + movie.getEnglishName());
+                System.out.println("in serverDB price is:" + movie.getCinemaPrice());
+            }
+        }
         return data;
     }
+
+
 
     public Worker checkWorkerCredentials(int id, String password) {
         try (Session session = sessionFactory.openSession()) {
@@ -173,11 +183,17 @@ public class ServerDB {
         }
     }
 
-    public void addMovie(Movie movie) {
+    public boolean addMovie(Movie movie) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             session.save(movie);
             session.getTransaction().commit();
+            return true;
+        }
+        catch (Exception e) {
+            System.err.println("Error adding movie: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -247,20 +263,7 @@ public class ServerDB {
 
             Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
                     durations[i], movie_icons[i], movie_descriptions[i], genres[i], premierDate,
-                    isHome[i], true);
-
-            // Ensure some movies are both cinema and home movies
-            if (i % 3 == 0) {
-                movie.setIsHome(true);
-                movie.setIsCinema(true);
-            } else if (i % 3 == 1) {
-                movie.setIsHome(true);
-                movie.setIsCinema(false);
-            } else {
-                movie.setIsHome(false);
-                movie.setIsCinema(true);
-            }
-
+                    isHome[i], true, i, i);
             session.save(movie);
             movies.add(movie);
         }
@@ -306,30 +309,6 @@ public class ServerDB {
         }
     }
 
-    public List<Movie> getMovies(String movieType) {
-        try (Session session = sessionFactory.openSession()) {
-            String hql;
-            if (movieType.equals("Cinema Movies")) {
-                hql = "FROM Movie WHERE isCinema = true";
-            } else if (movieType.equals("Home Movies")) {
-                hql = "FROM Movie WHERE isHome = true";
-            } else {
-                hql = "FROM Movie";  // If no specific type is selected, return all movies
-            }
-            Query<Movie> query = session.createQuery(hql, Movie.class);
-            List<Movie> movies = query.list();
-            System.out.println("Retrieved " + movies.size() + " " + movieType);
-            for (Movie movie : movies) {
-                System.out.println("Movie: " + movie.getEnglishName() + ", isCinema: " + movie.getIsCinema() + ", isHome: " + movie.getIsHome());
-            }
-            return movies;
-        } catch (Exception e) {
-            System.err.println("Error retrieving movies: " + e.getMessage());
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
     public boolean updateMoviePrice(int movieId, String movieType, int newPrice) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
@@ -338,10 +317,38 @@ public class ServerDB {
                 if (movie != null) {
                     if (movieType.equals("Cinema Movies")) {
                         movie.setCinemaPrice(newPrice);
-                    } else {
+                    } else if (movieType.equals("Home Movies")) {
                         movie.setHomePrice(newPrice);
                     }
                     session.update(movie);
+                    transaction.commit();
+                    session.flush();
+                    return true;
+                } else {
+                    System.err.println("Movie not found");
+                    return false;
+                }
+            } catch (Exception e) {
+                transaction.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+
+    public boolean deleteMovie(int movieId) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                Movie movie = session.get(Movie.class, movieId);
+                if (movie != null) {
+                    // First, delete all screenings associated with this movie
+                    Query query = session.createQuery("delete from Screening s where s.movie.id = :movieId");
+                    query.setParameter("movieId", movieId);
+                    query.executeUpdate();
+
+                    // Now delete the movie
+                    session.delete(movie);
                     transaction.commit();
                     return true;
                 }
@@ -354,16 +361,144 @@ public class ServerDB {
         }
     }
 
-    public List<Screening> getScreeningsForMovie(int movieId) {
+    public boolean addScreening(Screening screening) {
         try (Session session = sessionFactory.openSession()) {
-            String hql = "FROM Screening WHERE movie.id = :movieId";
-            Query<Screening> query = session.createQuery(hql, Screening.class);
-            query.setParameter("movieId", movieId);
-            return query.list();
+            Transaction transaction = session.beginTransaction();
+            System.out.println("Attempting to save screening: " + screening);
+
+            // Fetch the movie from the database
+            Movie movie = session.get(Movie.class, screening.getMovie().getId());
+            if (movie == null) {
+                System.err.println("Movie not found in database");
+                return false;
+            }
+
+            // Check if the hall is available
+            Date endTime = new Date(screening.getTime().getTime() + (movie.getDuration() * 60 * 1000));
+            if (isHallAvailable(screening.getCinema(), screening.getHall(), movie, screening.getTime(), endTime)) {
+                // Associate the screening with the movie
+                movie.addScreening(screening);
+
+                // Save or update the movie (this should cascade to the screening)
+                session.saveOrUpdate(movie);
+
+                transaction.commit();
+                System.out.println("Screening saved successfully");
+                return true;
+            } else {
+                System.out.println("Hall is not available at the specified time");
+                return false;
+            }
         } catch (Exception e) {
-            System.err.println("Error retrieving screenings for movie " + movieId + ": " + e.getMessage());
+            System.err.println("Error saving screening: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean isHallAvailable(Cinema cinema, MovieHall hall, Movie movie, Date startTime, Date endTime) {
+        try (Session session = sessionFactory.openSession()) {
+            // Fetch the movie with its screenings
+            Movie fetchedMovie = session.get(Movie.class, movie.getId());
+            if (fetchedMovie == null) {
+                System.err.println("Movie not found in database");
+                return false;
+            }
+
+            // Check for conflicts with existing screenings
+            for (Screening screening : fetchedMovie.getScreenings()) {
+                if (screening.getCinema().equals(cinema) && screening.getHall().equals(hall)) {
+                    Date screeningEndTime = new Date(screening.getTime().getTime() + (fetchedMovie.getDuration() * 60 * 1000));
+                    if ((startTime.before(screeningEndTime) && endTime.after(screening.getTime())) ||
+                            (startTime.equals(screening.getTime()) || endTime.equals(screeningEndTime))) {
+                        return false; // Conflict found
+                    }
+                }
+            }
+            return true; // No conflicts found
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteScreening(int screeningId) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                Screening screening = session.get(Screening.class, screeningId);
+                if (screening != null) {
+                    // Remove the screening from the movie's screenings list
+                    Movie movie = screening.getMovie();
+                    if (movie != null) {
+                        movie.getScreenings().remove(screening);
+                        session.update(movie);
+                    }
+
+                    // Delete the screening
+                    session.delete(screening);
+
+                    transaction.commit();
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                transaction.rollback();
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+    public void createPriceChangeRequest(PriceChangeRequest request) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.save(request);
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<PriceChangeRequest> getPriceChangeRequests() {
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<PriceChangeRequest> query = builder.createQuery(PriceChangeRequest.class);
+            query.from(PriceChangeRequest.class);
+            return session.createQuery(query).getResultList();
+        } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
+
+    public boolean updatePriceChangeRequestStatus(int requestId, boolean isApproved) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            PriceChangeRequest request = session.get(PriceChangeRequest.class, requestId);
+            if (request != null) {
+                request.setStatus(isApproved ? "Approved" : "Denied");
+                session.update(request);
+                transaction.commit();
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public PriceChangeRequest getPriceChangeRequestById(int requestId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(PriceChangeRequest.class, requestId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
+
+
+
+
+

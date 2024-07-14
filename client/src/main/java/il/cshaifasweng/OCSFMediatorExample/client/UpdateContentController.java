@@ -15,27 +15,22 @@ public class UpdateContentController implements DataInitializable {
 
     @Override
     public void initData(Object data) {
-        System.out.println("CustomerMenuController initialized");
+        System.out.println("UpdateContentController initialized");
     }
 
     @FXML
-    private void deleteMovies() throws IOException {
+    private void editCinemaMovies() throws IOException {
         App.setRoot("CinemaMovieList", null);
     }
 
     @FXML
-    private void deleteHomeMovies() throws IOException {
-        App.setRoot("CinemaHomeMovieList", null);
+    private void editHomeMovies() throws IOException {
+        App.setRoot("HomeMovieList", null);
     }
 
     @FXML
     private void addMovie() throws IOException {
         App.setRoot("AddMovie", null);
-    }
-
-    @FXML
-    private void updateShowtimes() throws IOException {
-        App.setRoot("UpdateShowtimes", null);
     }
 
     @FXML
@@ -46,7 +41,8 @@ public class UpdateContentController implements DataInitializable {
 
     @FXML
     private void goBack() throws IOException {
-        App.setRoot("WorkerMenu");
+        Person connectedPerson = client.getConnectedPerson();
+        App.setRoot("WorkerMenu", connectedPerson);
     }
 
     public void initialize() {

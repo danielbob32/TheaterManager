@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ManagePriceRequestsController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+    <TableView fx:id="requestsTable">
+        <columns>
+            <TableColumn text="Movie" fx:id="movieColumn"/>
+            <TableColumn text="Type" fx:id="typeColumn"/>
+            <TableColumn text="Old Price" fx:id="oldPriceColumn"/>
+            <TableColumn text="New Price" fx:id="newPriceColumn"/>
+            <TableColumn text="Request Date" fx:id="requestDateColumn"/>
+            <TableColumn text="Status" fx:id="statusColumn"/>
+        </columns>
+    </TableView>
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Approve" onAction="#approveRequest"/>
+        <Button text="Deny" onAction="#denyRequest"/>
+    </HBox>
+</VBox>

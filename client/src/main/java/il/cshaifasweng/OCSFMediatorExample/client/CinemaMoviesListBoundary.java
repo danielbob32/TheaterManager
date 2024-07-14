@@ -1,10 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
-import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
-import il.cshaifasweng.OCSFMediatorExample.entities.Person;
-import il.cshaifasweng.OCSFMediatorExample.entities.Screening;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -222,6 +219,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 	private void moviePage(Movie movie) throws IOException {
 		System.out.println("in moviePage");
+		Person connectedPerson = client.getConnectedPerson();
+
 		App.setRoot("CinemaMovieDetails", movie);
 	}
 
@@ -233,14 +232,14 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	@FXML
 	private void handleBackButton(ActionEvent event) throws IOException {
 		Person connectedPerson = client.getConnectedPerson();
-		App.setRoot("customerMenu", null);
 
-//		if (connectedPerson instanceof Customer) {
-//			App.setRoot("customerMenu", null);
-//		} else if (connectedPerson instanceof Worker) {
-//			App.setRoot("workerMenu", null);
-//		}
+		if (connectedPerson instanceof Customer) {
+			App.setRoot("customerMenu", connectedPerson);
+		} else if (connectedPerson instanceof Worker) {
+				App.setRoot("UpdateContent", connectedPerson);
+		}
 	}
+
 
 	@FXML
 	private void switchToSecondary() throws IOException {

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CinemaMovieDetailsBoundary"
+            prefHeight="600.0" prefWidth="800.0">
+    <children>
+        <Button fx:id="backButton" text="Back" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" onAction="#handleBackButton"/>
+        <Button fx:id="deleteMovieButton" text="Delete Movie" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" onAction="#handleDeleteMovie"/>
+
+        <VBox spacing="10" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+            <HBox spacing="20">
+                <ImageView fx:id="movieImage" fitHeight="200.0" fitWidth="150.0" preserveRatio="true"/>
+                <VBox spacing="5">
+                    <Label fx:id="englishTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Label fx:id="hebrewTitleLabel" style="-fx-font-size: 16px;"/>
+                    <Label fx:id="producerLabel"/>
+                    <Label fx:id="actorsLabel"/>
+                    <Label fx:id="durationLabel"/>
+                    <Label fx:id="genreLabel"/>
+                </VBox>
+            </HBox>
+            <TextArea fx:id="synopsisArea" wrapText="true" editable="false" prefHeight="100.0"/>
+        </VBox>
+
+        <VBox spacing="10" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.bottomAnchor="10.0">
+            <Label text="Select Cinema:" style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="cinemaComboBox" onAction="#handleCinemaSelection"/>
+            <HBox spacing="10">
+                <Label text="Screenings:" style="-fx-font-weight: bold;"/>
+                <Button fx:id="addScreeningButton" text="Add Screening" onAction="#handleAddScreening"/>
+            </HBox>
+            <ListView fx:id="screeningListView" prefHeight="100.0"/>
+            <Button fx:id="deleteScreeningButton" text="Delete Selected Screening" onAction="#handleDeleteScreening"/>
+            <Button fx:id="buyTicketsButton" text="Buy Tickets" onAction="#handleBuyTickets"/>
+        </VBox>
+    </children>
+</AnchorPane>

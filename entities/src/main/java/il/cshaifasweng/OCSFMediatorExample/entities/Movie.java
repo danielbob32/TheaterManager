@@ -1,6 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -30,15 +30,18 @@ public class Movie {
     private int homePrice;
 
 //    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "movie-screenings")
-    @JoinTable(
-            name = "movie_screenings",
-            joinColumns = @JoinColumn(name = "id"),
-            inverseJoinColumns = @JoinColumn(name = "screening_id")
-    )
-    private List<Screening> screenings = new ArrayList<>();
+//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference(value = "movie-screenings")
+//    @JoinTable(
+//            name = "movie_screenings",
+//            joinColumns = @JoinColumn(name = "id"),
+//            inverseJoinColumns = @JoinColumn(name = "screening_id")
+//    )
+//    private List<Screening> screenings = new ArrayList<>();
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "movie")
+    @JsonIgnoreProperties("movie")
+    private List<Screening> screenings = new ArrayList<>();
 
     // Constructors
     public Movie() {
@@ -64,7 +67,7 @@ public class Movie {
     }
 
     public Movie(String englishName, String hebrewName, String producer, String actors, int duration, String movieIcon,
-                 String synopsis, String genre, Date premier, boolean ishome, boolean iscinema) {
+                 String synopsis, String genre, Date premier, boolean isHome, boolean isCinema) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;
@@ -74,8 +77,8 @@ public class Movie {
         this.synopsis = synopsis;
         this.genre = genre;
         this.premier = premier;
-        this.isHome = ishome;
-        this.isCinema = iscinema;
+        this.isHome = isHome;
+        this.isCinema = isCinema;
         this.cinemaPrice = 0;
         this.homePrice = 0;
         this.screenings = new ArrayList<>();
@@ -201,7 +204,10 @@ public class Movie {
 
     // New method to add a screening
     public void addScreening(Screening screening) {
-        screenings.add(screening);
+        if (!this.screenings.contains(screening)) {
+            this.screenings.add(screening);
+            screening.setMovie(this);
+        }
     }
 
     // New method to remove a screening
@@ -217,6 +223,11 @@ public class Movie {
 
     public void setScreenings(List<Screening> screenings) {
         this.screenings = screenings;
+    }
+
+    @Override
+    public String toString() {
+        return this.getEnglishName();
     }
 
 }

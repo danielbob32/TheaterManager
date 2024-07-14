@@ -1,11 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +19,7 @@ public class Cinema {
     private String location;
 
     @OneToMany(mappedBy = "cinema")
-    @JsonIgnore
+    //@JsonIgnore
     private List<MovieHall> movieHalls;
 
     @OneToOne
@@ -63,8 +63,9 @@ public class Cinema {
         this.location = location;
     }
 
+
     public List<MovieHall> getMovieHalls() {
-        return movieHalls;
+        return movieHalls != null ? movieHalls : new ArrayList<>();
     }
 
     public void setMovieHalls(List<MovieHall> movieHalls) {
@@ -78,4 +79,6 @@ public class Cinema {
     public void setManager(CinemaManager manager) {
         this.manager = manager;
     }
+
+
 }

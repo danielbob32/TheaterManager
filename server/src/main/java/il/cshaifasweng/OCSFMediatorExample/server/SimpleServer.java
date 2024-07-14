@@ -32,51 +32,141 @@ public class SimpleServer extends AbstractServer {
 		System.out.println("Received message from client: " + msg);
 		Message message = (Message) msg;
 		String request = message.getMessage();
-		System.out.println("Request type: " + request);
 		try {
-			if (request.startsWith("login")) {
-				String person = request.split(":")[1];
-				if (person.equals("worker")) {
-					Worker worker = objectMapper.readValue(message.getData(), Worker.class);
-					handleLoginRequest(worker, client);
-				} else if (person.equals("customer")) {
-					Customer customer = objectMapper.readValue(message.getData(), Customer.class);
-					handleLoginRequest(customer, client);
-				}
-			} else if (request.startsWith("add")) {
-				String movieData = message.getData();
-				Movie movie = objectMapper.readValue(movieData, Movie.class);
-				db.addMovie(movie);
-				if (movie.getIsHome()) {
-					String homeMovieLinkData = message.getAdditionalData();
-					HomeMovieLink homeMovieLink = objectMapper.readValue(homeMovieLinkData, HomeMovieLink.class);
-					db.addHomeMovie(homeMovieLink);
-					Warning warning = new Warning("Movie has been added successfully");
-					client.sendToClient(warning);
-				} else {
-					Warning warning = new Warning("Movie has been added successfully");
-					client.sendToClient(warning);
-				}
-			} else if (request.startsWith("getMovies")){
+			String action = request.split(":")[0];
+
+			switch (action) {
+				case "login":
+					String[] loginParts = request.split(":", 2);
+					String person = loginParts.length > 1 ? loginParts[1] : "";
+
+					switch (person) {
+						case "worker":
+							Worker worker = objectMapper.readValue(message.getData(), Worker.class);
+							handleLoginRequest(worker, client);
+							break;
+						case "customer":
+							Customer customer = objectMapper.readValue(message.getData(), Customer.class);
+							handleLoginRequest(customer, client);
+							break;
+						default:
+							client.sendToClient(new Warning("Unknown login type"));
+					}
+					break;
+
+				case "add movie":
+					String movieData = message.getData();
+					Movie movie = objectMapper.readValue(movieData, Movie.class);
+					boolean add_success = db.addMovie(movie);
+					if (add_success) {
+						client.sendToClient(new Message(0,"Movie add:success"));
+					} else {
+						client.sendToClient(new Message(0,"Movie add:failed"));
+					}
+					break;
+
+				case "getMovies":
 					System.out.println("in SimpleServer getMovies request");
 					movieListRequest(message, client);
-			} else if (request.startsWith("updatePrice")) {
-				String[] parts = message.getData().split(",");
-				int movieId = Integer.parseInt(parts[0]);
-				String movieType = parts[1];
-				int newPrice = Integer.parseInt(parts[2]);
-				boolean success = db.updateMoviePrice(movieId, movieType, newPrice);
-				if (success) {
-					client.sendToClient(new Warning("Price updated successfully"));
-				} else {
-					client.sendToClient(new Warning("Failed to update price"));
-				}
-			} else if (request.equals("getScreeningsForMovie")) {
-				int movieId = Integer.parseInt(message.getData());
-				List<Screening> screenings = db.getScreeningsForMovie(movieId);
-				String jsonScreenings = objectMapper.writeValueAsString(screenings);
-				Message response = new Message(0, "screeningList", jsonScreenings);
-				client.sendToClient(response);
+					break;
+
+				case "updatePrice":
+					System.out.println("in SimpleServer updatePrice request");
+					String[] parts = message.getData().split(",");
+					int movieId = Integer.parseInt(parts[0]);
+					String movieType = parts[1];
+					int newPrice = Integer.parseInt(parts[2]);
+					boolean success = db.updateMoviePrice(movieId, movieType, newPrice);
+					if (success) {
+						System.out.println("Price updated successfull in simple server");
+						message.setMessage("Price:success");
+					} else {
+						message.setMessage("Price:failed");
+					}
+					client.sendToClient(message);
+					break;
+
+				case "deleteMovie":
+					int movieId2 = Integer.parseInt(message.getData());
+					boolean deleteSuccess = db.deleteMovie(movieId2);
+					if (deleteSuccess) {
+						client.sendToClient(new Message(0, "Movie delete:success"));
+					} else {
+						client.sendToClient(new Message(0, "Movie delete:failed", "Movie is currently in use"));
+					}
+					break;
+
+				case "addScreening":
+					Screening newScreening = objectMapper.readValue(message.getData(), Screening.class);
+					System.out.println("Received screening to add: " + newScreening);
+					boolean addSuccess = db.addScreening(newScreening);
+					if (addSuccess) {
+						client.sendToClient(new Message(0, "Screening add:success"));
+					} else {
+						client.sendToClient(new Message(0, "Screening add:failed", "Hall is not available at the specified time"));
+					}
+					break;
+
+				case "deleteScreening":
+					int screeningId = Integer.parseInt(message.getData());
+					boolean deleteScreeningSuccess = db.deleteScreening(screeningId);
+					if (deleteScreeningSuccess) {
+						System.out.println("Screening deleted successfully");
+						client.sendToClient(new Message(0, "Screening delete:success"));
+					} else {
+						System.out.println("Failed to delete screening");
+						client.sendToClient(new Message(0, "Screening delete:failed", "Hall is not available at the specified time"));
+					}
+					break;
+
+				case "createPriceChangeRequest":
+					PriceChangeRequest price_request = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+					db.createPriceChangeRequest(price_request);
+					client.sendToClient(new Message(0, "Price change request created successfully"));
+					break;
+
+				case "getPriceChangeRequests":
+					List<PriceChangeRequest> requests = db.getPriceChangeRequests();
+					client.sendToClient(new Message(0, "priceChangeRequests", objectMapper.writeValueAsString(requests)));
+					break;
+
+				case "approvePriceChangeRequest":
+					int requestId = Integer.parseInt(message.getData());
+					boolean price_success = db.updatePriceChangeRequestStatus(requestId, true);
+					if (price_success) {
+						PriceChangeRequest approvedRequest = db.getPriceChangeRequestById(requestId);
+						if (approvedRequest != null) {
+							boolean priceUpdateSuccess = db.updateMoviePrice(
+									approvedRequest.getMovie().getId(),
+									approvedRequest.getMovieType(),
+									approvedRequest.getNewPrice()
+							);
+							if (priceUpdateSuccess) {
+								client.sendToClient(new Message(0, "Price change request approved and price updated successfully"));
+							} else {
+								client.sendToClient(new Message(0, "Price change request approved but price update failed"));
+							}
+						} else {
+							client.sendToClient(new Message(0, "Price change request approved but request details not found"));
+						}
+					} else {
+						client.sendToClient(new Message(0, "Failed to approve price change request"));
+					}
+					break;
+
+				case "denyPriceChangeRequest":
+					int requestId2 = Integer.parseInt(message.getData());
+					boolean isApproved = message.getMessage().startsWith("approve");
+					boolean price_success2 = db.updatePriceChangeRequestStatus(requestId2, isApproved);
+					if (price_success2 && isApproved) {
+						PriceChangeRequest approvedRequest = db.getPriceChangeRequestById(requestId2);
+						db.updateMoviePrice(approvedRequest.getMovie().getId(), approvedRequest.getMovieType(), approvedRequest.getNewPrice());
+					}
+					client.sendToClient(new Message(0, "Price change request " + (isApproved ? "approved" : "denied") + " successfully"));
+					break;
+
+				default:
+					client.sendToClient(new Warning("Unknown request type"));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -86,10 +176,10 @@ public class SimpleServer extends AbstractServer {
 				ioException.printStackTrace();
 			}
 		} catch (Exception e) {
-			System.err.println("Error handling client message: " + e.getMessage());
-			e.printStackTrace();
-        }
-    }
+			throw new RuntimeException(e);
+		}
+	}
+
 
 
 
@@ -168,33 +258,17 @@ public class SimpleServer extends AbstractServer {
 	}
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
-		String movieType = message.getData();
         System.out.println("In SimpleServer, Handling getMovies.");
 		List<Movie> movies = db.getAllMovies();
-		filterMoviesByType(movies, movieType);
+		String movieType = message.getData();
 		System.out.println("got the movies from serverDB");
 		System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
 		String jsonMovies = objectMapper.writeValueAsString(movies);
 		message.setData(jsonMovies);
-		if (movieType.equals("Cinema movie"))
-			message.setMessage("movieListCinema");
-		else if (movieType.equals("Home movie"))
-			message.setMessage("movieListHome");
-		else {
-			message.setMessage("movieList");
-		}
+		message.setAdditionalData(movieType);
+		message.setMessage("movieList");
 		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
-	}
-
-	public static void filterMoviesByType(List<Movie> movies, String movieType) {
-		if (movieType.equals("Cinema movie")) {
-			movies.removeIf(movie -> !movie.getIsCinema());
-		} else if (movieType.equals("Home movie")) {
-			movies.removeIf(movie -> !movie.getIsHome());
-		} else {
-			System.out.println("ok");
-		}
 	}
 }

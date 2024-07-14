@@ -54,6 +54,7 @@ public class App extends Application {
         }
     }
 
+
     public static void setRoot2(String fxml, Consumer<Object> controllerConsumer) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         Parent root = fxmlLoader.load();

@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
@@ -153,12 +154,14 @@ public class HomeMoviesListBoundary implements DataInitializable {
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        if (connectedPerson instanceof Worker) {
-            App.setRoot("workerMenu", null);
-        } else {
-            App.setRoot("customerMenu", null);
+
+        if (connectedPerson instanceof Customer) {
+            App.setRoot("customerMenu", connectedPerson);
+        } else if (connectedPerson instanceof Worker) {
+            App.setRoot("UpdateContent", connectedPerson);
         }
     }
+
 
     public void cleanup() {
         EventBus.getDefault().unregister(this);

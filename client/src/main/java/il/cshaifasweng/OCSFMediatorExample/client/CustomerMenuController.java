@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.fxml.FXML;
 
 import java.io.IOException;
@@ -20,47 +21,64 @@ public class CustomerMenuController implements DataInitializable{
 
     @FXML
     private void viewFutureMovies() throws IOException {
-        App.setRoot("FutureMoviesPage", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("FutureMoviesPage", connectedPerson);
     }
 
     @FXML
     private void viewHomeMovies() throws IOException {
-        App.setRoot("HomeMovieList", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("HomeMovieList", connectedPerson);
     }
 
     @FXML
     private void viewMovieList() throws IOException {
-        App.setRoot("CinemaMovieList", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("CinemaMovieList", connectedPerson);
     }
 
     @FXML
     private void buyTickets() throws IOException {
-        App.setRoot("BuyTickets", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("BuyTickets", connectedPerson);
     }
 
     @FXML
     private void buyHomeTickets() throws IOException {
-        App.setRoot("BuyHomeTickets", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("BuyHomeTickets", connectedPerson);
     }
 
     @FXML
     private void buyTicketTab() throws IOException {
-        App.setRoot("BuyTicketTab", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("BuyTicketTab", connectedPerson);
     }
 
     @FXML
     private void refundTickets() throws IOException {
-        App.setRoot("RefundTickets", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("RefundTickets", connectedPerson);
     }
 
     @FXML
     private void fileComplaint() throws IOException {
-        App.setRoot("FileComplaint", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("FileComplaint", connectedPerson);
     }
 
     @FXML
     private void handleLogout() throws IOException {
-        // TODO: Send logout request to server if necessary
-        App.setRoot("LoginPage", null);
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("LoginPage", connectedPerson);
     }
 }

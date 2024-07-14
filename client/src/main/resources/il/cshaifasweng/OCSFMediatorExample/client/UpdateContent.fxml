@@ -11,10 +11,9 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
         <Text text="Update Content" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
-        <Button text="Delete movies" onAction="#deleteMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Delete home movies" onAction="#deleteHomeMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Edit Home Movies" onAction="#editHomeMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Add movie/Home Movie" onAction="#addMovie" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Update Showtimes" onAction="#updateShowtimes" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Update Prices" onAction="#updatePrices" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Back" onAction="#goBack" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
     </VBox>

@@ -28,7 +28,6 @@
                 </VBox>
                 <CheckBox fx:id="isHomeCheckBox" text="Is Home Movie" onAction="#toggleHomeMovieFields" />
                 <VBox fx:id="homeMovieFields" visible="false" managed="false" spacing="10.0">
-                    <TextField fx:id="watchLinkField" promptText="Watch Link" />
                     <TextField fx:id="homePriceField" promptText="Home Movie Price" />
                 </VBox>
                 <Button mnemonicParsing="false" onAction="#submitMovie" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />

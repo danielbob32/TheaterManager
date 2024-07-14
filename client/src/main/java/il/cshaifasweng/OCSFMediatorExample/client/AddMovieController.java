@@ -1,9 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import il.cshaifasweng.OCSFMediatorExample.entities.HomeMovieLink;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
+import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -49,7 +49,6 @@ public class AddMovieController implements DataInitializable {
     @FXML private VBox cinemaFields;
     @FXML private CheckBox isHomeCheckBox;
     @FXML private VBox homeMovieFields;
-    @FXML private TextField watchLinkField;
     @FXML private TextField cinemaPriceField;
     @FXML private TextField homePriceField;
 
@@ -93,28 +92,18 @@ public class AddMovieController implements DataInitializable {
             }
 
             int homePrice = 0;
-            String watchLink = "null";
             if (isHome) {
                 homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
-                watchLink = validateField(watchLinkField, "Watch Link");
             }
 
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, genre, premier, isHome, isCinema, cinemaPrice, homePrice);
 
-            if (isHome) {
-                HomeMovieLink homeMovieLink = new HomeMovieLink(null, null, true, watchLink, 0, homePrice, true, null, null);
-                String movieData = objectMapper.writeValueAsString(movie);
-                String homeMovieLinkData = objectMapper.writeValueAsString(homeMovieLink);
+            String movieData = objectMapper.writeValueAsString(movie);
 
-                Message msg = new Message(0, "add home movie", movieData, homeMovieLinkData);
-                SimpleClient.getClient().sendToServer(msg);
-            } else {
-                String movieData = objectMapper.writeValueAsString(movie);
-                Message msg = new Message(0, "add movie", movieData);
-                SimpleClient.getClient().sendToServer(msg);
-            }
+            Message msg = new Message(0, "add movie", movieData);
+            client.sendToServer(msg);
 
             clearForms();
         } catch (NumberFormatException e) {
@@ -129,7 +118,8 @@ public class AddMovieController implements DataInitializable {
 
     @FXML
     private void goBack() throws IOException {
-        App.setRoot("UpdateContent");
+        Person connectedPerson = client.getConnectedPerson();
+        App.setRoot("UpdateContent", connectedPerson);
     }
 
     @Subscribe
@@ -207,9 +197,6 @@ public class AddMovieController implements DataInitializable {
         isCinemaCheckBox.setSelected(false);
         homeMovieFields.setVisible(false);
         homeMovieFields.setManaged(false);
-
-        // Clear Home Movie form fields
-        watchLinkField.clear();
         cinemaPriceField.clear();
         homePriceField.clear();
     }
