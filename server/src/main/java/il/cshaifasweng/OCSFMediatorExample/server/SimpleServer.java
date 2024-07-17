@@ -87,8 +87,9 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "deleteMovie":
+					String deleteMovieType = request.split(":")[1];
 					int movieId2 = Integer.parseInt(message.getData());
-					boolean deleteSuccess = db.deleteMovie(movieId2);
+					boolean deleteSuccess = db.deleteMovie(movieId2, deleteMovieType);
 					if (deleteSuccess) {
 						client.sendToClient(new Message(0, "Movie delete:success"));
 					} else {

@@ -2,12 +2,16 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 
 import java.io.IOException;
 
 public class CustomerMenuController implements DataInitializable{
 
     private SimpleClient client;
+
+    @FXML
+    private Label welcomeLabel;
 
     @Override
     public void setClient(SimpleClient client) {
@@ -17,6 +21,14 @@ public class CustomerMenuController implements DataInitializable{
     @Override
     public void initData(Object data) {
         System.out.println("CustomerMenuController initialized");
+        updateWelcomeMessage();
+    }
+
+    private void updateWelcomeMessage() {
+        Person connectedPerson = client.getConnectedPerson();
+        if (connectedPerson != null) {
+            welcomeLabel.setText("Welcome, " + connectedPerson.getName());
+        }
     }
 
     @FXML

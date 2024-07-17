@@ -181,7 +181,7 @@ public class SimpleClient extends AbstractClient {
 						Alert alert = new Alert(Alert.AlertType.INFORMATION);
 						alert.setTitle("Success");
 						alert.setHeaderText(null);
-						alert.setContentText("Screening deleted successfully");
+						alert.setContentText("Movie deleted successfully");
 						alert.showAndWait();
 					});
 				} else {

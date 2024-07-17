@@ -3,6 +3,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 
 import java.io.IOException;
 
@@ -15,6 +16,9 @@ public class WorkerMenuController implements DataInitializable {
 
     @FXML
     private Button managePriceRequestsButton;
+
+    @FXML
+    private Label welcomeLabel;
 
     public static String workerType;
 
@@ -50,7 +54,15 @@ public class WorkerMenuController implements DataInitializable {
             System.out.println("1111Setting worker type to " + data);
         }
         updateButtonVisibility();
+        updateWelcomeMessage();
         System.out.println("CustomerMenuController initialized");
+    }
+
+    private void updateWelcomeMessage() {
+        Person connectedPerson = client.getConnectedPerson();
+        if (connectedPerson != null) {
+            welcomeLabel.setText("Welcome, " + connectedPerson.getName());
+        }
     }
 
 

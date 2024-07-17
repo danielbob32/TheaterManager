@@ -198,7 +198,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    client.sendToServer(new Message(0, "deleteMovie", String.valueOf(currentMovie.getId())));
+                    client.sendToServer(new Message(0, "deleteMovie:cinema", String.valueOf(currentMovie.getId())));
                     Person connectedPerson = client.getConnectedPerson();
                     App.setRoot("CinemaMovieList", connectedPerson);
                 } catch (IOException e) {

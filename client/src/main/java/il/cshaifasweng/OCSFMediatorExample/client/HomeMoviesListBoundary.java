@@ -1,16 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
-import il.cshaifasweng.OCSFMediatorExample.entities.Person;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -114,11 +113,12 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         // If Person is ContentManager, add an edit movie button.
         Person p = client.getConnectedPerson();
-        if (p instanceof Worker && ((Worker) p).getWorkerType().equals("Content")) {
-            Button editButton = new Button("Edit Movie");
+        if (p instanceof Worker && (((Worker) p).getWorkerType().equals("Content manager"))||
+                (((Worker) p).getWorkerType().equals("Chain manager"))) {
+            Button editButton = new Button("Delete Movie");
             editButton.setOnAction(e -> {
                 try {
-                    editMoviePage(movie);
+                    deleteMovie(movie);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -146,9 +146,33 @@ public class HomeMoviesListBoundary implements DataInitializable {
         App.setRoot("CinemaMovieDetails", movie);
     }
 
-    public void editMoviePage(Movie movie) throws IOException {
-        System.out.println("in editMoviePage");
-        App.setRoot("editMoviePage", movie);
+    @FXML
+    private void deleteMovie(Movie movie) throws IOException {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Movie");
+        alert.setHeaderText("Are you sure you want to delete this movie?");
+        alert.setContentText("This action will delete the movie and all its screenings from all cinemas.");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    client.sendToServer(new Message(0, "deleteMovie:home", String.valueOf(movie.getId())));
+                    Person connectedPerson = client.getConnectedPerson();
+                    App.setRoot("HomeMovieList", connectedPerson);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showAlert("Error", "Failed to delete movie. Please try again.");
+                }
+            }
+        });
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     @FXML

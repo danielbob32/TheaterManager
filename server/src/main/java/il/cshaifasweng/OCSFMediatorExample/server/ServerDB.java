@@ -379,28 +379,56 @@ public class ServerDB {
         }
     }
 
-    public boolean deleteMovie(int movieId) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
-            try {
-                Movie movie = session.get(Movie.class, movieId);
-                if (movie != null) {
-                    // First, delete all screenings associated with this movie
-                    Query query = session.createQuery("delete from Screening s where s.movie.id = :movieId");
-                    query.setParameter("movieId", movieId);
-                    query.executeUpdate();
-
-                    // Now delete the movie
-                    session.delete(movie);
+    public boolean deleteMovie(int movieId, String movieType) {
+        Transaction transaction = null;
+        try {
+            transaction = session.beginTransaction();
+            Movie movie = session.get(Movie.class, movieId);
+            if (movie != null) {
+                if(movieType.equals("cinema") && movie.getIsHome())
+                {
+                    movie.setIsCinema(false);
+                    session.update(movie);
                     transaction.commit();
                     return true;
                 }
-                return false;
-            } catch (Exception e) {
-                transaction.rollback();
-                e.printStackTrace();
-                return false;
+                else if(movieType.equals("home") && movie.getIsCinema()) {
+                    movie.setIsHome(false);
+                    session.update(movie);
+                    transaction.commit();
+                    return true;
+                }
+
+                // Delete all PriceChangeRequests associated with this movie
+                Query<?> priceChangeRequestQuery = session.createQuery("delete from PriceChangeRequest pcr where pcr.movie.id = :movieId");
+                priceChangeRequestQuery.setParameter("movieId", movieId);
+                priceChangeRequestQuery.executeUpdate();
+
+                // Fetch and delete screenings one by one
+                Query<Screening> fetchScreeningsQuery = session.createQuery("from Screening s where s.movie.id = :movieId", Screening.class);
+                fetchScreeningsQuery.setParameter("movieId", movieId);
+                List<Screening> screenings = fetchScreeningsQuery.getResultList();
+
+                for (Screening screening : screenings) {
+                    session.delete(screening);
+                }
+
+                // Clear the movie's screenings collection
+                movie.getScreenings().clear();
+
+                // Now delete the movie
+                session.delete(movie);
+
+                transaction.commit();
+                return true;
             }
+            return false;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
         }
     }
 
