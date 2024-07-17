@@ -237,6 +237,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 			App.setRoot("customerMenu", connectedPerson);
 		} else if (connectedPerson instanceof Worker) {
 				App.setRoot("UpdateContent", connectedPerson);
+		} else {
+			App.setRoot("Loginpage", null);
 		}
 	}
 

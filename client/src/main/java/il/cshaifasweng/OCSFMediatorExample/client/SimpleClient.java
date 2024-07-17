@@ -32,7 +32,8 @@ public class SimpleClient extends AbstractClient {
 		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-		this.connectedPerson = new Worker("Yarden", "y123", 1009);
+		//this.connectedPerson = new Worker("Yarden", "y123", 1009);
+		this.connectedPerson = null;
 	}
 
 	@Override

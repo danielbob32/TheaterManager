@@ -143,7 +143,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
     private void moviePage(Movie movie) throws IOException {
         System.out.println("in moviePage");
-        App.setRoot("movieDetails", movie);
+        App.setRoot("CinemaMovieDetails", movie);
     }
 
     public void editMoviePage(Movie movie) throws IOException {
@@ -159,6 +159,8 @@ public class HomeMoviesListBoundary implements DataInitializable {
             App.setRoot("customerMenu", connectedPerson);
         } else if (connectedPerson instanceof Worker) {
             App.setRoot("UpdateContent", connectedPerson);
+        } else {
+            App.setRoot("Loginpage", null);
         }
     }
 

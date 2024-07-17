@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -11,6 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -115,6 +117,27 @@ public class LoginPageController implements Initializable, DataInitializable {
             client.tryCustomerLogin(customer);
 //            SimpleClient.getClient().sendToServer(customer);
         }
+    }
+
+    @FXML
+    private void viewFutureMovies() throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("FutureMoviesPage", null);
+    }
+
+    @FXML
+    private void viewHomeMovies() throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("HomeMovieList", null);
+    }
+
+    @FXML
+    private void viewMovieList() throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("CinemaMovieList", null);
     }
 
     private void showAlert(String title, String content) {
