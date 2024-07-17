@@ -40,19 +40,19 @@ public class CustomerMenuController implements DataInitializable{
         App.setRoot("CinemaMovieList", connectedPerson);
     }
 
-    @FXML
-    private void buyTickets() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
+//    @FXML
+//    private void buyTickets() throws IOException {
+//        Person connectedPerson = client.getConnectedPerson();
+//
+//        App.setRoot("BuyTickets", connectedPerson);
+//    }
 
-        App.setRoot("BuyTickets", connectedPerson);
-    }
-
-    @FXML
-    private void buyHomeTickets() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
-
-        App.setRoot("BuyHomeTickets", connectedPerson);
-    }
+//    @FXML
+//    private void buyHomeTickets() throws IOException {
+//        Person connectedPerson = client.getConnectedPerson();
+//
+//        App.setRoot("BuyHomeTickets", connectedPerson);
+//    }
 
     @FXML
     private void buyTicketTab() throws IOException {

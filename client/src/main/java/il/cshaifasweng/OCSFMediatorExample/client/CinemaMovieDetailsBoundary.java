@@ -333,6 +333,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
             return;
         }
         try {
+            currentMovie.removeScreening(selectedScreening);
             client.sendToServer(new Message(0, "deleteScreening", String.valueOf(selectedScreening.getScreening_id())));
         } catch (IOException e) {
             e.printStackTrace();

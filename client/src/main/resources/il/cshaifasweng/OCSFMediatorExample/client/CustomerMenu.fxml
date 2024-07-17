@@ -13,8 +13,8 @@
             <Button text="Now in theaters" onAction="#viewMovieList" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
             <Button text="Home Movies" onAction="#viewHomeMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         </HBox>
-        <Button text="Buy tickets" onAction="#buyTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Buy home tickets" onAction="#buyHomeTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+<!--        <Button text="Buy tickets" onAction="#buyTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>-->
+<!--        <Button text="Buy home tickets" onAction="#buyHomeTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>-->
         <Button text="Buy ticket tab" onAction="#buyTicketTab" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Refund tickets" onAction="#refundTickets" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Complaint" onAction="#fileComplaint" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
