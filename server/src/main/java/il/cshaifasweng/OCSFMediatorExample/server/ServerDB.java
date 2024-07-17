@@ -32,8 +32,11 @@ public class ServerDB {
             configuration.addAnnotatedClass(Complaint.class);
             configuration.addAnnotatedClass(Customer.class);
             configuration.addAnnotatedClass(HomeMovieLink.class);
+            configuration.addAnnotatedClass(Message.class);
             configuration.addAnnotatedClass(Movie.class);
             configuration.addAnnotatedClass(MovieHall.class);
+            configuration.addAnnotatedClass(Person.class);
+            configuration.addAnnotatedClass(PriceChangeRequest.class);
             configuration.addAnnotatedClass(Product.class);
             configuration.addAnnotatedClass(Screening.class);
             configuration.addAnnotatedClass(Seat.class);
@@ -56,6 +59,7 @@ public class ServerDB {
 
         addTestData();
         generateData();
+        addTestPriceChangeRequests();
     }
 
     private void addTestData() {
@@ -91,6 +95,47 @@ public class ServerDB {
         }
     }
 
+    private void addTestPriceChangeRequests() {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            try {
+                // Get some movies to associate with the requests
+                List<Movie> movies = getAllMovies();
+                if (movies.isEmpty()) {
+                    System.out.println("No movies found to create test price change requests");
+                    return;
+                }
+
+                // Create test price change requests
+                PriceChangeRequest request1 = new PriceChangeRequest(movies.get(0), "Cinema Movies",
+                        movies.get(0).getCinemaPrice(), movies.get(0).getCinemaPrice() + 2, new Date(), "Pending");
+
+                PriceChangeRequest request2 = new PriceChangeRequest(movies.get(1), "Home Movies",
+                        movies.get(1).getHomePrice(), movies.get(1).getHomePrice() + 1, new Date(), "Pending");
+
+                PriceChangeRequest request3 = new PriceChangeRequest(movies.get(2), "Cinema Movies",
+                        movies.get(2).getCinemaPrice(), movies.get(2).getCinemaPrice() - 1, new Date(), "Pending");
+
+                // Save the requests
+                session.save(request1);
+                session.save(request2);
+                session.save(request3);
+
+                transaction.commit();
+                System.out.println("Test price change requests added successfully");
+            } catch (Exception e) {
+                transaction.rollback();
+                System.err.println("Error adding test price change requests: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.err.println("Error in session handling: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
     public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
@@ -112,14 +157,13 @@ public class ServerDB {
         query.from(Movie.class);
         List<Movie> data = session.createQuery(query).getResultList();
         for (Movie movie : data) {
-            if (movie.getEnglishName().equals("Deadpool")){
+            if (movie.getEnglishName().equals("Deadpool")) {
                 System.out.println("Movie: " + movie.getEnglishName());
                 System.out.println("in serverDB price is:" + movie.getCinemaPrice());
             }
         }
         return data;
     }
-
 
 
     public Worker checkWorkerCredentials(int id, String password) {
@@ -189,8 +233,7 @@ public class ServerDB {
             session.save(movie);
             session.getTransaction().commit();
             return true;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Error adding movie: " + e.getMessage());
             e.printStackTrace();
             return false;
@@ -236,7 +279,6 @@ public class ServerDB {
     }
 
 
-
     private List<Movie> generateMovies() {
         String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב", "אוואטר", "טיטניק", "מלחמת הכוכבים", "שר הטבעות", "הארי פוטר"};
         String[] titles_english = {"Deadpool", "Smurfs", "Barbie", "Jump Street 22", "Hunger Games", "Avatar", "Titanic", "Star Wars", "Lord of the Rings", "Harry Potter"};
@@ -270,6 +312,7 @@ public class ServerDB {
         session.flush();
         return movies;
     }
+
     private List<Cinema> generateCinemas() {
         String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
         String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
@@ -322,7 +365,7 @@ public class ServerDB {
                     }
                     session.update(movie);
                     transaction.commit();
-                    session.flush();
+                    //session.flush();
                     return true;
                 } else {
                     System.err.println("Movie not found");
@@ -449,6 +492,7 @@ public class ServerDB {
             }
         }
     }
+
     public void createPriceChangeRequest(PriceChangeRequest request) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
@@ -460,19 +504,16 @@ public class ServerDB {
     }
 
     public List<PriceChangeRequest> getPriceChangeRequests() {
-        try (Session session = sessionFactory.openSession()) {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<PriceChangeRequest> query = builder.createQuery(PriceChangeRequest.class);
-            query.from(PriceChangeRequest.class);
-            return session.createQuery(query).getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
+        System.out.println("Fetching price change requests");
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<PriceChangeRequest> query = builder.createQuery(PriceChangeRequest.class);
+        query.from(PriceChangeRequest.class);
+        List<PriceChangeRequest> priceChanges = session.createQuery(query).getResultList();
+        return priceChanges;
     }
 
     public boolean updatePriceChangeRequestStatus(int requestId, boolean isApproved) {
-        try (Session session = sessionFactory.openSession()) {
+        //try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             PriceChangeRequest request = session.get(PriceChangeRequest.class, requestId);
             if (request != null) {
@@ -482,20 +523,17 @@ public class ServerDB {
                 return true;
             }
             return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
     }
 
     public PriceChangeRequest getPriceChangeRequestById(int requestId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.get(PriceChangeRequest.class, requestId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return session.get(PriceChangeRequest.class, requestId);
     }
+
+
 }
 
 

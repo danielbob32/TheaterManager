@@ -1,7 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -11,6 +13,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -46,6 +50,14 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private Movie currentMovie;
     private boolean isContentManager = false;
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    public void initialize() {
+        EventBus.getDefault().register(this);
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
 
     @Override
     public void setClient(SimpleClient client) {
@@ -344,5 +356,10 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         } else {
             showAlert("Error", "Failed to delete screening. Please try again.");
         }
+    }
+
+    @Subscribe
+    public void onMessageEvent(MessageEvent event) {
+        Platform.runLater(this::handleCinemaSelection);
     }
 }

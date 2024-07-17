@@ -9,6 +9,7 @@ public class Message implements Serializable {
     String message;
     String data;
     String additionalData;
+    int extraData;
 
     public Message(int id, LocalDateTime timeStamp, String message) {
         this.id = id;
@@ -39,6 +40,14 @@ public class Message implements Serializable {
         this.additionalData = additionalData;
     }
 
+    public Message(int id, String message, String data, int extraData) {
+        this.id = id;
+        this.timeStamp = LocalDateTime.now();
+        this.message = message;
+        this.data = data;
+        this.extraData = extraData;
+    }
+
     // Add getter and setter for additionalData
     public String getAdditionalData() {
         return additionalData;
@@ -48,6 +57,14 @@ public class Message implements Serializable {
         this.additionalData = additionalData;
     }
 
+    // Add getter and setter for extraData
+    public int getExtraData() {
+        return extraData;
+    }
+
+    public void setExtraData(int extraData) {
+        this.extraData = extraData;
+    }
 
     public int getId() {
         return id;

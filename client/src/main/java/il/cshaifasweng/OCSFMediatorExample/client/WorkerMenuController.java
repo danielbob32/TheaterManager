@@ -13,12 +13,12 @@ public class WorkerMenuController implements DataInitializable {
     @FXML
     private Button updateContentButton;
 
-    @FXML Button managePriceRequestsButton;
+    @FXML
+    private Button managePriceRequestsButton;
 
     public static String workerType;
 
     public void initialize() {
-        //updateButtonVisibility();
     }
 
     public void setWorkerType(String type) {
@@ -28,15 +28,13 @@ public class WorkerMenuController implements DataInitializable {
     }
 
     private void updateButtonVisibility() {
-        if (updateContentButton != null && workerType == "Content manager") {
-            updateContentButton.setVisible("Content manager".equals(workerType));
-            updateContentButton.setManaged("Content manager".equals(workerType));
+        if (updateContentButton != null) {
+            updateContentButton.setVisible("Content manager".equals(workerType) || "Chain manager".equals(workerType));
+            updateContentButton.setManaged("Content manager".equals(workerType) || "Chain manager".equals(workerType));
         }
-        if (managePriceRequestsButton != null && workerType == "Chain manager") {
+        if (managePriceRequestsButton != null) {
             managePriceRequestsButton.setVisible("Chain manager".equals(workerType));
             managePriceRequestsButton.setManaged("Chain manager".equals(workerType));
-            updateContentButton.setVisible("Chain manager".equals(workerType));
-            updateContentButton.setManaged("Chain manager".equals(workerType));
         }
     }
 
@@ -50,8 +48,8 @@ public class WorkerMenuController implements DataInitializable {
         if (data instanceof String) {
             workerType = (String) data;
             System.out.println("1111Setting worker type to " + data);
-            updateButtonVisibility();
         }
+        updateButtonVisibility();
         System.out.println("CustomerMenuController initialized");
     }
 
@@ -60,7 +58,7 @@ public class WorkerMenuController implements DataInitializable {
     private void updateContent() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
 
-        App.setRoot("UpdateContent", connectedPerson);
+        App.setRoot("UpdateContent", workerType);
     }
 
     @FXML

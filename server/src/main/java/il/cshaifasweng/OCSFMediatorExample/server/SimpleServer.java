@@ -127,22 +127,23 @@ public class SimpleServer extends AbstractServer {
 
 				case "getPriceChangeRequests":
 					List<PriceChangeRequest> requests = db.getPriceChangeRequests();
-					client.sendToClient(new Message(0, "priceChangeRequests", objectMapper.writeValueAsString(requests)));
+					String requests2 = objectMapper.writeValueAsString(requests);
+					System.out.println("Sending price change requests to client: " + requests2);
+					client.sendToClient(new Message(0, "priceChangeRequests", requests2));
 					break;
 
 				case "approvePriceChangeRequest":
 					int requestId = Integer.parseInt(message.getData());
+					System.out.println("Approving price change request: " + requestId);
 					boolean price_success = db.updatePriceChangeRequestStatus(requestId, true);
 					if (price_success) {
 						PriceChangeRequest approvedRequest = db.getPriceChangeRequestById(requestId);
 						if (approvedRequest != null) {
-							boolean priceUpdateSuccess = db.updateMoviePrice(
-									approvedRequest.getMovie().getId(),
-									approvedRequest.getMovieType(),
-									approvedRequest.getNewPrice()
-							);
+							boolean priceUpdateSuccess = db.updateMoviePrice(approvedRequest.getMovie().getId(), approvedRequest.getMovieType(), approvedRequest.getNewPrice());
 							if (priceUpdateSuccess) {
-								client.sendToClient(new Message(0, "Price change request approved and price updated successfully"));
+								List<PriceChangeRequest> requests4 = db.getPriceChangeRequests();
+								String requests3 = objectMapper.writeValueAsString(requests4);
+								client.sendToClient(new Message(0, "Price change request approved and price updated successfully", requests3));
 							} else {
 								client.sendToClient(new Message(0, "Price change request approved but price update failed"));
 							}
@@ -156,13 +157,15 @@ public class SimpleServer extends AbstractServer {
 
 				case "denyPriceChangeRequest":
 					int requestId2 = Integer.parseInt(message.getData());
-					boolean isApproved = message.getMessage().startsWith("approve");
-					boolean price_success2 = db.updatePriceChangeRequestStatus(requestId2, isApproved);
-					if (price_success2 && isApproved) {
-						PriceChangeRequest approvedRequest = db.getPriceChangeRequestById(requestId2);
-						db.updateMoviePrice(approvedRequest.getMovie().getId(), approvedRequest.getMovieType(), approvedRequest.getNewPrice());
+					boolean price_success2 = db.updatePriceChangeRequestStatus(requestId2, false);
+					if (price_success2) {
+						List<PriceChangeRequest> requests4 = db.getPriceChangeRequests();
+						String requests3 = objectMapper.writeValueAsString(requests4);
+						client.sendToClient(new Message(0, "Price change request denied and price hasn't updated successfully", requests3));
+					} else {
+						client.sendToClient(new Message(0, "Failed to deny price change request"));
 					}
-					client.sendToClient(new Message(0, "Price change request " + (isApproved ? "approved" : "denied") + " successfully"));
+
 					break;
 
 				default:

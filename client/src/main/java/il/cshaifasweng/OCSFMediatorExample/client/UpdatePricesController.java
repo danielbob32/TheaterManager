@@ -36,6 +36,7 @@ public class UpdatePricesController implements DataInitializable {
 
     @FXML
     public void initialize() {
+        objectMapper = new ObjectMapper();
         EventBus.getDefault().register(this);
         movieTypeComboBox.getItems().addAll("Cinema Movies", "Home Movies");
         movieTypeComboBox.setOnAction(event -> loadMovies());
@@ -56,7 +57,8 @@ public class UpdatePricesController implements DataInitializable {
 
     private void checkPermissions() {
         if (!(connectedPerson instanceof Worker) ||
-                !((Worker) connectedPerson).getWorkerType().equals("Content manager")) {
+                (!"Content manager".equals(((Worker) connectedPerson).getWorkerType()) &&
+                        !"Chain manager".equals(((Worker) connectedPerson).getWorkerType()))) {
             showAlert("Access Denied", "You don't have permission to update prices.");
             try {
                 goBack();
@@ -120,16 +122,9 @@ public class UpdatePricesController implements DataInitializable {
                 String movieType = movieTypeComboBox.getValue();
                 int oldPrice = movieType.equals("Cinema Movies") ? selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
 
-                PriceChangeRequest request = new PriceChangeRequest(
-                        selectedMovie,
-                        movieType,
-                        oldPrice,
-                        newPrice,
-                        new Date(),
-                        "Pending"
-                );
+                PriceChangeRequest request = new PriceChangeRequest(selectedMovie, movieType, oldPrice, newPrice, new Date(), "Pending");
 
-                Message requestMsg = new Message(0, "createPriceChangeRequest", objectMapper.writeValueAsString(request));
+                Message requestMsg = new Message(0, "createPriceChangeRequest", this.objectMapper.writeValueAsString(request));
                 client.sendToServer(requestMsg);
 
                 showAlert("Request Submitted", "Price change request has been submitted for approval.");
@@ -145,7 +140,7 @@ public class UpdatePricesController implements DataInitializable {
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        cleanup();
+        //cleanup();
         App.setRoot("UpdateContent", connectedPerson);
     }
 

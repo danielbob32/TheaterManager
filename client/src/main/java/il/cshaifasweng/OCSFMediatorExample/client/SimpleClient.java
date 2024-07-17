@@ -160,6 +160,8 @@ public class SimpleClient extends AbstractClient {
 							alert.setHeaderText(null);
 							alert.setContentText("Screening deleted successfully");
 							alert.showAndWait();
+
+							EventBus.getDefault().post(new MessageEvent(message));
 						});
 					} else {
 						Platform.runLater(() -> {
@@ -223,17 +225,12 @@ public class SimpleClient extends AbstractClient {
 					break;
 
 				case "priceChangeRequests":
-					try {
-						List<PriceChangeRequest> requests = objectMapper.readValue(message.getData(),
-								new TypeReference<List<PriceChangeRequest>>() {});
-						EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", objectMapper.writeValueAsString(requests))));
-					} catch (IOException e) {
-						e.printStackTrace();
-						EventBus.getDefault().post(new FailureEvent("Failed to deserialize price change requests"));
-					}
+					System.out.println("Price change requests in simple client: " + message.getData());
+					EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
+
 					break;
 
-				case "Price change request approved":
+				case "Price change request approved and price updated successfully":
 					Platform.runLater(() -> {
 						Alert alert = new Alert(Alert.AlertType.INFORMATION);
 						alert.setTitle("Success");
@@ -241,10 +238,10 @@ public class SimpleClient extends AbstractClient {
 						alert.setContentText("Price change request approved and price updated successfully");
 						alert.showAndWait();
 					});
-					EventBus.getDefault().post(new MessageEvent(message));
+					EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
 					break;
 
-				case "Price change request denied":
+				case "Price change request denied and price hasn't updated successfully":
 					Platform.runLater(() -> {
 						Alert alert = new Alert(Alert.AlertType.INFORMATION);
 						alert.setTitle("Information");
@@ -252,7 +249,7 @@ public class SimpleClient extends AbstractClient {
 						alert.setContentText("Price change request denied");
 						alert.showAndWait();
 					});
-					EventBus.getDefault().post(new MessageEvent(message));
+					EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
 					break;
 
 				case "Price change request error":

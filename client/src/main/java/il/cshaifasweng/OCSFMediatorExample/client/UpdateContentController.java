@@ -7,6 +7,7 @@ import java.io.IOException;
 public class UpdateContentController implements DataInitializable {
 
     private SimpleClient client;
+    private String workerType;
 
     @Override
     public void setClient(SimpleClient client) {
@@ -15,7 +16,19 @@ public class UpdateContentController implements DataInitializable {
 
     @Override
     public void initData(Object data) {
-        System.out.println("UpdateContentController initialized");
+        if (data instanceof String) {
+            workerType = (String) data;
+        }
+        if (!"Content manager".equals(workerType) && !"Chain manager".equals(workerType)) {
+            // If not a content manager or chain manager, go back to the worker menu
+            try {
+                Person connectedPerson = client.getConnectedPerson();
+                App.setRoot("WorkerMenu", connectedPerson);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("UpdateContentController initialized for " + workerType);
     }
 
     @FXML
@@ -42,19 +55,10 @@ public class UpdateContentController implements DataInitializable {
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        App.setRoot("WorkerMenu", connectedPerson);
+        App.setRoot("WorkerMenu", workerType);
     }
 
-    public void initialize() {
-        // Check if the current user is a content manager
-        if (!"Content manager".equals(WorkerMenuController.getWorkerType())) {
-            // If not, go back to the worker menu
-            try {
-                Person connectedPerson = client.getConnectedPerson();
-                App.setRoot("WorkerMenu", connectedPerson);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+
+
 }
+

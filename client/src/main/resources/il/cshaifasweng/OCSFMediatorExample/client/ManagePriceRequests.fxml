@@ -3,7 +3,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ManagePriceRequestsController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ManagePriceRequestsController" spacing="20" alignment="CENTER" style="-fx-padding: 20;">
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Button text="Back" onAction="#goBack"/>
+    </HBox>
     <TableView fx:id="requestsTable">
         <columns>
             <TableColumn text="Movie" fx:id="movieColumn"/>

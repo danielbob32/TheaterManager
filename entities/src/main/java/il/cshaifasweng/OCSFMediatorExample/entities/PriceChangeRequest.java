@@ -1,9 +1,12 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PriceChangeRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

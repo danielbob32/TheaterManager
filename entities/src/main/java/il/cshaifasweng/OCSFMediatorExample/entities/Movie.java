@@ -230,4 +230,8 @@ public class Movie {
         return this.getEnglishName();
     }
 
+    public Movie fromString (String movieName) {
+        return this;
+    }
+
 }
