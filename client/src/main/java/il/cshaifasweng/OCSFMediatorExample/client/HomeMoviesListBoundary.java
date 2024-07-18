@@ -113,19 +113,23 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         // If Person is ContentManager, add an edit movie button.
         Person p = client.getConnectedPerson();
-        if (p instanceof Worker && (((Worker) p).getWorkerType().equals("Content manager"))||
-                (((Worker) p).getWorkerType().equals("Chain manager"))) {
-            Button editButton = new Button("Delete Movie");
-            editButton.setOnAction(e -> {
-                try {
-                    deleteMovie(movie);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
+        if(p!=null)
+        {
+            if (p instanceof Worker && (((Worker) p).getWorkerType().equals("Content manager"))||
+                    (((Worker) p).getWorkerType().equals("Chain manager"))) {
+                Button editButton = new Button("Delete Movie");
+                editButton.setOnAction(e -> {
+                    try {
+                        deleteMovie(movie);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
 
-            buttons.getChildren().add(editButton);
+                buttons.getChildren().add(editButton);
+            }
         }
+
 
         textContent.getChildren().addAll(englishTitleLabel, hebrewTitleLabel, producerLabel, actorsLabel, synopsisLabel);
         HBox.setHgrow(textContent, Priority.ALWAYS);
