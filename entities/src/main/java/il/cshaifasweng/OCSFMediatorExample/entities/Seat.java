@@ -18,6 +18,10 @@ public class Seat {
     @JsonBackReference
     private MovieHall movieHall;
 
+    @ManyToOne
+    @JoinColumn(name = "screening_id")
+    private Screening screening;
+
     // Constructors
     public Seat() {
     }

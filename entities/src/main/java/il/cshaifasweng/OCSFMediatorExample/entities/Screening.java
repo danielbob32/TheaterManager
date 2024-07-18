@@ -1,8 +1,10 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +38,10 @@ public class Screening {
     @JoinColumn(name = "screening_id")
     private List<Seat> seats;
 
+//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JoinColumn(name = "screening_id")
+//    private List<Ticket> tickets;
+
     private boolean isFull;
 
     // constructors
@@ -50,6 +56,7 @@ public class Screening {
         this.seats = seats;
         this.isFull = isFull;
         setMovie(movie);
+//        this.tickets = new ArrayList<Ticket>();
     }
     
 
@@ -113,5 +120,15 @@ public class Screening {
             movie.getScreenings().add(this);
         }
     }
+
+//    public void setTickets(List<Ticket> tickets)
+//    {
+//        this.tickets=tickets;
+//    }
+//
+//    public List<Ticket> getTickets()
+//    {
+//        return this.tickets;
+//    }
 
 }

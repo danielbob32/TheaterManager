@@ -89,8 +89,7 @@ public class CustomerMenuController implements DataInitializable{
 
     @FXML
     private void handleLogout() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
-
-        App.setRoot("LoginPage", connectedPerson);
+        client.logout();
+        App.setRoot("LoginPage", null);
     }
 }

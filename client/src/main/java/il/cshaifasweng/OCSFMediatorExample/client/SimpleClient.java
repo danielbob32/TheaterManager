@@ -141,6 +141,7 @@ public class SimpleClient extends AbstractClient {
 						alert.setContentText("Screening added successfully");
 						alert.showAndWait();
 					});
+					EventBus.getDefault().post(new MessageEvent(message));
 				} else {
 					Platform.runLater(() -> {
 						Alert alert = new Alert(Alert.AlertType.ERROR);

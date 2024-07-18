@@ -113,9 +113,9 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         // If Person is ContentManager, add an edit movie button.
         Person p = client.getConnectedPerson();
-        if(p!=null)
+        if(p!=null && p instanceof Worker)
         {
-            if (p instanceof Worker && (((Worker) p).getWorkerType().equals("Content manager"))||
+            if ((((Worker) p).getWorkerType().equals("Content manager"))||
                     (((Worker) p).getWorkerType().equals("Chain manager"))) {
                 Button editButton = new Button("Delete Movie");
                 editButton.setOnAction(e -> {

@@ -1,9 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +70,10 @@ public class Customer extends Person{
         this.products = products;
     }
 
+    public List<Product> getProducts() {
+        return products;
+    }
+
 //    public List<TicketTab> getTicketTabs() {
 //        List<TicketTab> tabs = new ArrayList<TicketTab>();
 //        for(Product product : products) {
@@ -109,5 +111,8 @@ public class Customer extends Person{
     {
         this.products.add(b);
     }
+
+
+
 
 }

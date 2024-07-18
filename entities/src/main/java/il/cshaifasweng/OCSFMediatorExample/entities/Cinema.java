@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "cinema_id")
+@JsonIdentityInfo(generator=ObjectIdGenerators.IntSequenceGenerator.class,property="@cinema_id", scope = Cinema.class)
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "cinema_id", scope = Cinema.class)
 public class Cinema {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +20,7 @@ public class Cinema {
     private String location;
 
     @OneToMany(mappedBy = "cinema")
-    //@JsonIgnore
+//    @JsonIgnore
     private List<MovieHall> movieHalls;
 
     @OneToOne

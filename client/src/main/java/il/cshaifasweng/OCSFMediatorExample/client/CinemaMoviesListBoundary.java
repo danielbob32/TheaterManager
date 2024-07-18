@@ -87,7 +87,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	public void onMovieListEvent(MovieListEvent event) {
 		System.out.println("in onMovieListEvent");
 		allMovies = event.getMovies();
-		applyFilters();
+//		applyFilters();
+		displayFilteredMovies(allMovies);
 	}
 
 	private void applyFilters() {

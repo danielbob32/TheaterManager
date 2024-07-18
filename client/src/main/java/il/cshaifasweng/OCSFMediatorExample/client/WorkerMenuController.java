@@ -88,6 +88,7 @@ public class WorkerMenuController implements DataInitializable {
     @FXML
     private void handleLogout() throws IOException {
         workerType = null;
+        client.logout();
         App.setRoot("Loginpage", null);
     }
 

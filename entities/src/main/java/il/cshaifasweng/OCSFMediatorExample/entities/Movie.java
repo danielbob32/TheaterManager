@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -29,9 +30,9 @@ public class Movie {
     private int cinemaPrice;
     private int homePrice;
 
-//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+////    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
 //    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference(value = "movie-screenings")
+////    @JsonManagedReference(value = "movie-screenings")
 //    @JoinTable(
 //            name = "movie_screenings",
 //            joinColumns = @JoinColumn(name = "id"),

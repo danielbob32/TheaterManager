@@ -1,31 +1,39 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import java.sql.Date;
-import java.util.List;
+import javax.persistence.*;
+import java.util.*;
 
 @Entity
 public class TicketTab extends Product {
+
     private int amount;
 
-    @OneToMany
-    private List<Ticket> tickets;
+//    @OneToMany
+//    private List<Ticket> tickets;
 
-    @ManyToOne
-    private Movie movie;
+
+//    @ManyToOne
+//    private Movie movie;
+
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_id")
+    private List<Ticket> tickets;
 
     // Constructors
     public TicketTab() {
     }
 
-    public TicketTab(int amount, List<Ticket> tickets, Movie movie, int clientId, int price, boolean isActive, Cinema cinema, Date purchaseTime) {
-        super(clientId, price, isActive, cinema, purchaseTime);
-        this.amount = amount;
-        this.tickets = tickets;
-        this.movie = movie;
+    public TicketTab(Customer c, Date purchaseTime)
+    {
+        super(c.getPersonId(), 200, true, purchaseTime);
+        this.amount = 20;
+        tickets = new ArrayList<>(Arrays.asList(new Ticket[20]));
+    }
+
+    public TicketTab(Customer customer, Date purchaseTime, int price, Booking booking) {
+        super(customer, price, purchaseTime, booking);
+        this.amount = 20;
     }
 
     // Getters and setters
@@ -41,15 +49,19 @@ public class TicketTab extends Product {
         return tickets;
     }
 
-    public void setTickets(List<Ticket> tickets) {
+    public void setTickets(ArrayList<Ticket> tickets) {
         this.tickets = tickets;
     }
 
-    public Movie getMovie() {
-        return movie;
+    public void addTicket(Ticket ticket) {
+        tickets.add(ticket);
     }
 
-    public void setMovie(Movie movie) {
-        this.movie = movie;
-    }
+//    public Movie getMovie() {
+//        return movie;
+//    }
+//
+//    public void setMovie(Movie movie) {
+//        this.movie = movie;
+//    }
 }
