@@ -74,7 +74,6 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         }
     }
 
-
     private void checkUserPermissions() {
         Person connectedPerson = client.getConnectedPerson();
         isContentManager = (connectedPerson instanceof Worker) &&
@@ -178,6 +177,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private void handleBuyTickets() throws IOException {
         Screening selectedScreening = screeningListView.getSelectionModel().getSelectedItem();
         if (selectedScreening != null) {
+            selectedScreening.setMovie(currentMovie);
             App.setRoot("purchaseTickets", selectedScreening);
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING);

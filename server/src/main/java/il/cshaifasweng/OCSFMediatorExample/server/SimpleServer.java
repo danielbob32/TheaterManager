@@ -1,5 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
@@ -11,6 +13,8 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class SimpleServer extends AbstractServer {
@@ -166,7 +170,26 @@ public class SimpleServer extends AbstractServer {
 					} else {
 						client.sendToClient(new Message(0, "Failed to deny price change request"));
 					}
+					break;
 
+				case "getSeatAvailability":
+					System.out.println("in SimpleServer getSeatAvailability request");
+					handleGetSeatAvailability(message, client);
+					break;
+
+				case "checkTicketTab":
+					System.out.println("in SimpleServer checkTicketTab request");
+					handleCheckTicketTab(message, client);
+					break;
+
+				case "processPayment":
+					System.out.println("in SimpleServer processPayment request");
+					handleProcessPayment(message.getData(), client);
+					break;
+
+				case "getScreeningById":
+					System.out.println("in SimpleServer getScreeningById request");
+					handleGetScreeningById(message, client);
 					break;
 
 				default:
@@ -184,9 +207,115 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	protected void handleGetSeatAvailability(Message message, ConnectionToClient client) throws Exception {
+		int screeningId = Integer.parseInt(message.getData());
+		List<Seat> seats = db.getSeatsForScreening(screeningId);
 
+		Message response = new Message(0, "seatAvailabilityResponse", objectMapper.writeValueAsString(seats));
+		response.setAdditionalData(String.valueOf(screeningId));
+		client.sendToClient(response);
+	}
 
+	protected void handleProcessPayment(String data, ConnectionToClient client) throws Exception {
+		try {
+			// open json
+			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
+			String name = dataNode.get("name").asText();
+			int id = dataNode.get("id").asInt();
+			String email = dataNode.get("email").asText();
+			String paymentMethod = dataNode.get("paymentMethod").asText();
+			String paymentNum = dataNode.get("paymentNum").asText();
+			int cinemaPrice = dataNode.get("cinemaPrice").asInt();
+			int screeningId = dataNode.get("screeningId").asInt();
+			List<Integer> seatIds = new ArrayList<>();
+			JsonNode seatsIdNode = dataNode.get("seatIds");
+			Iterator<JsonNode> seatsIdIterator = seatsIdNode.elements();
+			while (seatsIdIterator.hasNext()) {
+				seatIds.add(seatsIdIterator.next().asInt());
+			}
 
+			Booking newBooking = null;
+			TicketTab ticketTab = null;
+
+			if (paymentMethod.equals("creditCard")) {
+				newBooking = db.purchaseTicketWithCreditCard(name, id, email, paymentNum, cinemaPrice, screeningId, seatIds);
+			} else if (paymentMethod.equals("ticketTab")) {
+				newBooking = db.purchaseTicketWithTicketTab(name, id, email, paymentNum, screeningId, seatIds);
+				System.out.println("0");
+				ticketTab = db.getTicketTabById(Integer.parseInt(paymentNum));
+			}
+
+			if (newBooking != null) {
+				System.out.println("created booking successfully " + newBooking.getBookingId());
+
+				int ticketNum = newBooking.getProducts().size();
+				StringBuilder seatsString = new StringBuilder();	// building string of the seats
+				for (Product product : newBooking.getProducts()) {
+					if (product instanceof Ticket) {
+						String row = String.valueOf(((Ticket) product).getSeat().getSeatRow());
+						String number = String.valueOf(((Ticket) product).getSeat().getSeatNumber());
+						seatsString.append(row).append("-").append(number).append(", ");
+					}
+				}
+				String seats = seatsString.substring(0, seatsString.length() - 2);
+				Screening screening = db.getScreeningById(screeningId);
+
+//				TicketPurchaseInfo purchaseInfo = new TicketPurchaseInfo(screening, newBooking, seats, paymentMethod, paymentNum);
+
+				ObjectNode bookingNode = objectMapper.createObjectNode();
+				bookingNode.put("bookingId", newBooking.getBookingId());
+				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
+				bookingNode.put("ticketNum", ticketNum);
+				bookingNode.put("seats", seats);
+				bookingNode.put("movie", screening.getMovie().getEnglishName());
+				bookingNode.put("cinema", screening.getCinema().getCinemaName());
+				bookingNode.put("movieHall", screening.getHall().getHallNumber());
+				bookingNode.put("screeningTime", screening.getTime().getTime());
+				bookingNode.put("paymentMethod", paymentMethod);
+
+				if (paymentMethod.equals("ticketTab")) {
+					if (ticketTab != null) {
+						System.out.println("1");
+						bookingNode.put("amountLeft", ticketTab.getAmount());
+					} else {
+						System.out.println("2");
+						bookingNode.put("amountLeft", 0);
+					}
+				}
+
+				System.out.println("3");
+				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
+				client.sendToClient(new Message(0,"addedTicketsSuccessfully", jsonBooking));
+
+			} else {
+				client.sendToClient(new Message(0, "addingTicketsFailed"));
+			}
+		} catch (Exception e) {
+			client.sendToClient(new Message(0, "failedSendingBookingInfo"));
+		}
+	}
+
+	protected void handleCheckTicketTab(Message message, ConnectionToClient client) throws IOException {
+		String[] data = message.getData().split(",");
+		int ticketTabId = Integer.parseInt(data[0]);
+		int customerId = Integer.parseInt(data[1]);
+		int seatsNum = Integer.parseInt(data[2]);
+		boolean isValid = db.checkTicketTabValidity(ticketTabId, customerId, seatsNum);
+		System.out.println("Ticket tab " + ticketTabId + " for customer " + customerId + " validity: " + isValid);
+		Message response = new Message(0, "ticketTabResponse", String.valueOf(isValid));
+		response.setAdditionalData(String.valueOf(ticketTabId));
+		client.sendToClient(response);
+	}
+
+	protected void handleGetScreeningById(Message message, ConnectionToClient client) throws IOException {
+		System.out.println("getting screening #" + message.getData());
+		Screening screening = db.getScreeningById(Integer.parseInt(message.getData()));
+		String jsonScreening = objectMapper.writeValueAsString(screening);
+		message.setData(jsonScreening);
+		message.setMessage("screeningById");
+		client.sendToClient(message);
+	}
 
 //		if (msg instanceof Worker || msg instanceof Customer) {
 //			handleLoginRequest(msg, client);
@@ -271,7 +400,7 @@ public class SimpleServer extends AbstractServer {
 		message.setData(jsonMovies);
 		message.setAdditionalData(movieType);
 		message.setMessage("movieList");
-		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
+		//System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
 	}

@@ -17,7 +17,7 @@ public class TicketTab extends Product {
 
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "ticket_tab_id")
     private List<Ticket> tickets;
 
     // Constructors
@@ -28,7 +28,7 @@ public class TicketTab extends Product {
     {
         super(c.getPersonId(), 200, true, purchaseTime);
         this.amount = 20;
-        tickets = new ArrayList<>(Arrays.asList(new Ticket[20]));
+        tickets = new ArrayList<>();
     }
 
     public TicketTab(Customer customer, Date purchaseTime, int price, Booking booking) {
@@ -55,6 +55,7 @@ public class TicketTab extends Product {
 
     public void addTicket(Ticket ticket) {
         tickets.add(ticket);
+        this.amount--;
     }
 
 //    public Movie getMovie() {

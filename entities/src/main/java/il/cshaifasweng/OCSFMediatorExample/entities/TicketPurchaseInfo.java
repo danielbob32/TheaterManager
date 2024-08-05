@@ -16,9 +16,21 @@ public class TicketPurchaseInfo {
     private String paymentMethod;
     private String creditCardNumber;
     private String ticketTabNumber;
+
     private Date purchaseTime;
     private int screeningId;
     private List<Integer> selectedSeatIds;
+
+    private String seats;
+    private Date screeningTime;
+
+    private Customer customer;
+    private Movie movie;
+    private MovieHall movieHall;
+    private Booking booking;
+
+
+    public TicketPurchaseInfo() {}
 
     public TicketPurchaseInfo(Screening screening, List<Seat> selectedSeats, int totalPrice) {
         this.screening = screening;
@@ -29,7 +41,25 @@ public class TicketPurchaseInfo {
         this.purchaseTime = new Date();
     }
 
+    public TicketPurchaseInfo(Screening screening, Booking booking, String seats, String paymentMethod, String paymentNumber) {
+        this.booking = booking;
+        this.screening = screening;
+        this.movie = screening.getMovie();
+        this.movieHall = screening.getHall();
+        this.seats = seats;
+        this.customer = booking.getCustomer();
+        this.purchaseTime = booking.getPurchaseTime();
+        this.paymentMethod = paymentMethod;
+        if (paymentMethod.equals("creditcard")) this.creditCardNumber = paymentNumber;
+        else this.ticketTabNumber = paymentNumber;
+    }
+
     // Getters and setters for all fields
+
+    public Booking getBooking() { return booking;   }
+    public void setBooking(Booking booking) { this.booking = booking; }
+
+
 
     public Screening getScreening() {
         return screening;
@@ -118,4 +148,7 @@ public class TicketPurchaseInfo {
     public List<Integer> getSelectedSeatIds() {
         return selectedSeatIds;
     }
+
+    public void setSeatsString(String seats) { this.seats = seats; }
+    public String getSeats() { return seats; }
 }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<StackPane alignment="CENTER" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.TicketsPaymentBoundary">
+    <HBox alignment="CENTER" maxHeight="640.0" maxWidth="800.0" minHeight="640.0" minWidth="800.0" prefHeight="640.0" prefWidth="800.0" spacing="20" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
+        <!-- Left side: Screening details -->
+        <VBox alignment="CENTER" maxHeight="600.0" maxWidth="230.0" minHeight="600.0" minWidth="230.0" prefHeight="600.0" prefWidth="230.0" spacing="10" style="-fx-background-color: #d9d9d9;">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+         <ImageView fitHeight="240.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" />
+            <Label fx:id="movieTitleLabel" style="-fx-font-size: 20; -fx-font-weight: bold;" />
+            <Label fx:id="cinemaLabel" style="-fx-font-size: 15" />
+            <Label fx:id="screeningTimeLabel" style="-fx-font-size: 15" />
+            <Label fx:id="selectedSeatsLabel" style="-fx-font-size: 15" />
+            <Label fx:id="totalPriceLabel" style="-fx-font-size: 15; -fx-font-weight: bold;" />
+             <Button fx:id="backButton" onAction="#handleBack" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+         </Button>
+        </VBox>
+
+        <!-- Right side: Payment details -->
+        <VBox alignment="CENTER_LEFT" maxHeight="600.0" maxWidth="510.0" minHeight="600.0" minWidth="510.0" prefHeight="600.0" prefWidth="510.0" spacing="10" style="-fx-background-color: #d9d9d9;">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            <HBox alignment="CENTER" spacing="20">
+                <RadioButton fx:id="creditCardRadio" text="Credit Card">
+               <font>
+                  <Font size="15.0" />
+               </font></RadioButton>
+                <RadioButton fx:id="ticketTabRadio" text="Ticket Tab">
+               <font>
+                  <Font size="15.0" />
+               </font></RadioButton>
+            </HBox>
+
+            <TextField fx:id="idField" promptText="ID Number">
+            <font>
+               <Font size="14.0" />
+            </font></TextField>
+
+            <VBox fx:id="creditCardForm" prefHeight="133.0" prefWidth="470.0" spacing="10">
+                <TextField fx:id="nameField" promptText="Full Name">
+               <font>
+                  <Font size="14.0" />
+               </font></TextField>
+                <TextField fx:id="emailField" promptText="Email">
+               <font>
+                  <Font size="14.0" />
+               </font></TextField>
+                <TextField fx:id="creditCardNumberField" promptText="Credit Card Number">
+               <font>
+                  <Font size="14.0" />
+               </font></TextField>
+            </VBox>
+
+            <VBox fx:id="ticketTabForm" managed="false" spacing="10" style="-fx-font-size: 15" visible="false">
+                <TextField fx:id="ticketTabNumberField" promptText="Ticket Tab Number" />
+            </VBox>
+
+            <HBox alignment="CENTER" prefHeight="30.0" prefWidth="470.0" spacing="10">
+                <Button fx:id="confirmPaymentButton" onAction="#handleConfirmPayment" prefHeight="48.0" prefWidth="159.0" style="-fx-background-color: green; -fx-font-size: 15; -fx-font-weight: bold;" text="Confirm Payment" textFill="WHITE">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            </HBox>
+        </VBox>
+    </HBox>
+</StackPane>

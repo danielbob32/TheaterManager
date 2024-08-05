@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
@@ -16,7 +16,6 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 public class SimpleClient extends AbstractClient {
 
@@ -40,6 +39,7 @@ public class SimpleClient extends AbstractClient {
 	protected void handleMessageFromServer(Object msg) {
 		if (msg instanceof Message) {
 			Message message = (Message) msg;
+			System.out.println("in SimpleClient got " + message.getMessage());
 			if (message.getMessage().equals("movieList")) {
 				try {
 					List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {
@@ -229,7 +229,6 @@ public class SimpleClient extends AbstractClient {
 				case "priceChangeRequests":
 					System.out.println("Price change requests in simple client: " + message.getData());
 					EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
-
 					break;
 
 				case "Price change request approved and price updated successfully":
@@ -261,6 +260,36 @@ public class SimpleClient extends AbstractClient {
 						alert.setHeaderText(null);
 						alert.setContentText(message.getData() != null ? message.getData() : "An error occurred with the price change request");
 						alert.showAndWait();
+					});
+					break;
+
+				case "seatAvailabilityResponse":
+					Platform.runLater(() -> {
+						try {
+							System.out.println("got seatAvailabilityResponse");
+							List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {
+							});
+							EventBus.getDefault().post(new SeatAvailabilityEvent(Integer.parseInt(message.getAdditionalData()), seats));
+						} catch (IOException e) {
+							e.printStackTrace();
+							EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
+						}
+					});
+					break;
+
+				case "ticketTabResponse":
+					Platform.runLater(() -> {
+						boolean isValid = Boolean.parseBoolean(message.getData());
+						String ticketTabNumber = message.getAdditionalData();
+						System.out.println("Received ticket tab response. Valid: " + isValid + ", Number: " + ticketTabNumber);
+						EventBus.getDefault().post(new TicketTabResponseEvent(isValid, ticketTabNumber));
+					});
+					break;
+
+				case "addedTicketsSuccessfully":
+					Platform.runLater(() -> {
+						System.out.println("got addedTicketsSuccessfully");
+						handleAddedTicketsSuccessfully(message.getData());
 					});
 					break;
 
@@ -337,6 +366,54 @@ public class SimpleClient extends AbstractClient {
 		}
 	}
 
+	public void getSeatAvailability(int screeningId) throws IOException {
+		Message message = new Message(0, "getSeatAvailability", String.valueOf(screeningId));
+		sendToServer(message);
+	}
+
+	public void purchaseTickets(String name, String id, String email, String paymentMethod, String paymentNum,
+								int cinemaPrice, int screeningId, List<Integer> chosenSeatsId) throws IOException {
+		System.out.println("in SimpleClient: purchaseTickets for " + name);
+		// convert to json and send to server
+		try {
+			ObjectNode dataNode = objectMapper.createObjectNode();
+			dataNode.put("name", name);
+			dataNode.put("id", id);
+			dataNode.put("email", email);
+			dataNode.put("paymentMethod", paymentMethod);
+			dataNode.put("paymentNum", paymentNum);
+			dataNode.put("cinemaPrice", cinemaPrice);
+			dataNode.put("screeningId", screeningId);
+
+			ArrayNode seatIdNode = objectMapper.createArrayNode();
+			for (int seatId : chosenSeatsId) {
+				seatIdNode.add(seatId);
+			}
+			dataNode.set("seatIds", seatIdNode);
+
+			String jsonData = objectMapper.writeValueAsString(dataNode);
+
+			sendToServer(new Message(0, "processPayment", jsonData));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
+		}
+	}
+
+	public void checkTicketTabValidity(int ticketTabId, int customerId, int seatsNum) throws IOException {
+		Message message = new Message(0, "checkTicketTab", ticketTabId + "," + customerId + "," + seatsNum);
+		sendToServer(message);
+	}
+
+	private void handleAddedTicketsSuccessfully(String bookingDataJson) {
+		try {
+			EventBus.getDefault().post(new PurchaseResponseEvent(true,"purchase successful", bookingDataJson));
+		} catch (Exception e) {
+			e.printStackTrace();
+			EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
+		}
+	}
 
 	public void login(Person p)
 	{

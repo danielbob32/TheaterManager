@@ -85,6 +85,12 @@ public class ServerDB {
                 session.save(customer1);
                 session.save(customer2);
 
+                // Add test ticket tabs
+                TicketTab ticketTab1 = new TicketTab(customer1, new Date());
+                TicketTab ticketTab2 = new TicketTab(customer2, new Date());
+                session.save(ticketTab1);
+                session.save(ticketTab2);
+
                 transaction.commit();
                 System.out.println("Test data added successfully");
             } catch (Exception e) {
@@ -134,7 +140,6 @@ public class ServerDB {
             e.printStackTrace();
         }
     }
-
 
     public SessionFactory getSessionFactory() {
         return sessionFactory;
@@ -346,8 +351,25 @@ public class ServerDB {
                 Date screeningTime = new Date(System.currentTimeMillis() + random.nextInt(1000000000)); // Different times
 
                 Screening screening = new Screening(cinema, hall, movie, screeningTime, new ArrayList<>(), false);
+                generateSeats(screening);
                 session.save(screening);
                 session.flush();
+            }
+        }
+    }
+
+    private void generateSeats(Screening screening) {
+        int cols = 10;
+        int rows;
+        if (screening.getHall().getHallNumber() % 2 == 0) {
+            rows = 8;
+        } else rows = 5;
+
+        for (int row = 1; row <= rows; row++) {
+            for (int col = 1; col <= cols; col++) {
+                Seat seat = new Seat(col, row, true, screening.getHall());
+                screening.getSeats().add(seat);
+                session.save(seat);
             }
         }
     }
@@ -562,6 +584,167 @@ public class ServerDB {
         return session.get(PriceChangeRequest.class, requestId);
     }
 
+    public List<Seat> getSeatsForScreening(int screeningId) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Seat s WHERE s.screening.screening_id = :screeningId";
+            Query<Seat> query = session.createQuery(hql, Seat.class);
+            query.setParameter("screeningId", screeningId);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean checkTicketTabValidity(int productId, int customerId, int seatsNum) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM TicketTab T WHERE T.product_id = :productId AND T.clientId = :customerId";
+            Query<TicketTab> query = session.createQuery(hql, TicketTab.class);
+            query.setParameter("productId", productId);
+            query.setParameter("customerId", customerId);
+            TicketTab ticketTab = query.uniqueResult();
+
+            if (ticketTab != null) {
+                System.out.println("Ticket tab found. Amount: " + ticketTab.getAmount());
+                return ticketTab.getAmount() >= seatsNum;
+            } else {
+                System.out.println("No ticket tab found for productId: " + productId + " and customerId: " + customerId);
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error checking ticket tab validity: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public Screening getScreeningById(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Screening.class, id);
+        }
+
+    }
+
+    public TicketTab getTicketTabById(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(TicketTab.class, id);
+        }
+    }
+
+    public Booking purchaseTicketWithCreditCard(String name, int id, String email,
+                                                String paymentNum, int cinemaPrice, int screeningId, List<Integer> seatId) {
+        Session session = sessionFactory.openSession();
+        Booking newBooking = null;
+        Date purchaseTime = new Date();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+
+            Customer customer = session.get(Customer.class, id);
+            if (customer == null) {
+                customer = new Customer(name, email, id);
+                session.save(customer);
+                session.flush();
+            }
+
+            newBooking = new Booking(customer, purchaseTime, email, paymentNum);
+            Ticket currentTicket;
+            Screening screening = getScreeningById(screeningId);
+
+            for (Integer i : seatId) {
+                Seat seat = session.get(Seat.class, i);
+                seat.setAvailable(false); // make seat unavailable
+                session.update(seat);
+                currentTicket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
+                session.save(currentTicket);
+
+                customer.addProduct(currentTicket);
+                newBooking.addTicket(currentTicket);
+            }
+
+            customer.addBooking(newBooking);
+            session.save(newBooking);
+            transaction.commit();
+
+            System.out.println("cinema tickets booking purchased");
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return newBooking;
+    }
+
+    public Booking purchaseTicketWithTicketTab(String name, int id, String email,
+                                               String paymentNum, int screeningId, List<Integer> seatId) {
+
+        System.out.println("handling purchase ticket with ticket tab");
+
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+        Booking newBooking = null;
+        Date purchaseTime = new Date();
+
+        try {
+            transaction = session.beginTransaction();
+
+            TicketTab ticketTab = session.get(TicketTab.class, Integer.parseInt(paymentNum));
+            if (ticketTab == null || ticketTab.getAmount() < seatId.size()) {
+                System.out.println("Not enough amount in tickettab to purchase");
+                return null;
+            }
+
+            Customer customer = session.get(Customer.class, id);
+            if (customer == null) {
+                customer = new Customer(name, email, id);
+                session.save(customer);
+            }
+
+            newBooking = new Booking(customer, purchaseTime, customer.getEmail(), paymentNum);
+            session.save(newBooking);
+
+            Screening screening = session.get(Screening.class, screeningId);
+            if (screening == null) {
+                System.out.println("No screening found for id: " + screeningId);
+                return null;
+            }
+
+            for (Integer i : seatId) {
+                Seat seat = session.get(Seat.class, i);
+                seat.setAvailable(false); // make seat unavailable
+                session.update(seat);
+
+                Ticket currentTicket = new Ticket(id, 0, purchaseTime, screening, seat);
+                session.save(currentTicket);
+                System.out.println("created a new ticket successfully #" + currentTicket.getProduct_id());
+
+                ticketTab.addTicket(currentTicket);
+
+                customer.addProduct(currentTicket);
+                newBooking.addTicket(currentTicket);
+
+                System.out.println("added a ticket to tickettab successfully");
+                System.out.println("amount left: " + ticketTab.getAmount());
+                session.update(ticketTab);
+            }
+            customer.addBooking(newBooking);
+
+            session.update(customer);
+            session.update(newBooking);
+
+            transaction.commit();
+            System.out.println("Cinema tickets booked using TicketTab");
+
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return newBooking;
+    }
 
 }
 

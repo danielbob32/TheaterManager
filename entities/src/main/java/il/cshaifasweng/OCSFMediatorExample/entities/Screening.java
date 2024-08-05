@@ -116,7 +116,7 @@ public class Screening {
     public void setMovie(Movie movie) {
         this.movie = movie;
         if (movie != null && !movie.getScreenings().contains(this)) {
-            System.out.println("Adding screening to movie on the screening entity");
+            //System.out.println("Adding screening to movie on the screening entity");
             movie.getScreenings().add(this);
         }
     }

@@ -75,7 +75,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
     }
 
     private VBox createMovieBox(Movie movie) {
-        System.out.println("in createMovieBox");
+        //System.out.println("in createMovieBox");
         VBox movieBox = new VBox(5);
 
         movieBox.setPadding(new Insets(10));
