@@ -1,42 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CinemaMovieDetailsBoundary"
-            prefHeight="600.0" prefWidth="800.0">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CinemaMovieDetailsBoundary">
     <children>
-        <Button fx:id="backButton" text="Back" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" onAction="#handleBackButton"/>
-        <Button fx:id="deleteMovieButton" text="Delete Movie" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" onAction="#handleDeleteMovie"/>
+        <Button fx:id="backButton" onAction="#handleBackButton" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Back" textFill="WHITE" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font></Button>
+        <Button fx:id="deleteMovieButton" onAction="#handleDeleteMovie" style="-fx-background-color: red; -fx-font-weight: bold;" text="Delete Movie" textFill="WHITE" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font></Button>
 
-        <VBox spacing="10" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <HBox spacing="20">
-                <ImageView fx:id="movieImage" fitHeight="200.0" fitWidth="150.0" preserveRatio="true"/>
+        <VBox spacing="10" style="-fx-background-color: #d9d9d9; -fx-padding: 5;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+            <HBox prefHeight="133.0" prefWidth="308.0" spacing="20" style="-fx-background-color: #d9d9d9;">
+                <ImageView fx:id="movieImage" fitHeight="200.0" fitWidth="150.0" preserveRatio="true" />
                 <VBox spacing="5">
-                    <Label fx:id="englishTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                    <Label fx:id="hebrewTitleLabel" style="-fx-font-size: 16px;"/>
-                    <Label fx:id="producerLabel"/>
-                    <Label fx:id="actorsLabel"/>
-                    <Label fx:id="durationLabel"/>
-                    <Label fx:id="genreLabel"/>
+                    <Label fx:id="englishTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                    <Label fx:id="hebrewTitleLabel" style="-fx-font-size: 16px;" />
+                    <Label fx:id="producerLabel" />
+                    <Label fx:id="actorsLabel" />
+                    <Label fx:id="durationLabel" />
+                    <Label fx:id="genreLabel" />
                 </VBox>
             </HBox>
-            <TextArea fx:id="synopsisArea" wrapText="true" editable="false" prefHeight="100.0"/>
+            <TextArea fx:id="synopsisArea" editable="false" prefHeight="67.0" prefWidth="779.0" wrapText="true" />
         </VBox>
 
-        <VBox spacing="10" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.bottomAnchor="10.0">
-            <Label text="Select Cinema:" style="-fx-font-weight: bold;"/>
-            <ComboBox fx:id="cinemaComboBox" onAction="#handleCinemaSelection"/>
+        <VBox layoutX="11.2" prefHeight="242.0" prefWidth="779.0" spacing="10" style="-fx-background-color: #d9d9d9; -fx-padding: 5;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="11.0" AnchorPane.rightAnchor="10.0">
+            <ComboBox fx:id="cinemaComboBox" onAction="#handleCinemaSelection" prefHeight="26.0" prefWidth="167.0" promptText="Select Cinema">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+         </ComboBox>
             <HBox spacing="10">
-                <Label text="Screenings:" style="-fx-font-weight: bold;"/>
-                <Button fx:id="addScreeningButton" text="Add Screening" onAction="#handleAddScreening"/>
+                <Label style="-fx-font-weight: bold;" text="Screenings:" textFill="#1e3c72" />
+                <Button fx:id="addScreeningButton" onAction="#handleAddScreening" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Add Screening" textFill="WHITE">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
             </HBox>
-            <ListView fx:id="screeningListView" prefHeight="100.0"/>
-            <Button fx:id="deleteScreeningButton" text="Delete Selected Screening" onAction="#handleDeleteScreening"/>
-            <Button fx:id="buyTicketsButton" text="Buy Tickets" onAction="#handleBuyTickets"/>
+            <ListView fx:id="screeningListView" prefHeight="110.0" prefWidth="779.0" />
+            <Button fx:id="deleteScreeningButton" alignment="CENTER" contentDisplay="CENTER" onAction="#handleDeleteScreening" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Delete Selected Screening" textFill="WHITE">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+         </Button>
+            <Button fx:id="buyTicketsButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="30.0" maxWidth="115.0" minHeight="30.0" minWidth="115.0" onAction="#handleBuyTickets" prefHeight="30.0" prefWidth="115.0" style="-fx-background-color: green; -fx-font-weight: bold; -fx-font-size: 15" text="Buy Tickets" textFill="WHITE">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+            <font>
+               <Font size="15.0" />
+            </font></Button>
         </VBox>
     </children>
 </AnchorPane>

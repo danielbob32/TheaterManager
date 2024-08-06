@@ -1,37 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
-    <VBox alignment="CENTER" spacing="10" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20" style="-fx-background-color: rgba(255,255,255,0.9); -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+<AnchorPane minHeight="640.0" minWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController">
+    <VBox alignment="CENTER" spacing="10" style="-fx-background-color: rgba(255,255,255,0.9); -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20">
         <padding>
-            <Insets top="10" right="10" bottom="10" left="10"/>
+            <Insets bottom="10" left="10" right="10" top="10" />
         </padding>
 
-        <Text text="Welcome to Movie Theater" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+        <Text style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;" text="Welcome to Movie Theater" />
 
-        <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 16px; -fx-font-weight: bold;" />
 
-        <ImageView fitWidth="200" fitHeight="133" preserveRatio="true">
-            <Image url="@/Images/MovieTheater.jpg"/>
+        <ImageView fitHeight="133" fitWidth="200" preserveRatio="true">
+            <Image url="@/Images/MovieTheater.jpg" />
         </ImageView>
 
-        <HBox spacing="10" alignment="CENTER">
-            <Button text="Coming Soon" onAction="#viewFutureMovies" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-            <Button text="View Home Movies" onAction="#viewHomeMovies" style="-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-            <Button text="Now in Theaters" onAction="#viewMovieList" style="-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <HBox alignment="CENTER" spacing="10">
+            <Button onAction="#viewFutureMovies" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Coming Soon" />
+            <Button onAction="#viewHomeMovies" style="-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="View Home Movies" />
+            <Button onAction="#viewMovieList" style="-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Now in Theaters" />
+         <Button onAction="#buyTicketTab" style="-fx-background-color: #e156c3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Buy Ticket Tab" textFill="WHITE" />
         </HBox>
 
-        <VBox spacing="5" alignment="CENTER" style="-fx-background-color: rgba(255,255,255,0.8); -fx-padding: 10; -fx-background-radius: 5;">
-            <ComboBox fx:id="userTypeComboBox" promptText="Select User Type" maxWidth="200"/>
-            <TextField fx:id="idTextField" promptText="Enter ID" maxWidth="200"/>
-            <PasswordField fx:id="passwordTextField" promptText="Enter Password" maxWidth="200"/>
-            <Button text="Login" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" maxWidth="200"/>
+        <VBox alignment="CENTER" spacing="5" style="-fx-background-color: rgba(255,255,255,0.8); -fx-padding: 10; -fx-background-radius: 5;">
+            <ComboBox fx:id="userTypeComboBox" maxWidth="200" promptText="Select User Type" />
+            <TextField fx:id="idTextField" maxWidth="200" promptText="Enter ID" />
+            <PasswordField fx:id="passwordTextField" maxWidth="200" promptText="Enter Password" />
+            <Button maxWidth="200" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Login" />
         </VBox>
     </VBox>
 </AnchorPane>

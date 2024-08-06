@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
@@ -13,6 +14,7 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -192,6 +194,11 @@ public class SimpleServer extends AbstractServer {
 					handleGetScreeningById(message, client);
 					break;
 
+				case "purchaseTicketTab":
+					System.out.println("in SimpleServer purchaseTicketTab request");
+					handlePurchaseTicketTab(message.getData(), client);
+					break;
+
 				default:
 					client.sendToClient(new Warning("Unknown request type"));
 			}
@@ -316,6 +323,33 @@ public class SimpleServer extends AbstractServer {
 		message.setMessage("screeningById");
 		client.sendToClient(message);
 	}
+
+	protected void handlePurchaseTicketTab(String data, ConnectionToClient client) throws IOException {
+		try {
+			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
+			int id = dataNode.get("id").asInt();
+			String name = dataNode.get("name").asText();
+			String email = dataNode.get("email").asText();
+			String creditCard = dataNode.get("creditCard").asText();
+
+			Booking newBooking = db.purchaseTicketTab(name, id, email, creditCard);
+
+			if (newBooking != null) {
+				ObjectNode bookingNode = objectMapper.createObjectNode();
+				bookingNode.put("bookingId", newBooking.getBookingId());
+				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
+				bookingNode.put("ticketTabId", newBooking.getTicketTabId());
+
+				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
+				client.sendToClient(new Message(0,"purchasedTicketTabSuccessfully", jsonBooking));
+			} else {
+			client.sendToClient(new Message(0, "purchasingTicketTabFailed"));
+			}
+		} catch (Exception e) {
+			client.sendToClient(new Message(0, "failedSendingBookingInfo"));
+		}
+    }
 
 //		if (msg instanceof Worker || msg instanceof Customer) {
 //			handleLoginRequest(msg, client);

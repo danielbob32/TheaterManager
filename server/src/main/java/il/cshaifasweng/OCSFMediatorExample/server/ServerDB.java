@@ -682,7 +682,9 @@ public class ServerDB {
 
         System.out.println("handling purchase ticket with ticket tab");
 
-        Session session = sessionFactory.openSession();
+        //Session session = sessionFactory.openSession();
+        session = sessionFactory.openSession();
+
         Transaction transaction = null;
         Booking newBooking = null;
         Date purchaseTime = new Date();
@@ -741,11 +743,56 @@ public class ServerDB {
             if (transaction != null) transaction.rollback();
             e.printStackTrace();
         } finally {
-            session.close();
+            //session.close();
         }
         return newBooking;
     }
 
+    public Booking purchaseTicketTab(String name, int id, String email, String creditCard) {
+        Session session = sessionFactory.openSession();
+        TicketTab newTicketTab = null;
+        Booking newBooking = null;
+
+        try {
+            session.beginTransaction();
+            Date purchaseTime = new Date();
+
+            // Check if customer exists, create if not
+            Customer customer = session.get(Customer.class, id);
+            if (customer == null) {
+                customer = new Customer(name, email, id);
+                session.save(customer);
+                session.flush();
+            }
+
+            // Create new booking
+            newBooking = new Booking(customer, purchaseTime, email, creditCard);
+            session.save(newBooking);
+            session.flush();
+
+            // Create new ticket tab
+            newTicketTab = new TicketTab(customer, purchaseTime);
+            session.save(newTicketTab);
+            session.flush();
+
+            // Update relationships
+            customer.addBooking(newBooking);
+            customer.addProduct(newTicketTab);
+            newBooking.addTicketTab(newTicketTab);
+            newBooking.setTicketTabId(newTicketTab.getProduct_id());
+
+            session.getTransaction().commit();
+            System.out.println("TicketTab #" + newTicketTab.getProduct_id() +
+                    " (booking #" + newBooking.getBookingId() +
+                    ") added to customer " + newBooking.getCustomer().getPersonId());
+        } catch (Exception e) {
+            if (session.getTransaction() != null) session.getTransaction().rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return newBooking;
+    }
 }
 
 

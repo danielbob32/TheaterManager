@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -16,6 +17,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -158,7 +161,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		VBox movieBox = new VBox(5);
 
 		movieBox.setPadding(new Insets(10));
-		movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
+		movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5; -fx-fill: gray");
 
 		HBox contentBox = new HBox(10);
 		contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
@@ -170,8 +173,9 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		iv.setPreserveRatio(true);
 
 		VBox textContent = new VBox(5);
-		Label englishTitleLabel = new Label("English Title: " + movie.getEnglishName());
-		Label hebrewTitleLabel = new Label("Hebrew Title: " + movie.getHebrewName());
+		Label englishTitleLabel = new Label(movie.getEnglishName());
+		englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+		Label hebrewTitleLabel = new Label(movie.getHebrewName());
 		Label producerLabel = new Label("Producer: " + movie.getProducer());
 		Label actorsLabel = new Label("Main Actors: " + movie.getActors());
 		Label synopsisLabel = new Label("Synopsis: " + movie.getSynopsis());
@@ -179,6 +183,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		VBox buttons = new VBox(5);
 		Button detailsButton = new Button("Movie Page");
+		detailsButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
+		detailsButton.setCursor(Cursor.HAND);
 		detailsButton.setOnAction(e-> {
             try {
                 moviePage(movie);

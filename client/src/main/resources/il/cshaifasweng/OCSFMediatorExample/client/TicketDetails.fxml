@@ -101,22 +101,22 @@
             </Text>
          </children>
       </Pane>
-      <Text fx:id="bookingIdText" fill="WHITE" layoutX="525.0" layoutY="61.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#########" wrappingWidth="246.73687744140625">
+      <Text fx:id="bookingIdText" fill="WHITE" layoutX="171.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#########" wrappingWidth="246.73687744140625">
          <font>
             <Font size="20.0" />
          </font>
       </Text>
-      <Text fx:id="bookingIdText1" fill="WHITE" layoutX="390.0" layoutY="61.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: " wrappingWidth="138.9366455078125">
+      <Text fx:id="bookingIdText1" fill="WHITE" layoutX="36.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: " wrappingWidth="138.9366455078125">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Text fx:id="purchaseTimeText" fill="WHITE" layoutX="504.0" layoutY="91.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#######" wrappingWidth="268.3369140625">
+      <Text fx:id="purchaseTimeText" fill="WHITE" layoutX="150.0" layoutY="93.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#######" wrappingWidth="268.3369140625">
          <font>
             <Font size="15.0" />
          </font>
       </Text>
-      <Text fx:id="purchaseTimeText1" fill="#c9c9c9" layoutX="391.0" layoutY="92.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time:" wrappingWidth="112.73672485351562">
+      <Text fx:id="purchaseTimeText1" fill="#c9c9c9" layoutX="37.0" layoutY="94.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time:" wrappingWidth="112.73672485351562">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>

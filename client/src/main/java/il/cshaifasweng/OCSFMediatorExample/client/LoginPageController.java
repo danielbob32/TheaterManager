@@ -140,6 +140,14 @@ public class LoginPageController implements Initializable, DataInitializable {
         App.setRoot("CinemaMovieList", null);
     }
 
+
+    @FXML
+    void buyTicketTab(ActionEvent event) throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+
+        App.setRoot("purchaseTicketTab", null);
+    }
+
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

@@ -293,6 +293,17 @@ public class SimpleClient extends AbstractClient {
 					});
 					break;
 
+				case "purchasedTicketTabSuccessfully":
+					Platform.runLater(() -> {
+						System.out.println("got purchasedTicketTabSuccessfully");
+                        try {
+                            App.setRoot("TicketTabDetails", message.getData());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+                    });
+					break;
+
 				default:
 					System.out.println("Received unknown message: " + message.getMessage());
 					break;
@@ -415,9 +426,28 @@ public class SimpleClient extends AbstractClient {
 		}
 	}
 
+	public void purchaseTicketTab(String id, String name, String email, String cardNum) {
+		System.out.println("in SimpleClient: addTicketTab");
+		try {
+			ObjectNode dataNode = objectMapper.createObjectNode();
+			dataNode.put("id", id);
+			dataNode.put("name", name);
+			dataNode.put("email", email);
+			dataNode.put("creditCard", cardNum);
+
+			String jsonData = objectMapper.writeValueAsString(dataNode);
+			sendToServer(new Message(0, "purchaseTicketTab", jsonData));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EventBus.getDefault().post(new FailureEvent("Failed to purchase ticket tab"));
+		}
+	}
+
 	public void login(Person p)
 	{
 		this.connectedPerson = p;
+		System.out.println("now connected: " + p.getName());
 	}
 
 	public void logout()

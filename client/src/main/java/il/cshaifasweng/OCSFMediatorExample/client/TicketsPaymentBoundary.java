@@ -76,6 +76,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
         paymentToggle.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             updatePaymentForm();
         });
+
     }
 
     private void initializePaymentDetails() {
@@ -99,6 +100,13 @@ public class TicketsPaymentBoundary implements DataInitializable {
         selectedSeatsLabel.setText("Selected Seats: " + seatsString.substring(0, seatsString.length() - 2));
 
         totalPriceLabel.setText("Total Price: ₪" + purchaseInfo.getTotalPrice());
+
+        Person connectedPerson = client.getConnectedPerson();
+        if (connectedPerson instanceof Customer) {
+            nameField.setText(connectedPerson.getName());
+            idField.setText(String.valueOf(connectedPerson.getPersonId()));
+            emailField.setText(((Customer) connectedPerson).getEmail());
+        }
     }
 
     private void updatePaymentForm() {

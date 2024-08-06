@@ -70,7 +70,7 @@ public class CustomerMenuController implements DataInitializable{
     private void buyTicketTab() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
 
-        App.setRoot("BuyTicketTab", connectedPerson);
+        App.setRoot("PurchaseTicketTab", connectedPerson);
     }
 
     @FXML

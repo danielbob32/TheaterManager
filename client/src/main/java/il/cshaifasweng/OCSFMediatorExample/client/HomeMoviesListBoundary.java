@@ -92,8 +92,9 @@ public class HomeMoviesListBoundary implements DataInitializable {
         iv.setPreserveRatio(true);
 
         VBox textContent = new VBox(5);
-        Label englishTitleLabel = new Label("English Title: " + movie.getEnglishName());
-        Label hebrewTitleLabel = new Label("Hebrew Title: " + movie.getHebrewName());
+        Label englishTitleLabel = new Label(movie.getEnglishName());
+        englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+        Label hebrewTitleLabel = new Label(movie.getHebrewName());
         Label producerLabel = new Label("Producer: " + movie.getProducer());
         Label actorsLabel = new Label("Main Actors: " + movie.getActors());
         Label synopsisLabel = new Label("Synopsis: " + movie.getSynopsis());
@@ -101,6 +102,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         VBox buttons = new VBox(5);
         Button detailsButton = new Button("Movie Page");
+        detailsButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
         detailsButton.setOnAction(e -> {
             try {
                 moviePage(movie);
