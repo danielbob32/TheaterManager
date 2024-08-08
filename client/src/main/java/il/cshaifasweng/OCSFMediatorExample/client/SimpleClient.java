@@ -301,15 +301,10 @@ public class SimpleClient extends AbstractClient {
                         }
                     });
                     break;
-                case "purchasedHomeMovieLinkSuccessfully":
+                    case "purchasedHomeMovieLinkSuccessfully":
                     Platform.runLater(() -> {
-                        try {
-                            ObjectNode bookingNode = (ObjectNode) objectMapper.readTree(message.getData());
-                            EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", bookingNode));
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                            EventBus.getDefault().post(new PurchaseResponseEvent(false, "Error processing purchase data"));
-                        }
+                        System.out.println("Received successful purchase response: " + message.getData());
+                        EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", message.getData()));
                     });
                     break;
                 case "purchasingHomeMovieLinkFailed":

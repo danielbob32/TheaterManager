@@ -7,6 +7,7 @@ public class PurchaseResponseEvent {
     private String data;
     private Object linkdata;
 
+
     public PurchaseResponseEvent(boolean success, String message, String data) {
         this.success = success;
         this.message = message;

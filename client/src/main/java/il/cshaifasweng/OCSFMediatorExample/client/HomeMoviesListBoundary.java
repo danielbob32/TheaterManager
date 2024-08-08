@@ -51,8 +51,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
     public void initData(Object data) {
         System.out.println("in initData with the next data" + data);
         System.out.println("in showHomeMovies here daniel");
-        moviesContainer.getChildren().clear();
-        client.getMovies();
+        showHomeMovies();
     }
 
     @Subscribe

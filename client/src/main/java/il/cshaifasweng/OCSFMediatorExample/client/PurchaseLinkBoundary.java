@@ -3,6 +3,8 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.io.IOException;
 import java.util.regex.Pattern;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -81,7 +83,7 @@ public class PurchaseLinkBoundary implements DataInitializable {
                 currentMovie.getId(),
                 selectedDate,
                 selectedTime,
-                totalPrice,
+                totalPrice=50,
                 email,
                 name,
                 id,
@@ -154,24 +156,26 @@ public class PurchaseLinkBoundary implements DataInitializable {
     }
 
     @Subscribe
-    public void onPaymentResponse(PurchaseResponseEvent event) {
-        Platform.runLater(() -> {
-            if (event.isSuccess()) {
-                showAlert("Payment successful! An email has been sent with the movie link details.");
-                try {
-                    // Navigate to another view if necessary
-                    App.setRoot("LinkDetails", event.getData());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    showAlert("Error navigating to link details.");
+    public void onPurchaseResponse(PurchaseResponseEvent event) {
+            Platform.runLater(() -> {
+                if (event.isSuccess()) {
+                    System.out.println("Purchase successful. Response data: " + event.getData());
+                    showAlert("Payment successful! An email has been sent with the movie link details.");
+                    try {
+                        App.setRoot("LinkDetails", event.getData());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        showAlert("Error navigating to link details.");
+                    }
+                } else {
+                    showAlert("Purchase failed: " + event.getMessage());
                 }
-            } else {
-                showAlert("Payment failed: " + event.getMessage());
-            }
-        });
+            });
     }
 
     public void cleanup() {
         EventBus.getDefault().unregister(this);
     }
 }
+
+

@@ -18,10 +18,6 @@
             <Cursor fx:constant="HAND" />
          </cursor></Button>
     </HBox>
-    <Button onAction="#showHomeMovies" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Show All Home Movies" textFill="WHITE">
-      <cursor>
-         <Cursor fx:constant="HAND" />
-      </cursor></Button>
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
         <VBox fx:id="moviesContainer" spacing="10">
             <padding>
