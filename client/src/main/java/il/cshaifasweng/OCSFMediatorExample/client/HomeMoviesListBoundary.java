@@ -50,7 +50,9 @@ public class HomeMoviesListBoundary implements DataInitializable {
     @Override
     public void initData(Object data) {
         System.out.println("in initData with the next data" + data);
-
+        System.out.println("in showHomeMovies here daniel");
+        moviesContainer.getChildren().clear();
+        client.getMovies();
     }
 
     @Subscribe
@@ -149,7 +151,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
     private void moviePage(Movie movie) throws IOException {
         System.out.println("in moviePage");
-        App.setRoot("CinemaMovieDetails", movie);
+        App.setRoot("HomeMovieDetails", movie);
     }
 
     @FXML

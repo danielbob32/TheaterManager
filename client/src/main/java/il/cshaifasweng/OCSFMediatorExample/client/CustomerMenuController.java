@@ -41,7 +41,7 @@ public class CustomerMenuController implements DataInitializable{
     @FXML
     private void viewHomeMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        System.out.println("Going to HomeMovieList");
         App.setRoot("HomeMovieList", connectedPerson);
     }
 

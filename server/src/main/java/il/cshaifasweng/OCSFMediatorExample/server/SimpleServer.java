@@ -3,19 +3,19 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import il.cshaifasweng.OCSFMediatorExample.entities.Warning;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
-
+import java.util.Date;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import java.util.Optional;
 import java.io.IOException;
-import java.sql.Date;
+//import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -199,13 +199,19 @@ public class SimpleServer extends AbstractServer {
 					handlePurchaseTicketTab(message.getData(), client);
 					break;
 
+					case "purchaseLink":
+					System.out.println("In SimpleServer, handling purchaseLink request.");
+					handlePurchaseLink(message.getData(), client); // Pass message data as String
+					break;
+
 				default:
 					client.sendToClient(new Warning("Unknown request type"));
 			}
 		} catch (IOException e) {
+			System.out.println("DEBUG: Error processing message - " + e.getMessage());
 			e.printStackTrace();
 			try {
-				client.sendToClient(new Warning("Error: " + e.getMessage()));
+				client.sendToClient(new Warning("Server error: " + e.getMessage()));
 			} catch (IOException ioException) {
 				ioException.printStackTrace();
 			}
@@ -366,6 +372,84 @@ public class SimpleServer extends AbstractServer {
 //				}
 //			}
 //		}
+
+protected void handlePurchaseLink(String data, ConnectionToClient client) {
+    System.out.println("DEBUG: Processing purchase link");
+    try {
+        ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
+        String name = dataNode.has("name") ? dataNode.get("name").asText() : "";
+        int id = dataNode.has("id") ? dataNode.get("id").asInt() : 0;
+        String email = dataNode.has("email") ? dataNode.get("email").asText() : "";
+        String creditCard = dataNode.has("creditCard") ? dataNode.get("creditCard").asText() : "";
+        int movieId = dataNode.has("movieId") ? dataNode.get("movieId").asInt() : 0;
+        String selectedDate = dataNode.has("selectedDate") ? dataNode.get("selectedDate").asText() : "";
+        String selectedTime = dataNode.has("selectedTime") ? dataNode.get("selectedTime").asText() : "";
+        int totalPrice = dataNode.has("totalPrice") ? dataNode.get("totalPrice").asInt() : 0;
+
+        System.out.println("DEBUG: Purchase data - Name: " + name + ", ID: " + id + ", Email: " + email);
+
+
+        Movie movie = db.getMovieById(movieId);
+        if (movie == null) {
+            client.sendToClient(new Message(0, "Movie not found"));
+            return;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date openTime = sdf.parse(selectedDate + " " + selectedTime);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(openTime);
+        calendar.add(Calendar.HOUR, 24);
+        Date closeTime = calendar.getTime();
+
+        HomeMovieLink link = new HomeMovieLink(openTime, closeTime, false, HomeMovieLink.generateRandomLink("www.Theater.link."),
+                                               id, totalPrice, true, new Date());
+        link.setMovie(movie);
+
+        Customer customer = null;
+        try {
+            customer = (Customer) db.getPersonById(id);
+            System.out.println("DEBUG: Existing customer found: " + (customer != null));
+            if (customer == null) {
+                customer = new Customer(name, email, id);
+                db.addPerson(customer);
+                System.out.println("DEBUG: New customer added with ID: " + customer.getPersonId());
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error handling customer: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
+        Booking newBooking = db.purchaseHomeMovieLink(name, id, email, creditCard, link);
+        System.out.println("DEBUG: New booking created: " + (newBooking != null));
+
+        if (newBooking != null) {
+            ObjectNode bookingNode = objectMapper.createObjectNode();
+            bookingNode.put("bookingId", newBooking.getBookingId());
+            bookingNode.put("name", customer.getName());
+            bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
+            bookingNode.put("movie", movie.getEnglishName());
+            bookingNode.put("openTime", link.getOpenTime().getTime());
+            bookingNode.put("closeTime", link.getCloseTime().getTime());
+            bookingNode.put("watchLink", link.getWatchLink());
+            bookingNode.put("totalPrice", link.getPrice());
+
+            String jsonBooking = objectMapper.writeValueAsString(bookingNode);
+            client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
+        } else {
+            client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
+        }
+    } catch (Exception e) {
+        System.out.println("DEBUG: Error in handlePurchaseLink: " + e.getMessage());
+        e.printStackTrace();
+        try {
+            client.sendToClient(new Message(0, "failedProcessingPurchaseLink", e.getMessage()));
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+}
 
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {

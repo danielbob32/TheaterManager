@@ -6,6 +6,7 @@ import javax.persistence.ManyToOne;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.util.Date;
+
 @Entity
 public class HomeMovieLink extends Product {
     private Date openTime;
@@ -17,7 +18,6 @@ public class HomeMovieLink extends Product {
     @JoinColumn(name = "movie_id")
     @JsonBackReference(value = "movie-homeMovieLinks")
     private Movie movie;
-
 
     // Constructors
     public HomeMovieLink() {
@@ -31,7 +31,6 @@ public class HomeMovieLink extends Product {
         this.isOpen = isOpen;
         this.watchLink = watchLink;
     }
-
 
     // Getters and setters
     public Date getOpenTime() {
@@ -49,7 +48,6 @@ public class HomeMovieLink extends Product {
     public void setCloseTime(Date closeTime) {
         this.closeTime = closeTime;
     }
-
 
     public boolean isOpen() {
         return isOpen;
@@ -73,14 +71,6 @@ public class HomeMovieLink extends Product {
 
     public void setMovie(Movie movie) {
         this.movie = movie;
-    }
-
-    public void setIsOpen(boolean isOpen) {
-        this.isOpen = isOpen;
-    }
-
-    public boolean getIsOpen() {
-        return isOpen;
     }
 
     public static String generateRandomLink(String link) {

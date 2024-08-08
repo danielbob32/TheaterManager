@@ -69,6 +69,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         if (data instanceof Movie) {
             currentMovie = (Movie) data;
             displayMovieDetails();
+            System.out.println("in cinema movie details boundary");
             populateCinemas();
             checkUserPermissions();
         }

@@ -793,6 +793,67 @@ public class ServerDB {
         }
         return newBooking;
     }
+
+    public Movie getMovieById(int movieId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Movie.class, movieId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    public Booking purchaseHomeMovieLink(String name, int id, String email, String creditCard, HomeMovieLink link) {
+        System.out.println("DEBUG: Starting purchaseHomeMovieLink");
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+    
+            Customer customer = (Customer) session.get(Person.class, id);
+            System.out.println("DEBUG: Existing customer found: " + (customer != null));
+            if (customer == null) {
+                customer = new Customer(name, email, id);
+                session.save(customer);
+                System.out.println("DEBUG: New customer saved with ID: " + customer.getPersonId());
+            }
+    
+            Booking newBooking = new Booking(customer, new Date(), email, creditCard);
+            session.save(newBooking);
+            System.out.println("DEBUG: New booking saved with ID: " + newBooking.getBookingId());
+    
+            link.setClientId(customer.getPersonId());
+            session.save(link);
+            System.out.println("DEBUG: HomeMovieLink saved");
+    
+            newBooking.addProduct(link);
+            customer.addProduct(link);
+    
+            session.update(customer);
+            session.update(newBooking);
+    
+            transaction.commit();
+            System.out.println("DEBUG: Transaction committed successfully");
+            return newBooking;
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error in purchaseHomeMovieLink: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    public Person getPersonById(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Person.class, id);
+        }
+    }
+
+    public void addPerson(Person person) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.save(person);
+            transaction.commit();
+        }
+    }
+    
 }
 
 
