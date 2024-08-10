@@ -10,9 +10,15 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.hibernate.service.ServiceRegistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 
 public class ServerDB {
@@ -57,20 +63,38 @@ public class ServerDB {
             e.printStackTrace();
         }
 
-        addTestData();
-        generateData();
+        try {
+            addTestData();
+            System.out.println("Test data added successfully");
+        } catch (Exception e) {
+            System.err.println("Error adding test data: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
+            generateData();
+            System.out.println("Generated data successfully");
+        } catch (Exception e) {
+            System.err.println("Error generating data: " + e.getMessage());
+            e.printStackTrace();
+        }
         addTestPriceChangeRequests();
     }
 
     private void addTestData() {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-
+    
             try {
-                // Delete all existing workers and customers
+                // Delete all existing data
                 session.createQuery("DELETE FROM Worker").executeUpdate();
                 session.createQuery("DELETE FROM Customer").executeUpdate();
+                session.createQuery("DELETE FROM Booking").executeUpdate();
+                session.createQuery("DELETE FROM Complaint").executeUpdate();
+                session.createQuery("DELETE FROM Cinema").executeUpdate();
 
+                System.out.println("Deleted all existing data");
+    
                 // Add test workers
                 Worker contentManager = new Worker("Content Manager", "Content manager", "password123", 1001);
                 Worker regularWorker = new Worker("Regular Worker", "Regular", "password456", 1002);
@@ -79,17 +103,24 @@ public class ServerDB {
                 session.save(regularWorker);
                 session.save(chainManager);
 
+                System.out.println("Test workers added successfully");
+     
+
                 // Add test customers
                 Customer customer1 = new Customer("Test Customer 1", "customer1@example.com", 2001);
                 Customer customer2 = new Customer("Test Customer 2", "customer2@example.com", 2002);
                 session.save(customer1);
                 session.save(customer2);
+                
+                System.out.println("Test customers added successfully");
 
                 // Add test ticket tabs
                 TicketTab ticketTab1 = new TicketTab(customer1, new Date());
                 TicketTab ticketTab2 = new TicketTab(customer2, new Date());
                 session.save(ticketTab1);
                 session.save(ticketTab2);
+    
+                System.out.println("Test ticket tabs added successfully");
 
                 transaction.commit();
                 System.out.println("Test data added successfully");
@@ -99,6 +130,64 @@ public class ServerDB {
                 e.printStackTrace();
             }
         }
+    }
+    
+    private void generateBookings(List<Cinema> cinemas) {
+        Random random = new Random();
+        List<Customer> customers = getOrCreateCustomers(50);  // Get or create 50 customers
+    
+        for (Cinema cinema : cinemas) {
+            for (int i = 0; i < 50; i++) {  // Generate 50 bookings per cinema
+                Customer customer = customers.get(random.nextInt(customers.size()));
+                Date purchaseTime = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
+                Booking booking = new Booking(customer, purchaseTime, customer.getEmail(), "1234567890");
+                session.save(booking);
+    
+                // Add tickets or links to the booking
+                if (random.nextBoolean()) {
+                    Ticket ticket = new Ticket(customer.getPersonId(), 10, true, cinema, null, null, null, purchaseTime);
+                    session.save(ticket);
+                    booking.addProduct(ticket);
+                } else {
+                    HomeMovieLink link = new HomeMovieLink(purchaseTime, new Date(purchaseTime.getTime() + 24 * 60 * 60 * 1000L), true, "www.example.com/movie", customer.getPersonId(), 15, true, purchaseTime);
+                    session.save(link);
+                    booking.addProduct(link);
+                }
+    
+                session.update(booking);
+            }
+        }
+    }
+    
+    private void generateComplaints(List<Cinema> cinemas) {
+        Random random = new Random();
+        List<Customer> customers = getOrCreateCustomers(30);  // Get or create 30 customers
+    
+        for (Cinema cinema : cinemas) {
+            for (int i = 0; i < 30; i++) {  // Generate 30 complaints per cinema
+                Customer customer = customers.get(random.nextInt(customers.size()));
+                Date complaintDate = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
+                Complaint complaint = new Complaint(complaintDate, "Sample complaint " + i, true, 0, customer);
+                session.save(complaint);
+            }
+        }
+    }
+    
+    private List<Customer> getOrCreateCustomers(int count) {
+        List<Customer> customers = new ArrayList<>();
+        String hql = "FROM Customer";
+        Query<Customer> query = session.createQuery(hql, Customer.class);
+        query.setMaxResults(count);
+        customers = query.getResultList();
+    
+        int existingCount = customers.size();
+        for (int i = existingCount; i < count; i++) {
+            Customer newCustomer = new Customer("Customer" + i, "customer" + i + "@example.com", 3000 + i);
+            session.save(newCustomer);
+            customers.add(newCustomer);
+        }
+    
+        return customers;
     }
 
     private void addTestPriceChangeRequests() {
@@ -262,7 +351,6 @@ public class ServerDB {
             sessionFactory.close();
         }
     }
-
     public void generateData() {
         try {
             session.beginTransaction();
@@ -273,13 +361,18 @@ public class ServerDB {
             System.out.println("2. Movies generated: " + movies.size());
             generateScreenings(movies, cinemas);
             System.out.println("3. Screenings generated");
-
+            generateBookings(cinemas);
+            System.out.println("4. Bookings generated");
+            generateComplaints(cinemas);
+            System.out.println("5. Complaints generated");
+            
             session.getTransaction().commit();
             System.out.println("Data generated successfully");
-
+    
         } catch (HibernateException e) {
             session.getTransaction().rollback();
-            throw e;
+            System.err.println("Error generating data: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -853,6 +946,104 @@ public class ServerDB {
             transaction.commit();
         }
     }
+
+    public List<String> getCinemaList() {
+    try (Session session = sessionFactory.openSession()) {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<String> query = builder.createQuery(String.class);
+        Root<Cinema> root = query.from(Cinema.class);
+        query.select(root.get("cinemaName"));
+        return session.createQuery(query).getResultList();
+    } catch (Exception e) {
+        e.printStackTrace();
+        return new ArrayList<>();
+    }
+}
+
+public String generateReport(String reportType, LocalDate month, String cinema) {
+    try (Session session = sessionFactory.openSession()) {
+        switch (reportType) {
+            case "Monthly Ticket Sales":
+                return generateMonthlyTicketSalesReport(session, month, cinema);
+            case "Ticket Tabs and Home Movie Links Sales":
+                return generateTabsAndLinksSalesReport(session, month, cinema);
+            case "Customer Complaints Histogram":
+                return generateComplaintsHistogramReport(session, month, cinema);
+            default:
+                return "Invalid report type";
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "Error generating report: " + e.getMessage();
+    }
+}
+
+private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
+    String hql = "SELECT c.cinemaName, COUNT(t) " +
+                 "FROM Screening s " +
+                 "JOIN s.cinema c " +
+                 "JOIN s.products t " +  // Change this line
+                 "WHERE YEAR(s.time) = :year " +
+                 "AND MONTH(s.time) = :month ";
+    if (cinema != null && !cinema.equals("All")) {
+        hql += "AND c.cinemaName = :cinema ";
+    }
+    hql += "GROUP BY c.cinemaName";
+
+    Query<Object[]> query = session.createQuery(hql, Object[].class);
+    query.setParameter("year", month.getYear());
+    query.setParameter("month", month.getMonthValue());
+    if (cinema != null && !cinema.equals("All")) {
+        query.setParameter("cinema", cinema);
+    }
+    List<Object[]> results = query.getResultList();
+
+    // Convert results to JSON
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode rootNode = objectMapper.createObjectNode();
+    for (Object[] row : results) {
+        String cinemaName = (String) row[0];
+        Long ticketCount = (Long) row[1];
+        rootNode.put(cinemaName, ticketCount);
+    }
+    return rootNode.toString();
+}
+
+private String generateTabsAndLinksSalesReport(Session session, LocalDate month, String cinema) {
+    // Implementation for ticket tabs and home movie links sales report
+    // This is a placeholder implementation. You'll need to adjust it based on your exact data model and requirements.
+    String hql = "SELECT COUNT(p) FROM Product p WHERE TYPE(p) IN (TicketTab, HomeMovieLink) AND YEAR(p.purchaseTime) = :year AND MONTH(p.purchaseTime) = :month";
+    Query<Long> query = session.createQuery(hql, Long.class);
+    query.setParameter("year", month.getYear());
+    query.setParameter("month", month.getMonthValue());
+    Long salesCount = query.getSingleResult();
+    return "Ticket Tabs and Home Movie Links Sales for " + month + ": " + salesCount;
+}
+
+private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
+    // Implementation for customer complaints histogram report
+    // This is a placeholder implementation. You'll need to adjust it based on your exact data model and requirements.
+    String hql = "SELECT DAY(c.date), COUNT(c) FROM Complaint c WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month";
+    if (cinema != null && !cinema.equals("All")) {
+        hql += " AND c.cinema.cinemaName = :cinema";
+    }
+    hql += " GROUP BY DAY(c.date)";
+    Query<Object[]> query = session.createQuery(hql, Object[].class);
+    query.setParameter("year", month.getYear());
+    query.setParameter("month", month.getMonthValue());
+    if (cinema != null && !cinema.equals("All")) {
+        query.setParameter("cinema", cinema);
+    }
+    List<Object[]> results = query.getResultList();
+    
+    StringBuilder histogram = new StringBuilder("Complaints Histogram for " + month + ":\n");
+    for (Object[] result : results) {
+        int day = ((Number) result[0]).intValue();
+        long count = (Long) result[1];
+        histogram.append(String.format("Day %d: %s\n", day, "*".repeat((int) count)));
+    }
+    return histogram.toString();
+}
     
 }
 

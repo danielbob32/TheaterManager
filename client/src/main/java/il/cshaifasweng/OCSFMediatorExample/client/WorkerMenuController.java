@@ -82,7 +82,8 @@ public class WorkerMenuController implements DataInitializable {
 
     @FXML
     private void viewReports() throws IOException {
-        App.setRoot("ViewReports", null);
+        Person connectedPerson = client.getConnectedPerson();
+        App.setRoot("ReportsPage", connectedPerson);
     }
 
     @FXML
@@ -98,6 +99,7 @@ public class WorkerMenuController implements DataInitializable {
 
         App.setRoot("ManagePriceRequests", connectedPerson);
     }
+
 
     public static String getWorkerType() {
         return workerType;

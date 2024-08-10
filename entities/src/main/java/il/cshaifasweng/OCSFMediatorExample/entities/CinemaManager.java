@@ -23,6 +23,11 @@ public class CinemaManager extends Worker{
    
     public Cinema getCinemas() {
         return this.cinema;
+    
+    }
+
+    public Cinema getCinema() {
+        return this.cinema;
     }
 
     public void setCinema(Cinema cinema) {

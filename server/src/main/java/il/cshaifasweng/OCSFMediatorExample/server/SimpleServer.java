@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.io.IOException;
 //import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -199,9 +200,16 @@ public class SimpleServer extends AbstractServer {
 					handlePurchaseTicketTab(message.getData(), client);
 					break;
 
-					case "purchaseLink":
+				case "purchaseLink":
 					System.out.println("In SimpleServer, handling purchaseLink request.");
 					handlePurchaseLink(message.getData(), client); // Pass message data as String
+					break;
+				case "getCinemaList":
+					handleGetCinemaList(client);
+					break;
+	
+				case "generateReport":
+					handleGenerateReport(message.getData(), client);
 					break;
 
 				default:
@@ -521,5 +529,25 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		//System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
+	}
+
+	private void handleGetCinemaList(ConnectionToClient client) throws IOException {
+    List<String> cinemas = db.getCinemaList();
+    client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
+}
+
+	private void handleGenerateReport(String data, ConnectionToClient client) throws IOException {
+		JsonNode dataNode = objectMapper.readTree(data);
+		String reportType = dataNode.get("reportType").asText();
+		LocalDate month = LocalDate.parse(dataNode.get("month").asText());
+		String cinema = dataNode.get("cinema").asText();
+
+		String reportData = db.generateReport(reportType, month, cinema);
+
+		ObjectNode responseNode = objectMapper.createObjectNode();
+		responseNode.put("reportType", reportType);
+		responseNode.put("reportData", reportData);
+
+		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
 	}
 }

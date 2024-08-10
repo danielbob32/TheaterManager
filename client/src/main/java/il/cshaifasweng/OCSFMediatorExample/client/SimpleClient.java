@@ -3,6 +3,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -14,6 +15,7 @@ import javafx.scene.control.Alert;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -313,6 +315,14 @@ public class SimpleClient extends AbstractClient {
                     });
                     break;
 
+                case "cinemaList":
+                    handleCinemaList(message.getData());
+                    break;
+    
+                case "reportData":
+                    handleReportData(message.getData());
+                    break;
+
                 default:
                     System.out.println("Received unknown message: " + message.getMessage());
                     break;
@@ -465,6 +475,41 @@ public class SimpleClient extends AbstractClient {
             System.out.println("DEBUG: Error in purchaseLink - " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void handleCinemaList(String data) {
+    try {
+        List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {});
+        EventBus.getDefault().post(new CinemaListEvent(cinemas));
+    } catch (IOException e) {
+        e.printStackTrace();
+        EventBus.getDefault().post(new FailureEvent("Failed to parse cinema list"));
+    }
+}
+
+    private void handleReportData(String data) {
+        try {
+            JsonNode reportNode = objectMapper.readTree(data);
+            String reportType = reportNode.get("reportType").asText();
+            String reportData = reportNode.get("reportData").asText();
+            EventBus.getDefault().post(new ReportDataEvent(reportType, reportData));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to parse report data"));
+        }
+    }
+
+    public void requestCinemaList() throws IOException {
+        sendToServer(new Message(0, "getCinemaList"));
+    }
+
+    public void requestReport(String reportType, LocalDate month, String cinema) throws IOException {
+        ObjectNode dataNode = objectMapper.createObjectNode();
+        dataNode.put("reportType", reportType);
+        dataNode.put("month", month.toString());
+        dataNode.put("cinema", cinema);
+        String jsonData = objectMapper.writeValueAsString(dataNode);
+        sendToServer(new Message(0, "generateReport", jsonData));
     }
 
     public void login(Person p) {
