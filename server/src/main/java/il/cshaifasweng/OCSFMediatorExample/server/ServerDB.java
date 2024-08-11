@@ -1092,7 +1092,6 @@ private String generateComplaintsHistogramReport(Session session, LocalDate mont
     }
     return reportBuilder.toString();
 }
-
     
 }
 

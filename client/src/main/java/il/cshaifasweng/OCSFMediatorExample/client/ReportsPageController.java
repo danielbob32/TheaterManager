@@ -211,8 +211,6 @@ public class ReportsPageController implements DataInitializable {
 
     private void displayComplaintsHistogram(String reportData) {
         try {
-            JsonNode rootNode = objectMapper.readTree(reportData);
-            
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
@@ -220,23 +218,29 @@ public class ReportsPageController implements DataInitializable {
             barChart.setTitle("Customer Complaints Histogram");
             xAxis.setLabel("Day of Month");
             yAxis.setLabel("Number of Complaints");
-
+    
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Complaints");
-
-            rootNode.fields().forEachRemaining(entry -> {
-                series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue().asInt()));
-            });
-
+    
+            String[] lines = reportData.split("\n");
+            for (String line : lines) {
+                String[] parts = line.split(": ");
+                if (parts.length == 2) {
+                    String day = parts[0];
+                    int count = Integer.parseInt(parts[1]);
+                    series.getData().add(new XYChart.Data<>(day, count));
+                }
+            }
+    
             barChart.getData().add(series);
             reportContainer.getChildren().add(barChart);
-
-        } catch (IOException e) {
+    
+        } catch (Exception e) {
             e.printStackTrace();
             showAlert("Error parsing complaints histogram data: " + e.getMessage());
         }
     }
-
+    
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
