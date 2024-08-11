@@ -1,34 +1,31 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
-import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.application.Platform;
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.io.IOException;
-
 import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import javafx.stage.FileChooser;
+import javafx.util.StringConverter;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import javafx.util.StringConverter;
 
 public class ReportsPageController implements DataInitializable {
 
@@ -37,22 +34,24 @@ public class ReportsPageController implements DataInitializable {
     @FXML private ComboBox<String> cinemaComboBox;
     @FXML private VBox reportContainer;
     @FXML private Button backButton;
+    @FXML private Button exportButton;
 
     private SimpleClient client;
-    private BooleanProperty isBranchManager = new SimpleBooleanProperty(false);
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private String currentReportData;
 
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
         reportTypeComboBox.getItems().addAll(
             "Monthly Ticket Sales",
-            "Ticket Tabs and Home Movie Links Sales",
+            "Ticket Tab Sales",
+            "Home Movie Link Sales",
             "Customer Complaints Histogram"
         );
-        cinemaComboBox.visibleProperty().bind(isBranchManager);
+        reportTypeComboBox.setOnAction(event -> updateUIBasedOnReportType());
+
+        reportTypeComboBox.setValue("Monthly Ticket Sales");
         
-        // Initialize monthPicker
         YearMonth currentMonth = YearMonth.now();
         for (int i = 0; i < 12; i++) {
             monthPicker.getItems().add(currentMonth.minusMonths(i));
@@ -69,6 +68,17 @@ public class ReportsPageController implements DataInitializable {
                 return YearMonth.parse(string, DateTimeFormatter.ofPattern("MMMM yyyy"));
             }
         });
+    
+        reportTypeComboBox.setEditable(false);
+        monthPicker.setEditable(false);
+        cinemaComboBox.setEditable(false);
+    
+        reportTypeComboBox.setStyle("-fx-alignment: CENTER;");
+        monthPicker.setStyle("-fx-alignment: CENTER;");
+        cinemaComboBox.setStyle("-fx-alignment: CENTER;");
+    
+        updateUIBasedOnReportType();
+        exportButton.setDisable(true);
     }
 
     @Override
@@ -90,31 +100,38 @@ public class ReportsPageController implements DataInitializable {
             Person user = (Person) data;
             if (user instanceof Worker) {
                 Worker worker = (Worker) user;
-                isBranchManager.set("Chain manager".equals(worker.getWorkerType()));
-                if (isBranchManager.get()) {
+                boolean isBranchManager = "Chain manager".equals(worker.getWorkerType());
+                cinemaComboBox.setVisible(isBranchManager);
+                cinemaComboBox.setManaged(isBranchManager);
+                if (isBranchManager) {
                     try {
                         client.requestCinemaList();
                     } catch (IOException e) {
                         e.printStackTrace();
                         showAlert("Error requesting cinema list: " + e.getMessage());
                     }
-                } else {
-                    // Check if the worker is a CinemaManager
-                    if (worker instanceof CinemaManager) {
-                        CinemaManager cinemaManager = (CinemaManager) worker;
-                        Cinema managerCinema = cinemaManager.getCinema();
-                        if (managerCinema != null) {
-                            cinemaComboBox.getItems().add(managerCinema.getCinemaName());
-                            cinemaComboBox.getSelectionModel().selectFirst();
-                        } else {
-                            System.err.println("CinemaManager has no associated cinema");
-                        }
+                } else if (worker instanceof CinemaManager) {
+                    CinemaManager cinemaManager = (CinemaManager) worker;
+                    Cinema managerCinema = cinemaManager.getCinema();
+                    if (managerCinema != null) {
+                        cinemaComboBox.getItems().add(managerCinema.getCinemaName());
+                        cinemaComboBox.getSelectionModel().selectFirst();
                     } else {
-                        System.err.println("Worker is not a CinemaManager");
+                        System.err.println("CinemaManager has no associated cinema");
                     }
+                } else {
+                    System.err.println("Worker is not a CinemaManager");
                 }
             }
         }
+    }
+
+    private void updateUIBasedOnReportType() {
+        String reportType = reportTypeComboBox.getValue();
+        boolean showCinemaBox = reportType != null && 
+            (reportType.equals("Monthly Ticket Sales") || reportType.equals("Customer Complaints Histogram"));
+        cinemaComboBox.setVisible(showCinemaBox);
+        cinemaComboBox.setManaged(showCinemaBox);
     }
 
     @FXML
@@ -123,7 +140,7 @@ public class ReportsPageController implements DataInitializable {
         YearMonth month = monthPicker.getValue();
         String cinema = cinemaComboBox.getValue();
 
-        if (reportType == null || month == null || (isBranchManager.get() && cinema == null)) {
+        if (reportType == null || month == null || (cinemaComboBox.isVisible() && cinema == null)) {
             showAlert("Please select all required fields.");
             return;
         }
@@ -140,28 +157,27 @@ public class ReportsPageController implements DataInitializable {
     @Subscribe
     public void onReportDataReceived(ReportDataEvent event) {
         Platform.runLater(() -> {
+            currentReportData = event.getReportData();
             reportContainer.getChildren().clear();
             switch (event.getReportType()) {
                 case "Monthly Ticket Sales":
-                    displayTicketSalesReport(event.getReportData());
+                    displayTicketSalesReport(currentReportData);
                     break;
-                case "Ticket Tabs and Home Movie Links Sales":
-                    displayTabsAndLinksReport(event.getReportData());
+                case "Ticket Tab Sales":
+                case "Home Movie Link Sales":
+                    displaySalesReport(event.getReportType(), currentReportData);
                     break;
                 case "Customer Complaints Histogram":
-                    displayComplaintsHistogram(event.getReportData());
+                    displayComplaintsHistogram(currentReportData);
                     break;
             }
+            exportButton.setDisable(false);
         });
     }
 
     private void displayTicketSalesReport(String reportData) {
         try {
-            if (reportData.startsWith("Error")) {
-                throw new Exception(reportData);
-            }
-            JsonNode rootNode = objectMapper.readTree(reportData);
-            
+            String[] lines = reportData.split("\n");
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
@@ -173,40 +189,32 @@ public class ReportsPageController implements DataInitializable {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Ticket Sales");
 
-            rootNode.fields().forEachRemaining(entry -> {
-                series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue().asInt()));
-            });
+            for (String line : lines) {
+                String[] parts = line.split(": ");
+                if (parts.length == 2) {
+                    series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+                }
+            }
 
             barChart.getData().add(series);
             reportContainer.getChildren().add(barChart);
-
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Error parsing ticket sales report data: " + e.getMessage());
         }
     }
 
-    private void displayTabsAndLinksReport(String reportData) {
-        try {
-            JsonNode rootNode = objectMapper.readTree(reportData);
-            
-            VBox reportBox = new VBox(10);
-            
-            Label titleLabel = new Label("Ticket Tabs and Home Movie Links Sales");
-            titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-            reportBox.getChildren().add(titleLabel);
+    private void displaySalesReport(String reportType, String reportData) {
+        VBox reportBox = new VBox(10);
+        
+        Label titleLabel = new Label(reportType);
+        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        reportBox.getChildren().add(titleLabel);
 
-            rootNode.fields().forEachRemaining(entry -> {
-                Label itemLabel = new Label(entry.getKey() + ": " + entry.getValue().asInt());
-                reportBox.getChildren().add(itemLabel);
-            });
+        Label dataLabel = new Label(reportData);
+        reportBox.getChildren().add(dataLabel);
 
-            reportContainer.getChildren().add(reportBox);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error parsing tabs and links report data: " + e.getMessage());
-        }
+        reportContainer.getChildren().add(reportBox);
     }
 
     private void displayComplaintsHistogram(String reportData) {
@@ -226,37 +234,74 @@ public class ReportsPageController implements DataInitializable {
             for (String line : lines) {
                 String[] parts = line.split(": ");
                 if (parts.length == 2) {
-                    String day = parts[0];
-                    int count = Integer.parseInt(parts[1]);
-                    series.getData().add(new XYChart.Data<>(day, count));
+                    series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
                 }
             }
     
             barChart.getData().add(series);
             reportContainer.getChildren().add(barChart);
-    
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Error parsing complaints histogram data: " + e.getMessage());
         }
     }
-    
+
+    @FXML
+    private void exportToExcel() {
+        if (currentReportData == null || currentReportData.isEmpty()) {
+            showAlert("No report data available. Please generate a report first.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Excel File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        File file = fileChooser.showSaveDialog(null);
+        
+        if (file != null) {
+            try (Workbook workbook = new XSSFWorkbook()) {
+                Sheet sheet = workbook.createSheet(reportTypeComboBox.getValue());
+                String[] lines = currentReportData.split("\n");
+                for (int i = 0; i < lines.length; i++) {
+                    Row row = sheet.createRow(i);
+                    String[] parts = lines[i].split(": ");
+                    row.createCell(0).setCellValue(parts[0]);
+                    if (parts.length > 1) {
+                        try {
+                            row.createCell(1).setCellValue(Integer.parseInt(parts[1].trim()));
+                        } catch (NumberFormatException e) {
+                            row.createCell(1).setCellValue(parts[1].trim());
+                        }
+                    }
+                }
+                
+                try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                    workbook.write(outputStream);
+                }
+                
+                showAlert("Export Successful", "Report exported to Excel successfully.");
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Export Failed", "Failed to export report: " + e.getMessage());
+            }
+        }
+    }
+
     private void showAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
+        showAlert("Alert", message);
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
 
-    public void cleanup() {
-        EventBus.getDefault().unregister(this);
-    }
-
     @FXML
     private void handleBackButton() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
-        App.setRoot("WorkerMenu", connectedPerson);
+        App.setRoot("WorkerMenu", client.getConnectedPerson());
     }
 
     @Subscribe
@@ -272,6 +317,12 @@ public class ReportsPageController implements DataInitializable {
     private void clearReportContainer() {
         Platform.runLater(() -> {
             reportContainer.getChildren().clear();
+            currentReportData = null;
+            exportButton.setDisable(true);
         });
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 }

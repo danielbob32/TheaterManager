@@ -1002,8 +1002,10 @@ public String generateReport(String reportType, LocalDate month, String cinema) 
         switch (reportType) {
             case "Monthly Ticket Sales":
                 return generateMonthlyTicketSalesReport(session, month, cinema);
-            case "Ticket Tabs and Home Movie Links Sales":
-                return generateTabsAndLinksSalesReport(session, month, cinema);
+            case "Ticket Tab Sales":
+                return generateTicketTabSalesReport(session, month);
+            case "Home Movie Link Sales":
+                return generateHomeMovieLinkSalesReport(session, month);
             case "Customer Complaints Histogram":
                 return generateComplaintsHistogramReport(session, month, cinema);
             default:
@@ -1036,6 +1038,10 @@ private String generateMonthlyTicketSalesReport(Session session, LocalDate month
     List<Object[]> results = query.getResultList();
 
     StringBuilder reportBuilder = new StringBuilder();
+    reportBuilder.append("Monthly Ticket Sales - ");
+    reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
+    reportBuilder.append("\n\n");
+
     for (Object[] row : results) {
         String cinemaName = (String) row[0];
         Long ticketCount = (Long) row[1];
@@ -1044,27 +1050,22 @@ private String generateMonthlyTicketSalesReport(Session session, LocalDate month
     return reportBuilder.toString();
 }
 
-private String generateTabsAndLinksSalesReport(Session session, LocalDate month, String cinema) {
-    String hql = "SELECT 'Ticket Tabs' as type, COUNT(t) " +
-                 "FROM TicketTab t " +
-                 "WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month " +
-                 "UNION ALL " +
-                 "SELECT 'Home Movie Links' as type, COUNT(h) " +
-                 "FROM HomeMovieLink h " +
-                 "WHERE YEAR(h.purchaseTime) = :year AND MONTH(h.purchaseTime) = :month";
-
-    Query<Object[]> query = session.createQuery(hql, Object[].class);
+private String generateTicketTabSalesReport(Session session, LocalDate month) {
+    String hql = "SELECT COUNT(t) FROM TicketTab t WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month";
+    Query<Long> query = session.createQuery(hql, Long.class);
     query.setParameter("year", month.getYear());
     query.setParameter("month", month.getMonthValue());
-    List<Object[]> results = query.getResultList();
+    Long count = query.getSingleResult();
+    return "Ticket Tabs: " + count;
+}
 
-    StringBuilder reportBuilder = new StringBuilder();
-    for (Object[] row : results) {
-        String type = (String) row[0];
-        Long count = (Long) row[1];
-        reportBuilder.append(type).append(": ").append(count).append("\n");
-    }
-    return reportBuilder.toString();
+private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
+    String hql = "SELECT COUNT(h) FROM HomeMovieLink h WHERE YEAR(h.purchaseTime) = :year AND MONTH(h.purchaseTime) = :month";
+    Query<Long> query = session.createQuery(hql, Long.class);
+    query.setParameter("year", month.getYear());
+    query.setParameter("month", month.getMonthValue());
+    Long count = query.getSingleResult();
+    return "Home Movie Links: " + count;
 }
 
 private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
@@ -1085,6 +1086,10 @@ private String generateComplaintsHistogramReport(Session session, LocalDate mont
     List<Object[]> results = query.getResultList();
 
     StringBuilder reportBuilder = new StringBuilder();
+    reportBuilder.append("Customer Complaints Histogram - ");
+    reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
+    reportBuilder.append("\n\n");
+
     for (Object[] row : results) {
         Integer day = (Integer) row[0];
         Long count = (Long) row[1];
