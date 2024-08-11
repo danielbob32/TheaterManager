@@ -935,7 +935,9 @@ public class ServerDB {
     
     public Booking purchaseHomeMovieLink(String name, int id, String email, String creditCard, HomeMovieLink link) {
         System.out.println("DEBUG: Starting purchaseHomeMovieLink");
-        try (Session session = sessionFactory.openSession()) {
+       
+            session = sessionFactory.openSession();
+            try{
             Transaction transaction = session.beginTransaction();
     
             Customer customer = (Customer) session.get(Person.class, id);
@@ -998,7 +1000,8 @@ public class ServerDB {
 }
 
 public String generateReport(String reportType, LocalDate month, String cinema) {
-    try (Session session = sessionFactory.openSession()) {
+    //session = sessionFactory.openSession();
+    try  {
         switch (reportType) {
             case "Monthly Ticket Sales":
                 return generateMonthlyTicketSalesReport(session, month, cinema);

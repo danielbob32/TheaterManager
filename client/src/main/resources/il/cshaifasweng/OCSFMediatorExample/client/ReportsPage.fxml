@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportsPageController"
             style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
-<VBox spacing="20" alignment="CENTER" style="-fx-padding: 20;">
-    <ComboBox fx:id="reportTypeComboBox" promptText="Select Report Type"/>
-    <ComboBox fx:id="monthPicker" promptText="Select Month"/>
-    <ComboBox fx:id="cinemaComboBox" promptText="Select Cinema"/>
-    <Button text="Generate Report" onAction="#generateReport"/>
-    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-        <VBox fx:id="reportContainer" spacing="10"/>
-    </ScrollPane>
-   <Button fx:id="exportButton" text="Export to Excel" onAction="#exportToExcel"/>
-</VBox>
+    <VBox spacing="10" alignment="TOP_CENTER" style="-fx-padding: 20;">
+        <Label text="Select Report Details" style="-fx-font-size: 16px; -fx-text-fill: white;" />
+        <HBox spacing="10" alignment="CENTER">
+            <ComboBox fx:id="reportTypeComboBox" promptText="Report Type" prefWidth="150"/>
+            <ComboBox fx:id="monthPicker" promptText="Month" prefWidth="120"/>
+            <ComboBox fx:id="cinemaComboBox" promptText="Cinema" prefWidth="150"/>
+        </HBox>
+        <Button fx:id="generateReportButton" text="Generate Report" onAction="#generateReport" style="-fx-background-color: darkblue; -fx-text-fill: white;" prefWidth="120"/>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox fx:id="reportContainer" spacing="10"/>
+        </ScrollPane>
+        <Label fx:id="totalTicketsLabel" text="Total Tickets: 0" style="-fx-font-size: 14px; -fx-text-fill: white;"/>
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="exportButton" text="Export to Excel" onAction="#exportToExcel" style="-fx-background-color: darkgreen; -fx-text-fill: white;" prefWidth="120"/>
+            <Button fx:id="backButton" text="Back" onAction="#handleBackButton" style="-fx-background-color: darkred; -fx-text-fill: white;" prefWidth="120"/>
+        </HBox>
+    </VBox>
 </AnchorPane>
