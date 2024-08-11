@@ -24,6 +24,7 @@ import java.util.*;
 public class ServerDB {
     private SessionFactory sessionFactory;
     private Session session;
+    private ObjectMapper mapper = new ObjectMapper();
 
     public ServerDB() {
         try {
@@ -363,8 +364,10 @@ public class ServerDB {
             System.out.println("3. Screenings generated");
             generateBookings(cinemas);
             System.out.println("4. Bookings generated");
+            generateTickets();
+            System.out.println("5. Tickets generated");
             generateComplaints(cinemas);
-            System.out.println("5. Complaints generated");
+            System.out.println("6. Complaints generated");
             
             session.getTransaction().commit();
             System.out.println("Data generated successfully");
@@ -376,6 +379,39 @@ public class ServerDB {
         }
     }
 
+    private void generateTickets() {
+        List<Booking> bookings = session.createQuery("FROM Booking", Booking.class).getResultList();
+        List<Screening> screenings = session.createQuery("FROM Screening", Screening.class).getResultList();
+        Random random = new Random();
+        
+        for (Booking booking : bookings) {
+            int numTickets = random.nextInt(5) + 1; // 1 to 5 tickets per booking
+            for (int i = 0; i < numTickets; i++) {
+                if (screenings.isEmpty()) {
+                    System.out.println("No screenings available to create tickets.");
+                    return;
+                }
+                // Randomly select a screening
+                Screening randomScreening = screenings.get(random.nextInt(screenings.size()));
+                
+                Ticket ticket = new Ticket(
+                    booking.getCustomer().getPersonId(),
+                    randomScreening.getMovie().getCinemaPrice(),
+                    true,
+                    randomScreening.getCinema(),
+                    randomScreening.getMovie(),
+                    null, // We'll set the seat later if needed
+                    randomScreening.getHall(),
+                    booking.getPurchaseTime(),
+                    randomScreening
+                );
+                session.save(ticket);
+                booking.addProduct(ticket);
+            }
+            session.update(booking);
+        }
+        session.flush();
+    }
 
     private List<Movie> generateMovies() {
         String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב", "אוואטר", "טיטניק", "מלחמת הכוכבים", "שר הטבעות", "הארי פוטר"};
@@ -435,6 +471,7 @@ public class ServerDB {
         return cinemas;
     }
 
+    
     private void generateScreenings(List<Movie> movies, List<Cinema> cinemas) {
         Random random = new Random();
         for (Movie movie : movies) {
@@ -980,11 +1017,11 @@ public String generateReport(String reportType, LocalDate month, String cinema) 
 
 private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
     String hql = "SELECT c.cinemaName, COUNT(t) " +
-                 "FROM Screening s " +
+                 "FROM Ticket t " +
+                 "JOIN t.screening s " +
                  "JOIN s.cinema c " +
-                 "JOIN s.products t " +  // Change this line
-                 "WHERE YEAR(s.time) = :year " +
-                 "AND MONTH(s.time) = :month ";
+                 "WHERE YEAR(t.purchaseTime) = :year " +
+                 "AND MONTH(t.purchaseTime) = :month ";
     if (cinema != null && !cinema.equals("All")) {
         hql += "AND c.cinemaName = :cinema ";
     }
@@ -998,36 +1035,47 @@ private String generateMonthlyTicketSalesReport(Session session, LocalDate month
     }
     List<Object[]> results = query.getResultList();
 
-    // Convert results to JSON
-    ObjectMapper objectMapper = new ObjectMapper();
-    ObjectNode rootNode = objectMapper.createObjectNode();
+    StringBuilder reportBuilder = new StringBuilder();
     for (Object[] row : results) {
         String cinemaName = (String) row[0];
         Long ticketCount = (Long) row[1];
-        rootNode.put(cinemaName, ticketCount);
+        reportBuilder.append(cinemaName).append(": ").append(ticketCount).append("\n");
     }
-    return rootNode.toString();
+    return reportBuilder.toString();
 }
 
 private String generateTabsAndLinksSalesReport(Session session, LocalDate month, String cinema) {
-    // Implementation for ticket tabs and home movie links sales report
-    // This is a placeholder implementation. You'll need to adjust it based on your exact data model and requirements.
-    String hql = "SELECT COUNT(p) FROM Product p WHERE TYPE(p) IN (TicketTab, HomeMovieLink) AND YEAR(p.purchaseTime) = :year AND MONTH(p.purchaseTime) = :month";
-    Query<Long> query = session.createQuery(hql, Long.class);
+    String hql = "SELECT 'Ticket Tabs' as type, COUNT(t) " +
+                 "FROM TicketTab t " +
+                 "WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month " +
+                 "UNION ALL " +
+                 "SELECT 'Home Movie Links' as type, COUNT(h) " +
+                 "FROM HomeMovieLink h " +
+                 "WHERE YEAR(h.purchaseTime) = :year AND MONTH(h.purchaseTime) = :month";
+
+    Query<Object[]> query = session.createQuery(hql, Object[].class);
     query.setParameter("year", month.getYear());
     query.setParameter("month", month.getMonthValue());
-    Long salesCount = query.getSingleResult();
-    return "Ticket Tabs and Home Movie Links Sales for " + month + ": " + salesCount;
+    List<Object[]> results = query.getResultList();
+
+    StringBuilder reportBuilder = new StringBuilder();
+    for (Object[] row : results) {
+        String type = (String) row[0];
+        Long count = (Long) row[1];
+        reportBuilder.append(type).append(": ").append(count).append("\n");
+    }
+    return reportBuilder.toString();
 }
 
 private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
-    // Implementation for customer complaints histogram report
-    // This is a placeholder implementation. You'll need to adjust it based on your exact data model and requirements.
-    String hql = "SELECT DAY(c.date), COUNT(c) FROM Complaint c WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month";
+    String hql = "SELECT DAY(c.date) as day, COUNT(c) as count " +
+                 "FROM Complaint c " +
+                 "WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month ";
     if (cinema != null && !cinema.equals("All")) {
-        hql += " AND c.cinema.cinemaName = :cinema";
+        hql += "AND c.customer.id IN (SELECT DISTINCT t.clientId FROM Ticket t WHERE t.screening.cinema.cinemaName = :cinema) ";
     }
-    hql += " GROUP BY DAY(c.date)";
+    hql += "GROUP BY DAY(c.date) ORDER BY day";
+
     Query<Object[]> query = session.createQuery(hql, Object[].class);
     query.setParameter("year", month.getYear());
     query.setParameter("month", month.getMonthValue());
@@ -1035,15 +1083,16 @@ private String generateComplaintsHistogramReport(Session session, LocalDate mont
         query.setParameter("cinema", cinema);
     }
     List<Object[]> results = query.getResultList();
-    
-    StringBuilder histogram = new StringBuilder("Complaints Histogram for " + month + ":\n");
-    for (Object[] result : results) {
-        int day = ((Number) result[0]).intValue();
-        long count = (Long) result[1];
-        histogram.append(String.format("Day %d: %s\n", day, "*".repeat((int) count)));
+
+    StringBuilder reportBuilder = new StringBuilder();
+    for (Object[] row : results) {
+        Integer day = (Integer) row[0];
+        Long count = (Long) row[1];
+        reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
     }
-    return histogram.toString();
+    return reportBuilder.toString();
 }
+
     
 }
 
