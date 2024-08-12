@@ -98,7 +98,7 @@ public class Booking {
     }
 
     public void setCustomerAndBooking(Customer customer) {
-        System.out.println("in Booking setCustomer");
+        //System.out.println("in Booking setCustomer");
         this.customer = customer;
         if (!customer.getBookings().contains(this)) {
             customer.getBookings().add(this);

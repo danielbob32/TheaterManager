@@ -48,6 +48,7 @@ public class Message implements Serializable {
         this.extraData = extraData;
     }
 
+
     // Add getter and setter for additionalData
     public String getAdditionalData() {
         return additionalData;

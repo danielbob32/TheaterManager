@@ -1,10 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +27,7 @@ public class Screening {
     @JsonIgnoreProperties("screenings")
     private Movie movie;
 
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.EAGER)
     private MovieHall hall;
 
     private Date time;

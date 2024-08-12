@@ -3,6 +3,8 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
@@ -20,6 +22,7 @@ public class SimpleServer extends AbstractServer {
 		super(port);
 		try {
 			this.db = new ServerDB();
+			this.objectMapper.registerModule(new Hibernate5Module());
 		} catch (Exception e) {
 			System.err.println("Failed to initialize ServerDB: " + e.getMessage());
 			e.printStackTrace();

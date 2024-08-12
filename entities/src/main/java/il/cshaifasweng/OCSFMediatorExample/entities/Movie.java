@@ -45,7 +45,7 @@ public class Movie {
 //    )
 //    private List<Screening> screenings = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "movie")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "movie", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("movie")
     private List<Screening> screenings = new ArrayList<>();
 

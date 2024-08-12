@@ -747,6 +747,7 @@ public class ServerDB {
             ticketQuery.setParameter("screeningId", screeningId);
             ticketQuery.executeUpdate();
 
+
             // Delete related Seats
             Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id = :screeningId");
             seatQuery.setParameter("screeningId", screeningId);
