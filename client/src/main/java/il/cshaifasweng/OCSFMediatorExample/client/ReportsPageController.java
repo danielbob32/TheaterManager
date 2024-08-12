@@ -49,6 +49,12 @@ public class ReportsPageController implements DataInitializable {
     private Button exportButton;
     @FXML
     private Label totalTicketsLabel;
+    @FXML
+    private Label totalTicketTabsLabel;
+    @FXML
+    private Label totalLinksLabel;
+    @FXML
+    private Label totalComplaintsLabel;
 
     private SimpleClient client;
     private String currentReportData;
@@ -156,14 +162,16 @@ public class ReportsPageController implements DataInitializable {
         String reportType = reportTypeComboBox.getValue();
         YearMonth month = monthPicker.getValue();
         String cinema = cinemaComboBox.getValue();
-
+    
         if (reportType == null || month == null || (cinemaComboBox.isVisible() && cinema == null)) {
             showAlert("Please select all required fields.");
             return;
         }
-
+    
         try {
             client.requestReport(reportType, month.atDay(1), cinema);
+            // Conditionally display the total tickets label
+            totalTicketsLabel.setVisible(reportType.equals("Monthly Ticket Sales"));
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Error requesting report: " + e.getMessage());
@@ -181,11 +189,15 @@ public class ReportsPageController implements DataInitializable {
                     displayTicketSalesReport(currentReportData);
                     break;
                 case "Ticket Tab Sales":
+                    displayTabSalesReport(currentReportData);
+                    break;
                 case "Home Movie Link Sales":
-                    displaySalesReport(event.getReportType(), currentReportData);
+                    displayHomeMovieLinkSalesReport(currentReportData);
                     break;
                 case "Customer Complaints Histogram":
                     displayComplaintsHistogram(currentReportData);
+                    break;
+                default:
                     break;
             }
             exportButton.setDisable(false);
@@ -225,47 +237,86 @@ private void displayTicketSalesReport(String reportData) {
     }
 }
 
-    private void displaySalesReport(String reportType, String reportData) {
-        VBox reportBox = new VBox(10);
+private void displayTabSalesReport(String reportData) {
+    CategoryAxis xAxis = new CategoryAxis();
+    NumberAxis yAxis = new NumberAxis();
+    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+    barChart.setTitle("Daily Ticket Tab Sales");
+    xAxis.setLabel("Day of Month");
+    yAxis.setLabel("Number of Tabs Sold");
 
-        Label titleLabel = new Label(reportType);
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-        reportBox.getChildren().add(titleLabel);
+    XYChart.Series<String, Number> series = new XYChart.Series<>();
+    series.setName("Tabs Sold");
+    int totalTabs = 0;
 
-        Label dataLabel = new Label(reportData);
-        reportBox.getChildren().add(dataLabel);
-
-        reportContainer.getChildren().add(reportBox);
-    }
-
-    private void displayComplaintsHistogram(String reportData) {
-        try {
-            CategoryAxis xAxis = new CategoryAxis();
-            NumberAxis yAxis = new NumberAxis();
-            BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-
-            barChart.setTitle("Customer Complaints Histogram");
-            xAxis.setLabel("Day of Month");
-            yAxis.setLabel("Number of Complaints");
-
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName("Complaints");
-
-            String[] lines = reportData.split("\n");
-            for (String line : lines) {
-                String[] parts = line.split(": ");
-                if (parts.length == 2) {
-                    series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
-                }
-            }
-
-            barChart.getData().add(series);
-            reportContainer.getChildren().add(barChart);
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Error parsing complaints histogram data: " + e.getMessage());
+    String[] lines = reportData.split("\n");
+    for (String line : lines) {
+        String[] parts = line.split(": ");
+        if (parts.length == 2) {
+            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalTabs += Integer.parseInt(parts[1]);
         }
     }
+
+    barChart.getData().add(series);
+    reportContainer.getChildren().add(barChart);
+    totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs); // Update total ticket tabs label
+}
+
+
+private void displayHomeMovieLinkSalesReport(String reportData) {
+    CategoryAxis xAxis = new CategoryAxis();
+    NumberAxis yAxis = new NumberAxis();
+    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+    barChart.setTitle("Daily Home Movie Link Sales");
+    xAxis.setLabel("Day of Month");
+    yAxis.setLabel("Number of Links Sold");
+
+    XYChart.Series<String, Number> series = new XYChart.Series<>();
+    series.setName("Links Sold");
+    int totalLinks = 0;
+
+    String[] lines = reportData.split("\n");
+    for (String line : lines) {
+        String[] parts = line.split(": ");
+        if (parts.length == 2) {
+            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalLinks += Integer.parseInt(parts[1]);
+        }
+    }
+
+    barChart.getData().add(series);
+    reportContainer.getChildren().add(barChart);
+    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); // Update total links label
+}
+
+
+
+private void displayComplaintsHistogram(String reportData) {
+    CategoryAxis xAxis = new CategoryAxis();
+    NumberAxis yAxis = new NumberAxis();
+    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+    barChart.setTitle("Customer Complaints Histogram");
+    xAxis.setLabel("Day of Month");
+    yAxis.setLabel("Number of Complaints");
+
+    XYChart.Series<String, Number> series = new XYChart.Series<>();
+    series.setName("Complaints");
+    int totalComplaints = 0;
+    String[] lines = reportData.split("\n");
+    for (String line : lines) {
+        String[] parts = line.split(": ");
+        if (parts.length == 2) {
+            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalComplaints += Integer.parseInt(parts[1]);
+        }
+    }
+
+    barChart.getData().add(series);
+    reportContainer.getChildren().add(barChart);
+    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); // Update total complaints label
+}
+
 
     @FXML
     private void exportToExcel() {
