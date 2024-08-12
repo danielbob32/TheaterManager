@@ -247,18 +247,40 @@ public class ServerDB {
     }
 
     public List<Movie> getAllMovies() throws Exception {
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
-        query.from(Movie.class);
-        List<Movie> data = session.createQuery(query).getResultList();
-        for (Movie movie : data) {
-            if (movie.getEnglishName().equals("Deadpool")) {
-                System.out.println("Movie: " + movie.getEnglishName());
-                System.out.println("in serverDB price is:" + movie.getCinemaPrice());
+        try(Session session = sessionFactory.openSession()) 
+        {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
+            query.from(Movie.class);
+            List<Movie> data = session.createQuery(query).getResultList();
+            for (Movie movie : data) {
+                if (movie.getEnglishName().equals("Deadpool")) {
+                    System.out.println("Movie: " + movie.getEnglishName());
+                    System.out.println("in serverDB price is:" + movie.getCinemaPrice());
+                }
             }
+            return data;
+        }catch (Exception e) {
+            System.err.println("Error checking worker credentials: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        return data;
+
     }
+
+//    public List<Movie> getAllMovies() throws Exception {
+//        CriteriaBuilder builder = session.getCriteriaBuilder();
+//        CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
+//        query.from(Movie.class);
+//        List<Movie> data = session.createQuery(query).getResultList();
+//        for (Movie movie : data) {
+//            if (movie.getEnglishName().equals("Deadpool")) {
+//                System.out.println("Movie: " + movie.getEnglishName());
+//                System.out.println("in serverDB price is:" + movie.getCinemaPrice());
+//            }
+//        }
+//        return data;
+//    }
 
 
     public Worker checkWorkerCredentials(int id, String password) {
