@@ -19,31 +19,31 @@ public class UpdateContentController implements DataInitializable {
         if (data instanceof String) {
             workerType = (String) data;
         }
-        if (!"Content manager".equals(workerType) && !"Chain manager".equals(workerType)) {
-            // If not a content manager or chain manager, go back to the worker menu
-            try {
-                Person connectedPerson = client.getConnectedPerson();
-                App.setRoot("WorkerMenu", connectedPerson);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+//        if (!"Content manager".equals(workerType) && !"Chain manager".equals(workerType)) {
+//            // If not a content manager or chain manager, go back to the worker menu
+//            try {
+//                Person connectedPerson = client.getConnectedPerson();
+//                App.setRoot("WorkerMenu", connectedPerson);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
         System.out.println("UpdateContentController initialized for " + workerType);
     }
 
     @FXML
     private void editCinemaMovies() throws IOException {
-        App.setRoot("CinemaMovieList", null);
+        App.setRoot("CinemaMovieList", workerType);
     }
 
     @FXML
     private void editHomeMovies() throws IOException {
-        App.setRoot("HomeMovieList", null);
+        App.setRoot("HomeMovieList", workerType);
     }
 
     @FXML
     private void addMovie() throws IOException {
-        App.setRoot("AddMovie", null);
+        App.setRoot("AddMovie", workerType);
     }
 
     @FXML

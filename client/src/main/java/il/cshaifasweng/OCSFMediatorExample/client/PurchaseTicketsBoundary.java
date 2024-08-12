@@ -1,15 +1,20 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.*;
-import il.cshaifasweng.OCSFMediatorExample.client.events.*;
+import il.cshaifasweng.OCSFMediatorExample.client.events.SeatAvailabilityEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Screening;
+import il.cshaifasweng.OCSFMediatorExample.entities.Seat;
+import il.cshaifasweng.OCSFMediatorExample.entities.TicketPurchaseInfo;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import org.greenrobot.eventbus.EventBus;
@@ -114,7 +119,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         screeningTimeLabel.setText(screening.getTime().toString());
 
         // Load movie image
-        String imagePath = screening.getMovie().getMovieIcon();
+        String imagePath = screening.getMovie().getMovieIconAsString();
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
                 Image image = new Image(getClass().getResourceAsStream(imagePath));

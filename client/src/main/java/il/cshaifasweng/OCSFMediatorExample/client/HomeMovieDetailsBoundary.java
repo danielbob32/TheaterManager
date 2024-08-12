@@ -89,7 +89,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         synopsisArea.getChildren().clear();
         synopsisArea.getChildren().add(new Label(currentMovie.getSynopsis()));
 
-        String imageName = currentMovie.getMovieIcon();
+        String imageName = currentMovie.getMovieIconAsString();
         Image image;
         try {
             String imagePath = "/Images/" + imageName;

@@ -2,6 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -16,7 +17,9 @@ import javafx.util.StringConverter;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 public class CinemaMovieDetailsBoundary implements DataInitializable {
 
@@ -47,10 +51,9 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     @FXML private Button buyTicketsButton;
 
     private SimpleClient client;
-    private Movie currentMovie;
     private boolean isContentManager = false;
     private ObjectMapper objectMapper = new ObjectMapper();
-
+    private Movie currentMovie;
     public void initialize() {
         EventBus.getDefault().register(this);
     }
@@ -69,7 +72,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         if (data instanceof Movie) {
             currentMovie = (Movie) data;
             displayMovieDetails();
-            System.out.println("in cinema movie details boundary");
+            System.out.println("in cinema movie details boundary, current movie:" + currentMovie);
             populateCinemas();
             checkUserPermissions();
         }
@@ -95,28 +98,46 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         genreLabel.setText("Genre: " + currentMovie.getGenre());
         synopsisArea.setText(currentMovie.getSynopsis());
 
-        String imageName = currentMovie.getMovieIcon();
-        Image image;
-        try {
-            String imagePath = "/Images/" + imageName;
-            if (getClass().getResource(imagePath) != null) {
-                image = new Image(getClass().getResourceAsStream(imagePath));
-            } else {
-                System.out.println("Image file not found: " + imageName);
-                image = new Image(getClass().getResourceAsStream("/Images/default.jpg"));
+        byte[] image2 = currentMovie.getMovieIcon();
+        if (image2 != null) {
+            System.out.println("Image byte array length: " + image2.length);
+        } else {
+            System.out.println("Image byte array is null");
+        }
+        Image image3 = convertByteArrayToImage(image2);
+        if (image3 == null) {
+            System.out.println("Image is null");
+        } else {
+            System.out.println("Image created successfully");
+        }
+        if (image3 == null || image3.isError()) {
+            System.out.println("Using default image");
+            try {
+                InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+                if (defaultImageStream != null) {
+                    image3 = new Image(defaultImageStream);
+                    System.out.println("Default image loaded successfully");
+                } else {
+                    System.out.println("Default image not found");
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading default image: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("Error loading image: " + imageName);
-            e.printStackTrace();
-            image = new Image(getClass().getResourceAsStream("/Images/default.jpg"));
         }
+        movieImage.setImage(image3);
+    }
 
-        if (image.isError()) {
-            System.out.println("Error loading image: " + imageName);
-            image = new Image(getClass().getResourceAsStream("/Images/default.jpg"));
+    public Image convertByteArrayToImage(byte[] imageData) {
+        if (imageData != null && imageData.length > 0) {
+            // Convert byte[] to InputStream
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+
+            // Create Image from InputStream
+            return new Image(inputStream);
+        } else {
+            System.out.println("No image data available");
+            return null;  // Or handle as needed, e.g., return a default image
         }
-
-        movieImage.setImage(image);
     }
 
     private void populateCinemas() {
@@ -146,6 +167,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private void handleCinemaSelection() {
         Cinema selectedCinema = cinemaComboBox.getSelectionModel().getSelectedItem();
         if (selectedCinema != null) {
+            client.getMovieById(currentMovie.getId());
             List<Screening> screenings = currentMovie.getScreenings().stream()
                     .filter(s -> s.getCinema().equals(selectedCinema))
                     .collect(Collectors.toList());
@@ -167,6 +189,8 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
             });
         }
     }
+
+
 
     @FXML
     private void handleBackButton() throws IOException {
@@ -205,6 +229,31 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
                 } catch (IOException e) {
                     e.printStackTrace();
                     showAlert("Error", "Failed to delete movie. Please try again.");
+                }
+            }
+        });
+    }
+
+
+    @FXML
+    private void handleDeleteScreening() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Screening");
+        alert.setHeaderText("Are you sure you want to delete this screening?");
+        alert.setContentText("This action will delete the screening and all its tickets.");
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                Screening selectedScreening = screeningListView.getSelectionModel().getSelectedItem();
+                if (selectedScreening == null) {
+                    showAlert("Error", "Please select a screening to delete.");
+                    return;
+                }
+                try {
+                    currentMovie.removeScreening(selectedScreening);
+                    client.sendToServer(new Message(0, "deleteScreening", String.valueOf(selectedScreening.getScreening_id())));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showAlert("Error", "Failed to delete screening. Please try again.");
                 }
             }
         });
@@ -326,21 +375,6 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         return true; // No conflicts found
     }
 
-    @FXML
-    private void handleDeleteScreening() {
-        Screening selectedScreening = screeningListView.getSelectionModel().getSelectedItem();
-        if (selectedScreening == null) {
-            showAlert("Error", "Please select a screening to delete.");
-            return;
-        }
-        try {
-            currentMovie.removeScreening(selectedScreening);
-            client.sendToServer(new Message(0, "deleteScreening", String.valueOf(selectedScreening.getScreening_id())));
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to delete screening. Please try again.");
-        }
-    }
 
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -363,5 +397,10 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
         Platform.runLater(this::handleCinemaSelection);
+    }
+
+    @Subscribe
+    public void onMovieEvent(MovieEvent event) {
+        currentMovie = event.getMovie();
     }
 }
