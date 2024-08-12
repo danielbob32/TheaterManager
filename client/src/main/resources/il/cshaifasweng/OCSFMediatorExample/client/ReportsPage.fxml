@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.geometry.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportsPageController"
-            style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
-    <VBox fx:id="mainContainer" spacing="10" alignment="CENTER" prefWidth="800" fillWidth="true" style="-fx-padding: 20;">
-        <Label text="Select Report Details" style="-fx-font-size: 16px; -fx-text-fill: white;" />
-        <HBox spacing="10" alignment="CENTER">
-            <ComboBox fx:id="reportTypeComboBox" promptText="Report Type" prefWidth="150"/>
-            <ComboBox fx:id="monthPicker" promptText="Month" prefWidth="120"/>
-            <ComboBox fx:id="cinemaComboBox" promptText="Cinema" prefWidth="150"/>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportsPageController">
+    <VBox fx:id="mainContainer" alignment="CENTER" fillWidth="true" prefWidth="800" spacing="10" style="-fx-padding: 20;">
+        <Label style="-fx-font-size: 16px; -fx-text-fill: white;" text="Select Report Details" />
+        <HBox alignment="CENTER" spacing="10">
+            <ComboBox fx:id="reportTypeComboBox" prefHeight="25.0" prefWidth="234.0" promptText="Report Type" />
+            <ComboBox fx:id="monthPicker" prefWidth="120" promptText="Month" />
+            <ComboBox fx:id="cinemaComboBox" prefWidth="150" promptText="Cinema" />
         </HBox>
-        <Button fx:id="generateReportButton" text="Generate Report" onAction="#generateReport" 
-                style="-fx-background-color: darkblue; -fx-text-fill: white;" prefWidth="200"/>
+        <Button fx:id="generateReportButton" onAction="#generateReport" prefWidth="200" style="-fx-background-color: darkblue; -fx-text-fill: white;" text="Generate Report" />
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-            <VBox fx:id="reportContainer" spacing="10" alignment="CENTER" fillWidth="true"/>
+            <VBox fx:id="reportContainer" alignment="CENTER" fillWidth="true" spacing="10" />
         </ScrollPane>
-        <Label fx:id="totalTicketsLabel" text="Total Tickets: 0" style="-fx-font-size: 14px; -fx-text-fill: white;"/>
-        <HBox spacing="10" alignment="CENTER">
-            <Button fx:id="exportButton" text="Export to Excel" onAction="#exportToExcel" 
-                    style="-fx-background-color: darkgreen; -fx-text-fill: white;" prefWidth="120"/>
-            <Button fx:id="backButton" text="Back" onAction="#handleBackButton" 
-                    style="-fx-background-color: darkred; -fx-text-fill: white;" prefWidth="120"/>
+        <Label fx:id="totalTicketsLabel" style="-fx-font-size: 14px; -fx-text-fill: white;" text="Total Tickets: 0" />
+        <HBox alignment="CENTER" spacing="10">
+            <Button fx:id="exportButton" onAction="#exportToExcel" prefWidth="120" style="-fx-background-color: darkgreen; -fx-text-fill: white;" text="Export to Excel" />
+            <Button fx:id="backButton" onAction="#handleBackButton" prefWidth="120" style="-fx-background-color: darkred; -fx-text-fill: white;" text="Back" />
         </HBox>
     </VBox>
 </AnchorPane>

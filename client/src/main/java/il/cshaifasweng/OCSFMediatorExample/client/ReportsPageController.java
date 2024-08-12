@@ -49,6 +49,12 @@ public class ReportsPageController implements DataInitializable {
     private Button exportButton;
     @FXML
     private Label totalTicketsLabel;
+    @FXML
+    private Label totalTicketTabsLabel;
+    @FXML
+    private Label totalLinksLabel;
+    @FXML
+    private Label totalComplaintsLabel;
 
     private SimpleClient client;
     private String currentReportData;
@@ -241,17 +247,20 @@ private void displayTabSalesReport(String reportData) {
 
     XYChart.Series<String, Number> series = new XYChart.Series<>();
     series.setName("Tabs Sold");
+    int totalTabs = 0;
 
     String[] lines = reportData.split("\n");
     for (String line : lines) {
         String[] parts = line.split(": ");
         if (parts.length == 2) {
             series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalTabs += Integer.parseInt(parts[1]);
         }
     }
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
+    totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs); // Update total ticket tabs label
 }
 
 
@@ -265,17 +274,20 @@ private void displayHomeMovieLinkSalesReport(String reportData) {
 
     XYChart.Series<String, Number> series = new XYChart.Series<>();
     series.setName("Links Sold");
+    int totalLinks = 0;
 
     String[] lines = reportData.split("\n");
     for (String line : lines) {
         String[] parts = line.split(": ");
         if (parts.length == 2) {
             series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalLinks += Integer.parseInt(parts[1]);
         }
     }
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
+    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); // Update total links label
 }
 
 
@@ -290,17 +302,19 @@ private void displayComplaintsHistogram(String reportData) {
 
     XYChart.Series<String, Number> series = new XYChart.Series<>();
     series.setName("Complaints");
-
+    int totalComplaints = 0;
     String[] lines = reportData.split("\n");
     for (String line : lines) {
         String[] parts = line.split(": ");
         if (parts.length == 2) {
             series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+            totalComplaints += Integer.parseInt(parts[1]);
         }
     }
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
+    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); // Update total complaints label
 }
 
 
