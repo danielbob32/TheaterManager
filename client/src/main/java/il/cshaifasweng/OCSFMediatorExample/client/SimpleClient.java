@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,6 +57,16 @@ public class SimpleClient extends AbstractClient {
                     e.printStackTrace();
                     EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
                 }
+            } else if (message.getMessage().equals("movie refreshed")) {
+                try {
+                    Movie movie = objectMapper.readValue(message.getData() , Movie.class);
+                    EventBus.getDefault().post(new MovieEvent(movie));
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
+                }
+
             } else if (message.getMessage().startsWith("Customer login:")) {
                 String success = message.getMessage().split(":")[1];
                 if (success.equals("successful")) {
@@ -65,7 +74,7 @@ public class SimpleClient extends AbstractClient {
                         try {
                             Customer current = objectMapper.readValue(message.getData(), Customer.class);
                             login(current);
-                            App.setRoot("CustomerMenu", null);
+                            App.setRoot("CustomerMenu", current);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -115,7 +124,7 @@ public class SimpleClient extends AbstractClient {
                             String workerType = current.getWorkerType();
                             System.out.println("Worker type: " + workerType);
                             login(current);
-                            App.setRoot("WorkerMenu", workerType);
+                            App.setRoot("WorkerMenu", current);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -188,9 +197,9 @@ public class SimpleClient extends AbstractClient {
                 } else {
                     Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error");
+                        alert.setTitle("Failed");
                         alert.setHeaderText(null);
-                        alert.setContentText("Failed to delete movie");
+                        alert.setContentText("Movie is currently in use and cannot be deleted");
                         alert.showAndWait();
                     });
                 }
@@ -342,6 +351,10 @@ public class SimpleClient extends AbstractClient {
         return client;
     }
 
+    public static void setClient(SimpleClient newClient) {
+        client = newClient;
+    }
+
     public void tryWorkerLogin(Worker worker) {
         try {
             sendToServer(new Message(0, "login:worker", serializeWorker(worker)));
@@ -388,6 +401,17 @@ public class SimpleClient extends AbstractClient {
             EventBus.getDefault().post(new FailureEvent("Failed to request movies"));
         }
     }
+
+    public void getMovieById(int id){
+        try {
+            Message message = new Message(0, "getMovieById", "", id);
+            sendToServer(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to request movie"));
+        }
+    }
+
 
     public void getSeatAvailability(int screeningId) throws IOException {
         Message message = new Message(0, "getSeatAvailability", String.valueOf(screeningId));
@@ -513,6 +537,7 @@ public class SimpleClient extends AbstractClient {
     }
 
     public void login(Person p) {
+        setClient(this);
         this.connectedPerson = p;
         System.out.println("now connected: " + p.getName());
     }

@@ -17,8 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -83,6 +81,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 	@Override
 	public void initData(Object data) {
+		Person connectedPerson = client.getConnectedPerson();
 		System.out.println("in initData with the next data" + data);
 	}
 
@@ -239,11 +238,10 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	@FXML
 	private void handleBackButton(ActionEvent event) throws IOException {
 		Person connectedPerson = client.getConnectedPerson();
-
-		if (connectedPerson instanceof Customer) {
+		if (connectedPerson instanceof Worker) {
+			App.setRoot("UpdateContent", connectedPerson);
+		} else if (connectedPerson instanceof Customer) {
 			App.setRoot("customerMenu", connectedPerson);
-		} else if (connectedPerson instanceof Worker) {
-				App.setRoot("UpdateContent", connectedPerson);
 		} else {
 			App.setRoot("Loginpage", null);
 		}

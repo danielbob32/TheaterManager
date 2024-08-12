@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
+import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,8 +50,9 @@ public class WorkerMenuController implements DataInitializable {
 
     @Override
     public void initData(Object data) {
-        if (data instanceof String) {
-            workerType = (String) data;
+        if (data instanceof Worker) {
+            Worker connectedWorker = (Worker) data;
+            workerType = connectedWorker.getWorkerType();
             System.out.println("1111Setting worker type to " + data);
         }
         updateButtonVisibility();

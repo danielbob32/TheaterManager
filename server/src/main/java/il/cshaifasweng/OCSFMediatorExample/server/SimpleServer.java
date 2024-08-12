@@ -1,24 +1,16 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
-
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
-import java.util.Date;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
+
 import java.io.IOException;
-//import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -211,6 +203,16 @@ public class SimpleServer extends AbstractServer {
 				case "generateReport":
 					handleGenerateReport(message.getData(), client);
 					break;
+
+				case "getMovieById":
+					int movie_id = message.getExtraData();
+					Movie movie3 = db.getMovieById(movie_id);
+					String jsonMovie = objectMapper.writeValueAsString(movie3);
+					message.setData(jsonMovie);
+					message.setMessage("movie refreshed");
+					client.sendToClient(message);
+					break;
+
 
 				default:
 					client.sendToClient(new Warning("Unknown request type"));

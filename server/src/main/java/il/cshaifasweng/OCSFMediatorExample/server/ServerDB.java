@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -10,14 +11,13 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.hibernate.service.ServiceRegistry;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -322,17 +322,35 @@ public class ServerDB {
         }
     }
 
+//    public boolean addMovie(Movie movie) {
+////        try (Session session = sessionFactory.openSession()) {
+//            session.beginTransaction();
+//            session.save(movie);
+//            session.getTransaction().commit();
+//            return true;
+////        } catch (Exception e) {
+////            System.err.println("Error adding movie: " + e.getMessage());
+////            e.printStackTrace();
+////            return false;
+////        }
+//}
+
     public boolean addMovie(Movie movie) {
-//        try (Session session = sessionFactory.openSession()) {
+        Session session = sessionFactory.openSession();
+        try {
             session.beginTransaction();
             session.save(movie);
             session.getTransaction().commit();
             return true;
-//        } catch (Exception e) {
-//            System.err.println("Error adding movie: " + e.getMessage());
-//            e.printStackTrace();
-//            return false;
-//        }
+        } catch (Exception e) {
+            if (session.getTransaction() != null) {
+                session.getTransaction().rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            session.close();
+        }
     }
 
     public void addHomeMovie(HomeMovieLink homeMovieLink) {
@@ -438,8 +456,29 @@ public class ServerDB {
             }
 
             Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
-                    durations[i], movie_icons[i], movie_descriptions[i], genres[i], premierDate,
+                    durations[i], null, movie_descriptions[i], genres[i], premierDate,
                     isHome[i], true, i, i);
+
+            String imagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + movie_icons[i];
+            try (InputStream inputStream = new FileInputStream(imagePath)) {
+                byte[] imageData = inputStream.readAllBytes();
+                movie.setMovieIcon(imageData);
+            } catch (FileNotFoundException e) {
+                System.out.println("Image file not found: " + movie_icons[i]);
+
+                // Set default image or take appropriate action
+                String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
+                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
+                    byte[] defaultImageData = defaultInputStream.readAllBytes();
+                    movie.setMovieIcon(defaultImageData);
+                } catch (IOException ex) {
+                    System.out.println("Error loading default image");
+                    ex.printStackTrace();
+                }
+            } catch (IOException e) {
+                System.out.println("Error loading image: " + movie_icons[i]);
+                e.printStackTrace();
+            }
             session.save(movie);
             movies.add(movie);
         }
@@ -530,50 +569,95 @@ public class ServerDB {
 
     }
 
+//    public boolean deleteMovie(int movieId, String movieType) {
+//        Transaction transaction = null;
+//        try {
+//            transaction = session.beginTransaction();
+//            Movie movie = session.get(Movie.class, movieId);
+//            if (movie == null) {
+//                System.out.println("Movie not found");
+//                return false; // Movie not found
+//            }
+//            if (movie != null) {
+//                if(movieType.equals("cinema") && movie.getIsHome())
+//                {
+//                    movie.setIsCinema(false);
+//                    session.update(movie);
+//                    transaction.commit();
+//                    return true;
+//                }
+//                else if(movieType.equals("home") && movie.getIsCinema()) {
+//                    movie.setIsHome(false);
+//                    session.update(movie);
+//                    transaction.commit();
+//                    return true;
+//                }
+//
+//                // Delete all PriceChangeRequests associated with this movie
+//                Query<?> priceChangeRequestQuery = session.createQuery("delete from PriceChangeRequest pcr where pcr.movie.id = :movieId");
+//                priceChangeRequestQuery.setParameter("movieId", movieId);
+//                priceChangeRequestQuery.executeUpdate();
+//
+//                // Fetch and delete screenings one by one
+//                Query<Screening> fetchScreeningsQuery = session.createQuery("from Screening s where s.movie.id = :movieId", Screening.class);
+//                fetchScreeningsQuery.setParameter("movieId", movieId);
+//                List<Screening> screenings = fetchScreeningsQuery.getResultList();
+//
+//                for (Screening screening : screenings) {
+//                    session.delete(screening);
+//                }
+//
+//                // Clear the movie's screenings collection
+//                movie.getScreenings().clear();
+//
+//                // Now delete the movie
+//                session.delete(movie);
+//
+//                transaction.commit();
+//                return true;
+//            }
+//            return false;
+//        } catch (Exception e) {
+//            if (transaction != null) {
+//                transaction.rollback();
+//            }
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
     public boolean deleteMovie(int movieId, String movieType) {
         Transaction transaction = null;
-        try {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            Movie movie = session.get(Movie.class, movieId);
-            if (movie != null) {
-                if(movieType.equals("cinema") && movie.getIsHome())
-                {
-                    movie.setIsCinema(false);
-                    session.update(movie);
-                    transaction.commit();
-                    return true;
-                }
-                else if(movieType.equals("home") && movie.getIsCinema()) {
-                    movie.setIsHome(false);
-                    session.update(movie);
-                    transaction.commit();
-                    return true;
-                }
 
-                // Delete all PriceChangeRequests associated with this movie
-                Query<?> priceChangeRequestQuery = session.createQuery("delete from PriceChangeRequest pcr where pcr.movie.id = :movieId");
-                priceChangeRequestQuery.setParameter("movieId", movieId);
-                priceChangeRequestQuery.executeUpdate();
+            // Delete related PriceChangeRequests
+            Query<?> priceChangeRequestQuery = session.createQuery("DELETE FROM PriceChangeRequest pcr WHERE pcr.movie.id = :movieId");
+            priceChangeRequestQuery.setParameter("movieId", movieId);
+            priceChangeRequestQuery.executeUpdate();
 
-                // Fetch and delete screenings one by one
-                Query<Screening> fetchScreeningsQuery = session.createQuery("from Screening s where s.movie.id = :movieId", Screening.class);
-                fetchScreeningsQuery.setParameter("movieId", movieId);
-                List<Screening> screenings = fetchScreeningsQuery.getResultList();
+            // Delete related Seats
+            Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
+            seatQuery.setParameter("movieId", movieId);
+            seatQuery.executeUpdate();
 
-                for (Screening screening : screenings) {
-                    session.delete(screening);
-                }
+            // Delete related Tickets
+            Query<?> ticketQuery = session.createQuery("DELETE FROM Ticket t WHERE t.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
+            ticketQuery.setParameter("movieId", movieId);
+            ticketQuery.executeUpdate();
 
-                // Clear the movie's screenings collection
-                movie.getScreenings().clear();
+            // Delete related Screenings
+            Query<?> screeningQuery = session.createQuery("DELETE FROM Screening s WHERE s.movie.id = :movieId");
+            screeningQuery.setParameter("movieId", movieId);
+            screeningQuery.executeUpdate();
 
-                // Now delete the movie
-                session.delete(movie);
+            // Delete the movie
+            Query<?> movieQuery = session.createQuery("DELETE FROM Movie m WHERE m.id = :movieId");
+            movieQuery.setParameter("movieId", movieId);
+            int result = movieQuery.executeUpdate();
 
-                transaction.commit();
-                return true;
-            }
-            return false;
+            transaction.commit();
+            return result > 0;
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -582,6 +666,7 @@ public class ServerDB {
             return false;
         }
     }
+
 
     public boolean addScreening(Screening screening) {
 //        try (Session session = sessionFactory.openSession()) {
@@ -653,30 +738,36 @@ public class ServerDB {
     }
 
     public boolean deleteScreening(int screeningId) {
-        Transaction transaction = session.beginTransaction();
-        try {
-            Screening screening = session.get(Screening.class, screeningId);
-            if (screening != null) {
-                // Remove the screening from the movie's screenings list
-                Movie movie = screening.getMovie();
-                if (movie != null) {
-                    movie.getScreenings().remove(screening);
-                    session.update(movie);
-                }
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
 
-                // Delete the screening
-                session.delete(screening);
+            // Delete related Tickets
+            Query<?> ticketQuery = session.createQuery("DELETE FROM Ticket t WHERE t.screening.id = :screeningId");
+            ticketQuery.setParameter("screeningId", screeningId);
+            ticketQuery.executeUpdate();
 
-                transaction.commit();
-                return true;
-            }
-            return false;
+            // Delete related Seats
+            Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id = :screeningId");
+            seatQuery.setParameter("screeningId", screeningId);
+            seatQuery.executeUpdate();
+
+            // Delete the Screening
+            Query<?> screeningQuery = session.createQuery("DELETE FROM Screening s WHERE s.id = :screeningId");
+            screeningQuery.setParameter("screeningId", screeningId);
+            int result = screeningQuery.executeUpdate();
+
+            transaction.commit();
+            return result > 0;
         } catch (Exception e) {
-            transaction.rollback();
+            if (transaction != null) {
+                transaction.rollback();
+            }
             e.printStackTrace();
             return false;
         }
     }
+
 
     public void createPriceChangeRequest(PriceChangeRequest request) {
         Transaction transaction = session.beginTransaction();
@@ -925,12 +1016,12 @@ public class ServerDB {
     }
 
     public Movie getMovieById(int movieId) {
-        try (Session session = sessionFactory.openSession()) {
+       //try (Session session = sessionFactory.openSession()) {
             return session.get(Movie.class, movieId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
     }
     
     public Booking purchaseHomeMovieLink(String name, int id, String email, String creditCard, HomeMovieLink link) {

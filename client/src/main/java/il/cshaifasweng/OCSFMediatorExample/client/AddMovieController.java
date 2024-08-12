@@ -9,10 +9,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -41,7 +43,7 @@ public class AddMovieController implements DataInitializable {
     @FXML private TextField producerField;
     @FXML private TextField actorsField;
     @FXML private TextField durationField;
-    @FXML private TextField movieIconField;
+    @FXML private Button uploadImageButton;
     @FXML private TextArea synopsisArea;
     @FXML private TextField genreField;
     @FXML private DatePicker premierDatePicker;
@@ -51,11 +53,27 @@ public class AddMovieController implements DataInitializable {
     @FXML private VBox homeMovieFields;
     @FXML private TextField cinemaPriceField;
     @FXML private TextField homePriceField;
+    private File selectedImageFile;
 
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
+
     }
+
+    @FXML
+    private void handleUploadImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Movie Image");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif")
+        );
+        selectedImageFile = fileChooser.showOpenDialog(mainContainer.getScene().getWindow());
+        if (selectedImageFile != null) {
+            uploadImageButton.setText(selectedImageFile.getName());
+        }
+    }
+
 
     @FXML
     private void toggleHomeMovieFields() {
@@ -79,7 +97,15 @@ public class AddMovieController implements DataInitializable {
             String producer = validateField(producerField, "Producer");
             String actors = validateField(actorsField, "Actors");
             int duration = Integer.parseInt(validateField(durationField, "Duration"));
-            String movieIcon = validateField(movieIconField, "Movie Icon URL");
+
+            byte[] movieIcon = null;
+            if (selectedImageFile != null) {
+                try {
+                    movieIcon = java.nio.file.Files.readAllBytes(selectedImageFile.toPath());
+                } catch (IOException e) {
+                    throw new ValidationException("Error reading image file.");
+                }
+            }
             String synopsis = validateField(synopsisArea, "Synopsis");
             String genre = validateField(genreField, "Genre");
             LocalDate premierDate = validateDatePicker(premierDatePicker, "Premier Date");
@@ -99,7 +125,6 @@ public class AddMovieController implements DataInitializable {
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, genre, premier, isHome, isCinema, cinemaPrice, homePrice);
-
             String movieData = objectMapper.writeValueAsString(movie);
 
             Message msg = new Message(0, "add movie", movieData);
@@ -187,7 +212,6 @@ public class AddMovieController implements DataInitializable {
         producerField.clear();
         actorsField.clear();
         durationField.clear();
-        movieIconField.clear();
         synopsisArea.clear();
         genreField.clear();
         premierDatePicker.setValue(null);
@@ -199,5 +223,7 @@ public class AddMovieController implements DataInitializable {
         homeMovieFields.setManaged(false);
         cinemaPriceField.clear();
         homePriceField.clear();
+        uploadImageButton.setText("Upload Image");
+        selectedImageFile = null;
     }
 }

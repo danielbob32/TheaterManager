@@ -18,7 +18,7 @@
                 <TextField fx:id="producerField" promptText="Producer" />
                 <TextField fx:id="actorsField" promptText="Actors" />
                 <TextField fx:id="durationField" promptText="Duration" />
-                <TextField fx:id="movieIconField" promptText="Movie Icon URL" />
+                <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage"/>
                 <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
                 <TextField fx:id="genreField" promptText="Genre" />
                 <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
