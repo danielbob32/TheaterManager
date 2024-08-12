@@ -95,7 +95,7 @@ public class ServerDB {
                 session.createQuery("DELETE FROM Cinema").executeUpdate();
 
                 System.out.println("Deleted all existing data");
-    
+
                 // Add test workers
                 Worker contentManager = new Worker("Content Manager", "Content manager", "password123", 1001);
                 Worker regularWorker = new Worker("Regular Worker", "Regular", "password456", 1002);
@@ -134,60 +134,77 @@ public class ServerDB {
     }
     
     private void generateBookings(List<Cinema> cinemas) {
-        Random random = new Random();
-        List<Customer> customers = getOrCreateCustomers(50);  // Get or create 50 customers
-    
-        for (Cinema cinema : cinemas) {
-            for (int i = 0; i < 50; i++) {  // Generate 50 bookings per cinema
-                Customer customer = customers.get(random.nextInt(customers.size()));
-                Date purchaseTime = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
-                Booking booking = new Booking(customer, purchaseTime, customer.getEmail(), "1234567890");
-                session.save(booking);
-    
-                // Add tickets or links to the booking
-                if (random.nextBoolean()) {
-                    Ticket ticket = new Ticket(customer.getPersonId(), 10, true, cinema, null, null, null, purchaseTime);
-                    session.save(ticket);
-                    booking.addProduct(ticket);
-                } else {
-                    HomeMovieLink link = new HomeMovieLink(purchaseTime, new Date(purchaseTime.getTime() + 24 * 60 * 60 * 1000L), true, "www.example.com/movie", customer.getPersonId(), 15, true, purchaseTime);
-                    session.save(link);
-                    booking.addProduct(link);
+        try(Session session = sessionFactory.openSession())
+        {
+            Transaction tx = session.beginTransaction();
+            Random random = new Random();
+            List<Customer> customers = getOrCreateCustomers(50, session);  // Get or create 50 customers
+
+            for (Cinema cinema : cinemas) {
+                for (int i = 0; i < 50; i++) {  // Generate 50 bookings per cinema
+                    Customer customer = customers.get(random.nextInt(customers.size()));
+                    Date purchaseTime = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
+                    Booking booking = new Booking(customer, purchaseTime, customer.getEmail(), "1234567890");
+                    session.save(booking);
+
+                    // Add tickets or links to the booking
+                    if (random.nextBoolean()) {
+                        Ticket ticket = new Ticket(customer.getPersonId(), 10, true, cinema, null, null, null, purchaseTime);
+                        session.save(ticket);
+                        booking.addProduct(ticket);
+                    } else {
+                        HomeMovieLink link = new HomeMovieLink(purchaseTime, new Date(purchaseTime.getTime() + 24 * 60 * 60 * 1000L), true, "www.example.com/movie", customer.getPersonId(), 15, true, purchaseTime);
+                        session.save(link);
+                        booking.addProduct(link);
+                    }
+
+                    session.update(booking);
+                    session.flush();
                 }
-    
-                session.update(booking);
             }
+            tx.commit();
+        } catch (Exception e) {
+            System.err.println("Error in generateBookings " + e.getMessage());
+            e.printStackTrace();
         }
+
     }
-    
+
     private void generateComplaints(List<Cinema> cinemas) {
-        Random random = new Random();
-        List<Customer> customers = getOrCreateCustomers(30);  // Get or create 30 customers
-    
-        for (Cinema cinema : cinemas) {
-            for (int i = 0; i < 30; i++) {  // Generate 30 complaints per cinema
-                Customer customer = customers.get(random.nextInt(customers.size()));
-                Date complaintDate = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
-                Complaint complaint = new Complaint(complaintDate, "Sample complaint " + i, true, 0, customer);
-                session.save(complaint);
+        try(Session session = sessionFactory.openSession()) {
+            Random random = new Random();
+            List<Customer> customers = getOrCreateCustomers(30, session);  // Get or create 30 customers
+
+            for (Cinema cinema : cinemas) {
+                for (int i = 0; i < 30; i++) {  // Generate 30 complaints per cinema
+                    Customer customer = customers.get(random.nextInt(customers.size()));
+                    Date complaintDate = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
+                    Complaint complaint = new Complaint(complaintDate, "Sample complaint " + i, true, 0, customer);
+                    session.save(complaint);
+                }
             }
         }
+        catch (Exception e) {
+            System.err.println("Error in getOrCreateCustomers " + e.getMessage());
+            e.printStackTrace();
+        }
+
     }
     
-    private List<Customer> getOrCreateCustomers(int count) {
+    private List<Customer> getOrCreateCustomers(int count, Session session) {
         List<Customer> customers = new ArrayList<>();
         String hql = "FROM Customer";
         Query<Customer> query = session.createQuery(hql, Customer.class);
         query.setMaxResults(count);
         customers = query.getResultList();
-    
+
         int existingCount = customers.size();
         for (int i = existingCount; i < count; i++) {
             Customer newCustomer = new Customer("Customer" + i, "customer" + i + "@example.com", 3000 + i);
             session.save(newCustomer);
             customers.add(newCustomer);
         }
-    
+
         return customers;
     }
 
@@ -268,21 +285,6 @@ public class ServerDB {
 
     }
 
-//    public List<Movie> getAllMovies() throws Exception {
-//        CriteriaBuilder builder = session.getCriteriaBuilder();
-//        CriteriaQuery<Movie> query = builder.createQuery(Movie.class);
-//        query.from(Movie.class);
-//        List<Movie> data = session.createQuery(query).getResultList();
-//        for (Movie movie : data) {
-//            if (movie.getEnglishName().equals("Deadpool")) {
-//                System.out.println("Movie: " + movie.getEnglishName());
-//                System.out.println("in serverDB price is:" + movie.getCinemaPrice());
-//            }
-//        }
-//        return data;
-//    }
-
-
     public Worker checkWorkerCredentials(int id, String password) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Worker W WHERE W.id = :id";
@@ -308,7 +310,7 @@ public class ServerDB {
         }
     }
 
-    public boolean checkCustomerCredentials(int id) {
+    public Customer checkCustomerCredentials(int id) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Customer C WHERE C.id = :id";
             Query<Customer> query = session.createQuery(hql, Customer.class);
@@ -318,11 +320,11 @@ public class ServerDB {
             System.out.println("Checking customer credentials for ID: " + id);
             System.out.println("Found customer: " + (customer != null));
 
-            return customer != null;
+            return customer;
         } catch (Exception e) {
             System.err.println("Error checking customer credentials: " + e.getMessage());
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -344,35 +346,26 @@ public class ServerDB {
         }
     }
 
-//    public boolean addMovie(Movie movie) {
-////        try (Session session = sessionFactory.openSession()) {
-//            session.beginTransaction();
-//            session.save(movie);
-//            session.getTransaction().commit();
-//            return true;
-////        } catch (Exception e) {
-////            System.err.println("Error adding movie: " + e.getMessage());
-////            e.printStackTrace();
-////            return false;
-////        }
-//}
-
     public boolean addMovie(Movie movie) {
-        Session session = sessionFactory.openSession();
-        try {
-            session.beginTransaction();
-            session.save(movie);
-            session.getTransaction().commit();
-            return true;
-        } catch (Exception e) {
-            if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+        try(Session session = sessionFactory.openSession()) {
+            try {
+                session.beginTransaction();
+                session.save(movie);
+                session.getTransaction().commit();
+                return true;
+            } catch (Exception e) {
+                if (session.getTransaction() != null) {
+                    session.getTransaction().rollback();
+                }
+                e.printStackTrace();
+                return false;
             }
+        }        catch (Exception e) {
+            System.err.println("Error in addMovie: " + e.getMessage());
             e.printStackTrace();
             return false;
-        } finally {
-            session.close();
         }
+
     }
 
     public void addHomeMovie(HomeMovieLink homeMovieLink) {
@@ -380,11 +373,13 @@ public class ServerDB {
             session.beginTransaction();
             session.save(homeMovieLink);
             session.getTransaction().commit();
+        }  catch (Exception e) {
+            System.err.println("Error in addHomeMovie: " + e.getMessage());
         }
     }
 
     // Close the session factory and session when the instance is no longer needed
-    public void close() {
+    public void close(Session session) {
         if (session != null) {
             session.close();
         }
@@ -420,136 +415,186 @@ public class ServerDB {
     }
 
     private void generateTickets() {
-        List<Booking> bookings = session.createQuery("FROM Booking", Booking.class).getResultList();
-        List<Screening> screenings = session.createQuery("FROM Screening", Screening.class).getResultList();
-        Random random = new Random();
-        
-        for (Booking booking : bookings) {
-            int numTickets = random.nextInt(5) + 1; // 1 to 5 tickets per booking
-            for (int i = 0; i < numTickets; i++) {
-                if (screenings.isEmpty()) {
-                    System.out.println("No screenings available to create tickets.");
-                    return;
+        try(Session session = sessionFactory.openSession())
+        {
+            session.beginTransaction();
+            List<Booking> bookings = session.createQuery("FROM Booking", Booking.class).getResultList();
+            List<Screening> screenings = session.createQuery("FROM Screening", Screening.class).getResultList();
+            Random random = new Random();
+
+            for (Booking booking : bookings) {
+                int numTickets = random.nextInt(5) + 1; // 1 to 5 tickets per booking
+//            System.out.println("\n For booking number:" + booking.getBookingId() + " adding " + numTickets + " tickets \n");
+                for (int i = 0; i < numTickets; i++) {
+                    if (screenings.isEmpty()) {
+                        System.out.println("No screenings available to create tickets.");
+                        return;
+                    }
+                    // Randomly select a screening
+                    Screening randomScreening = screenings.get(random.nextInt(screenings.size()));
+
+                    Ticket ticket = new Ticket(
+                            booking.getCustomer().getPersonId(),
+                            randomScreening.getMovie().getCinemaPrice(),
+                            true,
+                            randomScreening.getCinema(),
+                            randomScreening.getMovie(),
+                            null, // We'll set the seat later if needed
+                            randomScreening.getHall(),
+                            booking.getPurchaseTime(),
+                            randomScreening
+                    );
+                    session.save(ticket);
+                    booking.addProduct(ticket);
                 }
-                // Randomly select a screening
-                Screening randomScreening = screenings.get(random.nextInt(screenings.size()));
-                
-                Ticket ticket = new Ticket(
-                    booking.getCustomer().getPersonId(),
-                    randomScreening.getMovie().getCinemaPrice(),
-                    true,
-                    randomScreening.getCinema(),
-                    randomScreening.getMovie(),
-                    null, // We'll set the seat later if needed
-                    randomScreening.getHall(),
-                    booking.getPurchaseTime(),
-                    randomScreening
-                );
-                session.save(ticket);
-                booking.addProduct(ticket);
+                session.update(booking);
             }
-            session.update(booking);
+            session.flush();
+            session.getTransaction().commit();
+        }catch (HibernateException e) {
+            System.err.println("Error in generateTickets: " + e.getMessage());
+            e.printStackTrace();
         }
-        session.flush();
     }
 
     private List<Movie> generateMovies() {
-        String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב", "אוואטר", "טיטניק", "מלחמת הכוכבים", "שר הטבעות", "הארי פוטר"};
-        String[] titles_english = {"Deadpool", "Smurfs", "Barbie", "Jump Street 22", "Hunger Games", "Avatar", "Titanic", "Star Wars", "Lord of the Rings", "Harry Potter"};
-        String[] producers = {"Simon Kinberg", "Raja Gosnell", "Margot Robbie", "Jonah Hill", "Gary Ross", "James Cameron", "James Cameron", "George Lucas", "Peter Jackson", "David Heyman"};
-        String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
-        String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
-        String[] genres = {"Action, Fantasy", "Family", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
-        String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hungergames.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
-        int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
-        boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+            String[] titles_hebrew = {"דדפול", "דרדסים", "ברבי", "ג'אמפ סטריט 22", "משחקי הרעב", "אוואטר", "טיטניק", "מלחמת הכוכבים", "שר הטבעות", "הארי פוטר"};
+            String[] titles_english = {"Deadpool", "Smurfs", "Barbie", "Jump Street 22", "Hunger Games", "Avatar", "Titanic", "Star Wars", "Lord of the Rings", "Harry Potter"};
+            String[] producers = {"Simon Kinberg", "Raja Gosnell", "Margot Robbie", "Jonah Hill", "Gary Ross", "James Cameron", "James Cameron", "George Lucas", "Peter Jackson", "David Heyman"};
+            String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
+            String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
+            String[] genres = {"Action, Fantasy", "Family", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
+            String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hungergames.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
+            int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
+            boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
 
-        List<Movie> movies = new ArrayList<>();
+            List<Movie> movies = new ArrayList<>();
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_YEAR, 20); // Set premier date 20 days from now
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, 20); // Set premier date 20 days from now
 
-        for (int i = 0; i < 10; i++) {
-            Date premierDate;
-            if (i < 3) {
-                premierDate = calendar.getTime(); // Use the calculated future date for the first 3 movies
-            } else {
-                premierDate = new Date(); // For other movies, use current date
-            }
-
-            Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
-                    durations[i], null, movie_descriptions[i], genres[i], premierDate,
-                    isHome[i], true, i, i);
-
-            String imagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + movie_icons[i];
-            try (InputStream inputStream = new FileInputStream(imagePath)) {
-                byte[] imageData = inputStream.readAllBytes();
-                movie.setMovieIcon(imageData);
-            } catch (FileNotFoundException e) {
-                System.out.println("Image file not found: " + movie_icons[i]);
-
-                // Set default image or take appropriate action
-                String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
-                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
-                    byte[] defaultImageData = defaultInputStream.readAllBytes();
-                    movie.setMovieIcon(defaultImageData);
-                } catch (IOException ex) {
-                    System.out.println("Error loading default image");
-                    ex.printStackTrace();
+            for (int i = 0; i < 10; i++) {
+                Date premierDate;
+                if (i < 3) {
+                    premierDate = calendar.getTime(); // Use the calculated future date for the first 3 movies
+                } else {
+                    premierDate = new Date(); // For other movies, use current date
                 }
-            } catch (IOException e) {
-                System.out.println("Error loading image: " + movie_icons[i]);
-                e.printStackTrace();
+
+                Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
+                        durations[i], null, movie_descriptions[i], genres[i], premierDate,
+                        isHome[i], true, i, i);
+
+                String imagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + movie_icons[i];
+//            try (InputStream inputStream = new FileInputStream(imagePath)) {
+                try (InputStream inputStream = getClass().getResourceAsStream("/Images/" + movie_icons[i])) {
+//                System.out.println("found image" + inputStream);
+                    if (inputStream != null) {
+                        byte[] imageData = inputStream.readAllBytes();
+                        movie.setMovieIcon(imageData);
+                    } else {
+                        // Set default image or take appropriate action
+                        String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
+//                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
+                        try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
+                            byte[] defaultImageData = defaultInputStream.readAllBytes();
+                            movie.setMovieIcon(defaultImageData);
+//                        System.out.println("loaded image number:" + i);
+                        } catch (IOException ex) {
+                            System.out.println("Error loading default image");
+                            ex.printStackTrace();
+                        }
+                    }
+
+                } catch (FileNotFoundException e) {
+                    System.out.println("Image file not found: " + movie_icons[i]);
+
+                    // Set default image or take appropriate action
+                    String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
+//                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
+                    try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
+                        byte[] defaultImageData = defaultInputStream.readAllBytes();
+                        movie.setMovieIcon(defaultImageData);
+                        System.out.println("loaded image number:" + i);
+                    } catch (IOException ex) {
+                        System.out.println("Error loading default image");
+                        ex.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error loading image: " + movie_icons[i]);
+                    e.printStackTrace();
+                }
+                session.save(movie);
+                movies.add(movie);
             }
-            session.save(movie);
-            movies.add(movie);
+            session.flush();
+            session.getTransaction().commit();
+            return movies;
+        }catch (HibernateException e) {
+            System.err.println("Error in generateMovies: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        session.flush();
-        return movies;
     }
 
     private List<Cinema> generateCinemas() {
-        String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
-        String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+            String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
+            String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
 
-        List<Cinema> cinemas = new ArrayList<>();
-        Random random = new Random();
+            List<Cinema> cinemas = new ArrayList<>();
+            Random random = new Random();
 
-        for (int i = 0; i < 4; i++) {
-            Cinema cinema = new Cinema(cinemaNames[i], locations[i], new ArrayList<>(), null);
-            session.save(cinema);
+            for (int i = 0; i < 4; i++) {
+                Cinema cinema = new Cinema(cinemaNames[i], locations[i], new ArrayList<>(), null);
+                session.save(cinema);
 
-            // Generate 5 halls for each cinema
-            for (int j = 0; j < 5; j++) {
-                MovieHall hall = new MovieHall(j + 1, new ArrayList<>(), cinema);
-                session.save(hall);
-                cinema.getMovieHalls().add(hall);
+                // Generate 5 halls for each cinema
+                for (int j = 0; j < 5; j++) {
+                    MovieHall hall = new MovieHall(j + 1, new ArrayList<>(), cinema);
+                    session.save(hall);
+                    cinema.getMovieHalls().add(hall);
+                }
+                session.update(cinema);
+                cinemas.add(cinema);
             }
-            session.update(cinema);
-            cinemas.add(cinema);
+            session.flush();
+            session.getTransaction().commit();
+            return cinemas;
+        } catch (HibernateException e) {
+            System.err.println("Error in generateCinemas: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        session.flush();
-        return cinemas;
     }
 
     
     private void generateScreenings(List<Movie> movies, List<Cinema> cinemas) {
-        Random random = new Random();
-        for (Movie movie : movies) {
-            for (int i = 0; i < 10; i++) {
-                Cinema cinema = cinemas.get(random.nextInt(cinemas.size()));
-                MovieHall hall = cinema.getMovieHalls().get(random.nextInt(cinema.getMovieHalls().size()));
-                Date screeningTime = new Date(System.currentTimeMillis() + random.nextInt(1000000000)); // Different times
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+            Random random = new Random();
+            for (Movie movie : movies) {
+                for (int i = 0; i < 10; i++) {
+                    Cinema cinema = cinemas.get(random.nextInt(cinemas.size()));
+                    MovieHall hall = cinema.getMovieHalls().get(random.nextInt(cinema.getMovieHalls().size()));
+                    Date screeningTime = new Date(System.currentTimeMillis() + random.nextInt(1000000000)); // Different times
 
-                Screening screening = new Screening(cinema, hall, movie, screeningTime, new ArrayList<>(), false);
-                generateSeats(screening);
-                session.save(screening);
-                session.flush();
+                    Screening screening = new Screening(cinema, hall, movie, screeningTime, new ArrayList<>(), false);
+                    generateSeats(screening, session);
+                    session.save(screening);
+                    session.flush();
+                }
             }
+        } catch (HibernateException e) {
+            System.err.println("Error in generateScreenings: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private void generateSeats(Screening screening) {
+    private void generateSeats(Screening screening, Session session) {
         int cols = 10;
         int rows;
         if (screening.getHall().getHallNumber() % 2 == 0) {
@@ -566,8 +611,8 @@ public class ServerDB {
     }
 
     public boolean updateMoviePrice(int movieId, String movieType, int newPrice) {
-        Transaction transaction = session.beginTransaction();
-        try {
+        try(Session session = sessionFactory.openSession()){
+            Transaction transaction = session.beginTransaction();
             Movie movie = session.get(Movie.class, movieId);
             if (movie != null) {
                 if (movieType.equals("Cinema Movies")) {
@@ -584,7 +629,7 @@ public class ServerDB {
                 return false;
             }
         } catch (Exception e) {
-            transaction.rollback();
+            System.err.println("Error in updateMoviePrice: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -648,39 +693,110 @@ public class ServerDB {
 //        }
 //    }
 
+
+
+//    public boolean deleteMovie(int movieId, String movieType) {
+//        Transaction transaction = null;
+//        try (Session session = sessionFactory.openSession()) {
+//            transaction = session.beginTransaction();
+//            Movie movie = session.get(Movie.class, movieId);
+//            if (movie != null) {
+//                if (movieType.equals("cinema") && movie.getIsHome()) {
+//                    movie.setIsCinema(false);
+//                    session.update(movie);
+//                    transaction.commit();
+//                    return true;
+//                } else if (movieType.equals("home") && movie.getIsCinema()) {
+//                    movie.setIsHome(false);
+//                    session.update(movie);
+//                    transaction.commit();
+//                    return true;
+//                }
+//            }
+//
+//            // Delete related PriceChangeRequests
+//            Query<?> priceChangeRequestQuery = session.createQuery("DELETE FROM PriceChangeRequest pcr WHERE pcr.movie.id = :movieId");
+//            priceChangeRequestQuery.setParameter("movieId", movieId);
+//            priceChangeRequestQuery.executeUpdate();
+//
+//            // Delete related Seats
+//            Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
+//            seatQuery.setParameter("movieId", movieId);
+//            seatQuery.executeUpdate();
+//
+//            // Delete related Tickets
+//            Query<?> ticketQuery = session.createQuery("DELETE FROM Ticket t WHERE t.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
+//            ticketQuery.setParameter("movieId", movieId);
+//            ticketQuery.executeUpdate();
+//
+//            // Delete related Screenings
+//            Query<?> screeningQuery = session.createQuery("DELETE FROM Screening s WHERE s.movie.id = :movieId");
+//            screeningQuery.setParameter("movieId", movieId);
+//            screeningQuery.executeUpdate();
+//
+//            // Delete the movie
+//            Query<?> movieQuery = session.createQuery("DELETE FROM Movie m WHERE m.id = :movieId");
+//            movieQuery.setParameter("movieId", movieId);
+//            int result = movieQuery.executeUpdate();
+//
+//            transaction.commit();
+//            return result > 0;
+//        } catch (Exception e) {
+//            if (transaction != null) {
+//                transaction.rollback();
+//            }
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
+
     public boolean deleteMovie(int movieId, String movieType) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
+            Movie movie = session.get(Movie.class, movieId);
+            if(movie == null) // If the movie not found, return false.
+                return false;
 
-            // Delete related PriceChangeRequests
-            Query<?> priceChangeRequestQuery = session.createQuery("DELETE FROM PriceChangeRequest pcr WHERE pcr.movie.id = :movieId");
-            priceChangeRequestQuery.setParameter("movieId", movieId);
-            priceChangeRequestQuery.executeUpdate();
-
-            // Delete related Seats
-            Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
-            seatQuery.setParameter("movieId", movieId);
-            seatQuery.executeUpdate();
-
-            // Delete related Tickets
-            Query<?> ticketQuery = session.createQuery("DELETE FROM Ticket t WHERE t.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
-            ticketQuery.setParameter("movieId", movieId);
-            ticketQuery.executeUpdate();
-
-            // Delete related Screenings
-            Query<?> screeningQuery = session.createQuery("DELETE FROM Screening s WHERE s.movie.id = :movieId");
-            screeningQuery.setParameter("movieId", movieId);
-            screeningQuery.executeUpdate();
-
-            // Delete the movie
-            Query<?> movieQuery = session.createQuery("DELETE FROM Movie m WHERE m.id = :movieId");
-            movieQuery.setParameter("movieId", movieId);
-            int result = movieQuery.executeUpdate();
-
+            if (movieType.equals("cinema") && movie.getIsHome()) {
+                movie.setIsCinema(false);
+                session.update(movie);
+                transaction.commit();
+                return true;
+            } else if (movieType.equals("home") && movie.getIsCinema()) {
+                movie.setIsHome(false);
+                session.update(movie);
+                transaction.commit();
+                return true;
+            }
             transaction.commit();
-            return result > 0;
+            return true;
         } catch (Exception e) {
+            System.out.println("Error in deleteMovie: " + e.getMessage());
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateMovie(Movie movie)
+    {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            Movie m = session.get(Movie.class, movie.getId());
+            if (m == null) // If the movie not found, return false.
+                return false;
+
+            m.setIsHome(movie.getIsHome());
+            m.setIsCinema(movie.getIsCinema());
+            session.update(m);
+            transaction.commit();
+            return true;
+        }catch(Exception e){
+            System.out.println("Error in updateMovie: " + e.getMessage());
             if (transaction != null) {
                 transaction.rollback();
             }
@@ -691,7 +807,7 @@ public class ServerDB {
 
 
     public boolean addScreening(Screening screening) {
-//        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             System.out.println("Attempting to save screening: " + screening);
 
@@ -699,6 +815,7 @@ public class ServerDB {
             Movie movie = session.get(Movie.class, screening.getMovie().getId());
             if (movie == null) {
                 System.err.println("Movie not found in database");
+                transaction.commit();
                 return false;
             }
 
@@ -706,6 +823,7 @@ public class ServerDB {
             Cinema cinema = session.get(Cinema.class, screening.getCinema().getCinema_id());
             if (cinema == null) {
                 System.err.println("Cinema not found in database");
+                transaction.commit();
                 return false;
             }
 
@@ -724,17 +842,18 @@ public class ServerDB {
                 return true;
             } else {
                 System.out.println("Hall is not available at the specified time");
+                transaction.commit();
                 return false;
             }
-//        } catch (Exception e) {
-//            System.err.println("Error saving screening: " + e.getMessage());
-//            e.printStackTrace();
-//            return false;
-//        }
+        } catch (Exception e) {
+            System.err.println("Error in addScreening: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean isHallAvailable(Cinema cinema, MovieHall hall, Movie movie, Date startTime, Date endTime) {
-//        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             // Fetch the movie with its screenings
             Movie fetchedMovie = session.get(Movie.class, movie.getId());
             if (fetchedMovie == null) {
@@ -753,10 +872,11 @@ public class ServerDB {
                 }
             }
             return true; // No conflicts found
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return false;
-//        }
+        } catch (Exception e) {
+            System.err.println("Error in isHallAvailable: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean deleteScreening(int screeningId) {
@@ -783,6 +903,7 @@ public class ServerDB {
             transaction.commit();
             return result > 0;
         } catch (Exception e) {
+            System.err.println("Error in deleteScreening: " + e.getMessage());
             if (transaction != null) {
                 transaction.rollback();
             }
@@ -793,22 +914,35 @@ public class ServerDB {
 
 
     public void createPriceChangeRequest(PriceChangeRequest request) {
-        Transaction transaction = session.beginTransaction();
-        session.save(request);
-        transaction.commit();
+        try(Session session = sessionFactory.openSession())
+        {
+            Transaction transaction = session.beginTransaction();
+            session.save(request);
+            transaction.commit();
+        }catch (HibernateException e) {
+            System.err.println("Error in createPriceChangeRequest: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public List<PriceChangeRequest> getPriceChangeRequests() {
-        System.out.println("Fetching price change requests");
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<PriceChangeRequest> query = builder.createQuery(PriceChangeRequest.class);
-        query.from(PriceChangeRequest.class);
-        List<PriceChangeRequest> priceChanges = session.createQuery(query).getResultList();
-        return priceChanges;
+        try(Session session = sessionFactory.openSession())
+        {
+            System.out.println("Fetching price change requests");
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<PriceChangeRequest> query = builder.createQuery(PriceChangeRequest.class);
+            query.from(PriceChangeRequest.class);
+            List<PriceChangeRequest> priceChanges = session.createQuery(query).getResultList();
+            return priceChanges;
+        }catch (HibernateException e) {
+            System.err.println("Error in createPriceChangeRequest: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public boolean updatePriceChangeRequestStatus(int requestId, boolean isApproved) {
-        //try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             PriceChangeRequest request = session.get(PriceChangeRequest.class, requestId);
             if (request != null) {
@@ -818,14 +952,22 @@ public class ServerDB {
                 return true;
             }
             return false;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return false;
-//        }
+        } catch (HibernateException e) {
+            System.err.println("Error in updatePriceChangeRequestStatus: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public PriceChangeRequest getPriceChangeRequestById(int requestId) {
-        return session.get(PriceChangeRequest.class, requestId);
+        try(Session session = sessionFactory.openSession())
+        {
+            return session.get(PriceChangeRequest.class, requestId);
+        }catch (HibernateException e) {
+            System.err.println("Error in getPriceChangeRequestById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public List<Seat> getSeatsForScreening(int screeningId) {
@@ -835,6 +977,7 @@ public class ServerDB {
             query.setParameter("screeningId", screeningId);
             return query.getResultList();
         } catch (Exception e) {
+            System.err.println("Error in getSeatsForScreening: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
@@ -856,8 +999,8 @@ public class ServerDB {
                 return false;
             }
         } catch (Exception e) {
+            System.out.println("Error in checkTicketTabValidity: " + e.getMessage());
             e.printStackTrace();
-            System.out.println("Error checking ticket tab validity: " + e.getMessage());
             return false;
         }
     }
@@ -865,6 +1008,10 @@ public class ServerDB {
     public Screening getScreeningById(int id) {
         try (Session session = sessionFactory.openSession()) {
             return session.get(Screening.class, id);
+        }catch (HibernateException e) {
+            System.out.println("Error in getScreeningById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
 
     }
@@ -872,53 +1019,62 @@ public class ServerDB {
     public TicketTab getTicketTabById(int id) {
         try (Session session = sessionFactory.openSession()) {
             return session.get(TicketTab.class, id);
+        }catch (HibernateException e) {
+            System.out.println("Error in getTicketTabById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 
     public Booking purchaseTicketWithCreditCard(String name, int id, String email,
                                                 String paymentNum, int cinemaPrice, int screeningId, List<Integer> seatId) {
-        Session session = sessionFactory.openSession();
-        Booking newBooking = null;
-        Date purchaseTime = new Date();
-        Transaction transaction = null;
+        try(Session session = sessionFactory.openSession())
+        {
+            Booking newBooking = null;
+            Date purchaseTime = new Date();
+            Transaction transaction = null;
 
-        try {
-            transaction = session.beginTransaction();
+            try {
+                transaction = session.beginTransaction();
 
-            Customer customer = session.get(Customer.class, id);
-            if (customer == null) {
-                customer = new Customer(name, email, id);
-                session.save(customer);
-                session.flush();
+                Customer customer = session.get(Customer.class, id);
+                if (customer == null) {
+                    customer = new Customer(name, email, id);
+                    session.save(customer);
+                    session.flush();
+                }
+
+                newBooking = new Booking(customer, purchaseTime, email, paymentNum);
+                Ticket currentTicket;
+                Screening screening = getScreeningById(screeningId);
+
+                for (Integer i : seatId) {
+                    Seat seat = session.get(Seat.class, i);
+                    seat.setAvailable(false); // make seat unavailable
+                    session.update(seat);
+                    currentTicket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
+                    session.save(currentTicket);
+
+                    customer.addProduct(currentTicket);
+                    newBooking.addTicket(currentTicket);
+                }
+
+                customer.addBooking(newBooking);
+                session.save(newBooking);
+                transaction.commit();
+
+//                System.out.println("cinema tickets booking purchased");
+            } catch (Exception e) {
+                System.out.println("Error in purchaseTicketWithCreditCard: " + e.getMessage());
+                if (transaction != null) transaction.rollback();
+                e.printStackTrace();
             }
-
-            newBooking = new Booking(customer, purchaseTime, email, paymentNum);
-            Ticket currentTicket;
-            Screening screening = getScreeningById(screeningId);
-
-            for (Integer i : seatId) {
-                Seat seat = session.get(Seat.class, i);
-                seat.setAvailable(false); // make seat unavailable
-                session.update(seat);
-                currentTicket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
-                session.save(currentTicket);
-
-                customer.addProduct(currentTicket);
-                newBooking.addTicket(currentTicket);
-            }
-
-            customer.addBooking(newBooking);
-            session.save(newBooking);
-            transaction.commit();
-
-            System.out.println("cinema tickets booking purchased");
-        } catch (Exception e) {
-            if (transaction != null) transaction.rollback();
+            return newBooking;
+        } catch (HibernateException e) {
+            System.out.println("Hibernate error in purchaseTicketWithCreditCard: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            session.close();
+            return null;
         }
-        return newBooking;
     }
 
     public Booking purchaseTicketWithTicketTab(String name, int id, String email,
@@ -927,168 +1083,194 @@ public class ServerDB {
         System.out.println("handling purchase ticket with ticket tab");
 
         //Session session = sessionFactory.openSession();
-        session = sessionFactory.openSession();
+        try(Session session = sessionFactory.openSession())
+        {
+            Transaction transaction = null;
+            Booking newBooking = null;
+            Date purchaseTime = new Date();
 
-        Transaction transaction = null;
-        Booking newBooking = null;
-        Date purchaseTime = new Date();
+            try {
+                transaction = session.beginTransaction();
 
-        try {
-            transaction = session.beginTransaction();
+                TicketTab ticketTab = session.get(TicketTab.class, Integer.parseInt(paymentNum));
+                if (ticketTab == null || ticketTab.getAmount() < seatId.size()) {
+                    System.out.println("Not enough amount in tickettab to purchase");
+                    return null;
+                }
 
-            TicketTab ticketTab = session.get(TicketTab.class, Integer.parseInt(paymentNum));
-            if (ticketTab == null || ticketTab.getAmount() < seatId.size()) {
-                System.out.println("Not enough amount in tickettab to purchase");
-                return null;
+                Customer customer = session.get(Customer.class, id);
+                if (customer == null) {
+                    customer = new Customer(name, email, id);
+                    session.save(customer);
+                }
+
+                newBooking = new Booking(customer, purchaseTime, customer.getEmail(), paymentNum);
+                session.save(newBooking);
+
+                Screening screening = session.get(Screening.class, screeningId);
+                if (screening == null) {
+                    System.out.println("No screening found for id: " + screeningId);
+                    return null;
+                }
+
+                for (Integer i : seatId) {
+                    Seat seat = session.get(Seat.class, i);
+                    seat.setAvailable(false); // make seat unavailable
+                    session.update(seat);
+
+                    Ticket currentTicket = new Ticket(id, 0, purchaseTime, screening, seat);
+                    session.save(currentTicket);
+                    System.out.println("created a new ticket successfully #" + currentTicket.getProduct_id());
+
+                    ticketTab.addTicket(currentTicket);
+
+                    customer.addProduct(currentTicket);
+                    newBooking.addTicket(currentTicket);
+
+                    System.out.println("added a ticket to tickettab successfully");
+                    System.out.println("amount left: " + ticketTab.getAmount());
+                    session.update(ticketTab);
+                }
+                customer.addBooking(newBooking);
+
+                session.update(customer);
+                session.update(newBooking);
+
+                transaction.commit();
+                System.out.println("Cinema tickets booked using TicketTab");
+
+            } catch (Exception e) {
+                System.out.println("Error in purchaseTicketWithCreditCard: " + e.getMessage());
+                if (transaction != null) transaction.rollback();
+                e.printStackTrace();
             }
-
-            Customer customer = session.get(Customer.class, id);
-            if (customer == null) {
-                customer = new Customer(name, email, id);
-                session.save(customer);
-            }
-
-            newBooking = new Booking(customer, purchaseTime, customer.getEmail(), paymentNum);
-            session.save(newBooking);
-
-            Screening screening = session.get(Screening.class, screeningId);
-            if (screening == null) {
-                System.out.println("No screening found for id: " + screeningId);
-                return null;
-            }
-
-            for (Integer i : seatId) {
-                Seat seat = session.get(Seat.class, i);
-                seat.setAvailable(false); // make seat unavailable
-                session.update(seat);
-
-                Ticket currentTicket = new Ticket(id, 0, purchaseTime, screening, seat);
-                session.save(currentTicket);
-                System.out.println("created a new ticket successfully #" + currentTicket.getProduct_id());
-
-                ticketTab.addTicket(currentTicket);
-
-                customer.addProduct(currentTicket);
-                newBooking.addTicket(currentTicket);
-
-                System.out.println("added a ticket to tickettab successfully");
-                System.out.println("amount left: " + ticketTab.getAmount());
-                session.update(ticketTab);
-            }
-            customer.addBooking(newBooking);
-
-            session.update(customer);
-            session.update(newBooking);
-
-            transaction.commit();
-            System.out.println("Cinema tickets booked using TicketTab");
-
-        } catch (Exception e) {
-            if (transaction != null) transaction.rollback();
+            return newBooking;
+        }catch (HibernateException e) {
+            System.out.println("Hibernate error in purchaseTicketWithCreditCard: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            //session.close();
+            return null;
         }
-        return newBooking;
+
+
     }
 
     public Booking purchaseTicketTab(String name, int id, String email, String creditCard) {
-        Session session = sessionFactory.openSession();
-        TicketTab newTicketTab = null;
-        Booking newBooking = null;
+        try(Session session = sessionFactory.openSession())
+        {
+            TicketTab newTicketTab = null;
+            Booking newBooking = null;
 
-        try {
-            session.beginTransaction();
-            Date purchaseTime = new Date();
+            try {
+                session.beginTransaction();
+                Date purchaseTime = new Date();
 
-            // Check if customer exists, create if not
-            Customer customer = session.get(Customer.class, id);
-            if (customer == null) {
-                customer = new Customer(name, email, id);
-                session.save(customer);
+                // Check if customer exists, create if not
+                Customer customer = session.get(Customer.class, id);
+                if (customer == null) {
+                    customer = new Customer(name, email, id);
+                    session.save(customer);
+                    session.flush();
+                }
+
+                // Create new booking
+                newBooking = new Booking(customer, purchaseTime, email, creditCard);
+                session.save(newBooking);
                 session.flush();
+
+                // Create new ticket tab
+                newTicketTab = new TicketTab(customer, purchaseTime);
+                session.save(newTicketTab);
+                session.flush();
+
+                // Update relationships
+                customer.addBooking(newBooking);
+                customer.addProduct(newTicketTab);
+                newBooking.addTicketTab(newTicketTab);
+                newBooking.setTicketTabId(newTicketTab.getProduct_id());
+
+                session.getTransaction().commit();
+                System.out.println("TicketTab #" + newTicketTab.getProduct_id() +
+                        " (booking #" + newBooking.getBookingId() +
+                        ") added to customer " + newBooking.getCustomer().getPersonId());
+            } catch (Exception e) {
+                System.out.println("Error in purchaseTicketTab: " + e.getMessage());
+                if (session.getTransaction() != null) session.getTransaction().rollback();
+                e.printStackTrace();
             }
-
-            // Create new booking
-            newBooking = new Booking(customer, purchaseTime, email, creditCard);
-            session.save(newBooking);
-            session.flush();
-
-            // Create new ticket tab
-            newTicketTab = new TicketTab(customer, purchaseTime);
-            session.save(newTicketTab);
-            session.flush();
-
-            // Update relationships
-            customer.addBooking(newBooking);
-            customer.addProduct(newTicketTab);
-            newBooking.addTicketTab(newTicketTab);
-            newBooking.setTicketTabId(newTicketTab.getProduct_id());
-
-            session.getTransaction().commit();
-            System.out.println("TicketTab #" + newTicketTab.getProduct_id() +
-                    " (booking #" + newBooking.getBookingId() +
-                    ") added to customer " + newBooking.getCustomer().getPersonId());
-        } catch (Exception e) {
-            if (session.getTransaction() != null) session.getTransaction().rollback();
+            return newBooking;
+        } catch (HibernateException e) {
+            System.out.println("Hibernate error in purchaseTicketTab: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            session.close();
+            return null;
         }
-        return newBooking;
+
     }
 
     public Movie getMovieById(int movieId) {
-       //try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             return session.get(Movie.class, movieId);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
+        } catch (HibernateException e) {
+            System.out.println("Error in getMovieById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
+
     
     public Booking purchaseHomeMovieLink(String name, int id, String email, String creditCard, HomeMovieLink link) {
         System.out.println("DEBUG: Starting purchaseHomeMovieLink");
        
-            session = sessionFactory.openSession();
-            try{
-            Transaction transaction = session.beginTransaction();
-    
-            Customer customer = (Customer) session.get(Person.class, id);
-            System.out.println("DEBUG: Existing customer found: " + (customer != null));
-            if (customer == null) {
-                customer = new Customer(name, email, id);
-                session.save(customer);
-                System.out.println("DEBUG: New customer saved with ID: " + customer.getPersonId());
+            try(Session session = sessionFactory.openSession())
+            {
+                try{
+                    Transaction transaction = session.beginTransaction();
+
+                    Customer customer = (Customer) session.get(Person.class, id);
+                    System.out.println("DEBUG: Existing customer found: " + (customer != null));
+                    if (customer == null) {
+                        customer = new Customer(name, email, id);
+                        session.save(customer);
+                        System.out.println("DEBUG: New customer saved with ID: " + customer.getPersonId());
+                    }
+
+                    Booking newBooking = new Booking(customer, new Date(), email, creditCard);
+                    session.save(newBooking);
+                    System.out.println("DEBUG: New booking saved with ID: " + newBooking.getBookingId());
+
+                    link.setClientId(customer.getPersonId());
+                    session.save(link);
+                    System.out.println("DEBUG: HomeMovieLink saved");
+
+                    newBooking.addProduct(link);
+                    customer.addProduct(link);
+
+                    session.update(customer);
+                    session.update(newBooking);
+
+                    transaction.commit();
+                    System.out.println("DEBUG: Transaction committed successfully");
+                    return newBooking;
+                } catch (Exception e) {
+                    System.out.println("DEBUG: Error in purchaseHomeMovieLink: " + e.getMessage());
+                    e.printStackTrace();
+                    return null;
+                }
+            }catch (HibernateException e) {
+                System.out.println("Hibernate error in purchaseHomeMovieLink: " + e.getMessage());
+                e.printStackTrace();
+                return null;
             }
-    
-            Booking newBooking = new Booking(customer, new Date(), email, creditCard);
-            session.save(newBooking);
-            System.out.println("DEBUG: New booking saved with ID: " + newBooking.getBookingId());
-    
-            link.setClientId(customer.getPersonId());
-            session.save(link);
-            System.out.println("DEBUG: HomeMovieLink saved");
-    
-            newBooking.addProduct(link);
-            customer.addProduct(link);
-    
-            session.update(customer);
-            session.update(newBooking);
-    
-            transaction.commit();
-            System.out.println("DEBUG: Transaction committed successfully");
-            return newBooking;
-        } catch (Exception e) {
-            System.out.println("DEBUG: Error in purchaseHomeMovieLink: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
+
     }
     
     public Person getPersonById(int id) {
         try (Session session = sessionFactory.openSession()) {
             return session.get(Person.class, id);
+        }
+        catch (HibernateException e) {
+            System.out.println("Error in getPersonById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -1097,191 +1279,194 @@ public class ServerDB {
             Transaction transaction = session.beginTransaction();
             session.save(person);
             transaction.commit();
+        } catch (HibernateException e) {
+            System.out.println("Error in addPerson: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public List<String> getCinemaList() {
-    try (Session session = sessionFactory.openSession()) {
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<String> query = builder.createQuery(String.class);
-        Root<Cinema> root = query.from(Cinema.class);
-        query.select(root.get("cinemaName"));
-        return session.createQuery(query).getResultList();
-    } catch (Exception e) {
-        e.printStackTrace();
-        return new ArrayList<>();
-    }
-}
-
-public String generateReport(String reportType, LocalDate month, String cinema) {
-    //session = sessionFactory.openSession();
-    try  {
-        switch (reportType) {
-            case "Monthly Ticket Sales":
-                return generateMonthlyTicketSalesReport(session, month, cinema);
-            case "Ticket Tab Sales":
-                return generateTicketTabSalesReport(session, month);
-            case "Home Movie Link Sales":
-                return generateHomeMovieLinkSalesReport(session, month);
-            case "Customer Complaints Histogram":
-                return generateComplaintsHistogramReport(session, month, cinema);
-            default:
-                return "Invalid report type";
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<String> query = builder.createQuery(String.class);
+            Root<Cinema> root = query.from(Cinema.class);
+            query.select(root.get("cinemaName"));
+            return session.createQuery(query).getResultList();
+        } catch (HibernateException e) {
+            System.out.println("Error in getCinemaList: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-        return "Error generating report: " + e.getMessage();
     }
-}
 
-private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
-    String hql = "SELECT DAY(t.purchaseTime) as day, COUNT(t) " +
-                 "FROM Ticket t " +
-                 "JOIN t.screening s " +
-                 "JOIN s.cinema c " +
-                 "WHERE YEAR(t.purchaseTime) = :year " +
-                 "AND MONTH(t.purchaseTime) = :month ";
-    if (cinema != null && !cinema.equals("All")) {
-        hql += "AND c.cinemaName = :cinema ";
+    public String generateReport(String reportType, LocalDate month, String cinema) {
+        try(Session session = sessionFactory.openSession())  {
+            switch (reportType) {
+                case "Monthly Ticket Sales":
+                    return generateMonthlyTicketSalesReport(session, month, cinema);
+                case "Ticket Tab Sales":
+                    return generateTicketTabSalesReport(session, month);
+                case "Home Movie Link Sales":
+                    return generateHomeMovieLinkSalesReport(session, month);
+                case "Customer Complaints Histogram":
+                    return generateComplaintsHistogramReport(session, month, cinema);
+                default:
+                    return "Invalid report type";
+            }
+        } catch (Exception e) {
+            System.out.println("Error in generateReport"+ e.getMessage());
+            e.printStackTrace();
+            return "Error generating report: " + e.getMessage();
+        }
     }
-    hql += "GROUP BY DAY(t.purchaseTime) ORDER BY day";
 
-    Query<Object[]> query = session.createQuery(hql, Object[].class);
-    query.setParameter("year", month.getYear());
-    query.setParameter("month", month.getMonthValue());
-    if (cinema != null && !cinema.equals("All")) {
-        query.setParameter("cinema", cinema);
-    }
-    List<Object[]> results = query.getResultList();
+    private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
+        String hql = "SELECT c.cinemaName, COUNT(t) " +
+                     "FROM Ticket t " +
+                     "JOIN t.screening s " +
+                     "JOIN s.cinema c " +
+                     "WHERE YEAR(t.purchaseTime) = :year " +
+                     "AND MONTH(t.purchaseTime) = :month ";
+        if (cinema != null && !cinema.equals("All")) {
+            hql += "AND c.cinemaName = :cinema ";
+        }
+        hql += "GROUP BY c.cinemaName";
 
-    StringBuilder reportBuilder = new StringBuilder();
-    reportBuilder.append("Ticket Sales");
-    reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
-    reportBuilder.append("\n\n");
-
-    for (Object[] row : results) {
-        Integer day = (Integer) row[0];
-        Long ticketCount = (Long) row[1];
-        reportBuilder.append("Day ").append(day).append(": ").append(ticketCount).append("\n");
-    }
-    return reportBuilder.toString();
-}
-
-
-public enum TimeFrame {
-    YEARLY, QUARTERLY, MONTHLY
-}
-
-private String generateTicketTabSalesReport(Session session, LocalDate month) {
-    return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY); // Default to MONTHLY
-}
-
-private String generateTicketTabSalesReport(Session session, LocalDate month, TimeFrame timeFrame) {
-    StringBuilder hql = new StringBuilder("SELECT ");
-    switch (timeFrame) {
-        case YEARLY:
-            hql.append("YEAR(t.purchaseTime), COUNT(t) ");
-            break;
-        case QUARTERLY:
-            hql.append("QUARTER(t.purchaseTime), COUNT(t) ");
-            break;
-        case MONTHLY:
-        default:
-            hql.append("DAY(t.purchaseTime), COUNT(t) ");
-            break;
-    }
-    hql.append("FROM TicketTab t WHERE YEAR(t.purchaseTime) = :year ");
-    if (timeFrame == TimeFrame.MONTHLY) {
-        hql.append("AND MONTH(t.purchaseTime) = :month ");
-    }
-    hql.append("GROUP BY ");
-    switch (timeFrame) {
-        case YEARLY:
-            hql.append("YEAR(t.purchaseTime) ");
-            break;
-        case QUARTERLY:
-            hql.append("QUARTER(t.purchaseTime) ");
-            break;
-        case MONTHLY:
-        default:
-            hql.append("DAY(t.purchaseTime) ");
-            break;
-    }
-    hql.append("ORDER BY 1");
-
-    Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
-    query.setParameter("year", month.getYear());
-    if (timeFrame == TimeFrame.MONTHLY) {
+        Query<Object[]> query = session.createQuery(hql, Object[].class);
+        query.setParameter("year", month.getYear());
         query.setParameter("month", month.getMonthValue());
+        if (cinema != null && !cinema.equals("All")) {
+            query.setParameter("cinema", cinema);
+        }
+        List<Object[]> results = query.getResultList();
+
+        StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Monthly Ticket Sales - ");
+        reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
+        reportBuilder.append("\n\n");
+
+        for (Object[] row : results) {
+            String cinemaName = (String) row[0];
+            Long ticketCount = (Long) row[1];
+            reportBuilder.append(cinemaName).append(": ").append(ticketCount).append("\n");
+        }
+        return reportBuilder.toString();
     }
 
-    List<Object[]> results = query.getResultList();
-    StringBuilder reportBuilder = new StringBuilder();
-    for (Object[] row : results) {
-        reportBuilder.append(timeFrame == TimeFrame.MONTHLY ? "Day " : (timeFrame == TimeFrame.QUARTERLY ? "Quarter " : "Year "))
-                     .append(row[0]).append(": ").append(row[1]).append("\n");
+
+    public enum TimeFrame {
+        YEARLY, QUARTERLY, MONTHLY
     }
-    return reportBuilder.toString();
-}
 
-
-
-
-
-private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
-    String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
-                 "FROM HomeMovieLink h " +
-                 "WHERE YEAR(h.purchaseTime) = :year " +
-                 "AND MONTH(h.purchaseTime) = :month " +
-                 "GROUP BY DAY(h.purchaseTime) ORDER BY day";
-
-    Query<Object[]> query = session.createQuery(hql, Object[].class);
-    query.setParameter("year", month.getYear());
-    query.setParameter("month", month.getMonthValue());
-    List<Object[]> results = query.getResultList();
-
-    StringBuilder reportBuilder = new StringBuilder();
-    reportBuilder.append("Home Movie Link Sales\n\n");
-
-    for (Object[] row : results) {
-        Integer day = (Integer) row[0];
-        Long count = (Long) row[1];
-        reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
+    private String generateTicketTabSalesReport(Session session, LocalDate month) {
+        return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY); // Default to MONTHLY
     }
-    return reportBuilder.toString();
-}
 
+    private String generateTicketTabSalesReport(Session session, LocalDate month, TimeFrame timeFrame) {
+        StringBuilder hql = new StringBuilder("SELECT ");
+        switch (timeFrame) {
+            case YEARLY:
+                hql.append("YEAR(t.purchaseTime), COUNT(t) ");
+                break;
+            case QUARTERLY:
+                hql.append("QUARTER(t.purchaseTime), COUNT(t) ");
+                break;
+            case MONTHLY:
+            default:
+                hql.append("DAY(t.purchaseTime), COUNT(t) ");
+                break;
+        }
+        hql.append("FROM TicketTab t WHERE YEAR(t.purchaseTime) = :year ");
+        if (timeFrame == TimeFrame.MONTHLY) {
+            hql.append("AND MONTH(t.purchaseTime) = :month ");
+        }
+        hql.append("GROUP BY ");
+        switch (timeFrame) {
+            case YEARLY:
+                hql.append("YEAR(t.purchaseTime) ");
+                break;
+            case QUARTERLY:
+                hql.append("QUARTER(t.purchaseTime) ");
+                break;
+            case MONTHLY:
+            default:
+                hql.append("DAY(t.purchaseTime) ");
+                break;
+        }
+        hql.append("ORDER BY 1");
 
-private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
-    String hql = "SELECT DAY(c.date) as day, COUNT(c) as count " +
-                 "FROM Complaint c " +
-                 "WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month ";
-    if (cinema != null && !cinema.equals("All")) {
-        hql += "AND c.customer.id IN (SELECT DISTINCT t.clientId FROM Ticket t WHERE t.screening.cinema.cinemaName = :cinema) ";
+        Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
+        query.setParameter("year", month.getYear());
+        if (timeFrame == TimeFrame.MONTHLY) {
+            query.setParameter("month", month.getMonthValue());
+        }
+
+        List<Object[]> results = query.getResultList();
+        StringBuilder reportBuilder = new StringBuilder();
+        for (Object[] row : results) {
+            reportBuilder.append(timeFrame == TimeFrame.MONTHLY ? "Day " : (timeFrame == TimeFrame.QUARTERLY ? "Quarter " : "Year "))
+                         .append(row[0]).append(": ").append(row[1]).append("\n");
+        }
+        return reportBuilder.toString();
     }
-    hql += "GROUP BY DAY(c.date) ORDER BY day";
 
-    Query<Object[]> query = session.createQuery(hql, Object[].class);
-    query.setParameter("year", month.getYear());
-    query.setParameter("month", month.getMonthValue());
-    if (cinema != null && !cinema.equals("All")) {
-        query.setParameter("cinema", cinema);
+
+
+
+
+    private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
+        String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
+                     "FROM HomeMovieLink h " +
+                     "WHERE YEAR(h.purchaseTime) = :year " +
+                     "AND MONTH(h.purchaseTime) = :month " +
+                     "GROUP BY DAY(h.purchaseTime) ORDER BY day";
+
+        Query<Object[]> query = session.createQuery(hql, Object[].class);
+        query.setParameter("year", month.getYear());
+        query.setParameter("month", month.getMonthValue());
+        List<Object[]> results = query.getResultList();
+
+        StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Home Movie Link Sales\n\n");
+
+        for (Object[] row : results) {
+            Integer day = (Integer) row[0];
+            Long count = (Long) row[1];
+            reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
+        }
+        return reportBuilder.toString();
     }
-    List<Object[]> results = query.getResultList();
 
-    StringBuilder reportBuilder = new StringBuilder();
-    reportBuilder.append("Customer Complaints");
-    reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
-    reportBuilder.append("\n\n");
 
-    for (Object[] row : results) {
-        Integer day = (Integer) row[0];
-        Long count = (Long) row[1];
-        reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
+    private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
+        String hql = "SELECT DAY(c.date) as day, COUNT(c) as count " +
+                     "FROM Complaint c " +
+                     "WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month ";
+        if (cinema != null && !cinema.equals("All")) {
+            hql += "AND c.customer.id IN (SELECT DISTINCT t.clientId FROM Ticket t WHERE t.screening.cinema.cinemaName = :cinema) ";
+        }
+        hql += "GROUP BY DAY(c.date) ORDER BY day";
+
+        Query<Object[]> query = session.createQuery(hql, Object[].class);
+        query.setParameter("year", month.getYear());
+        query.setParameter("month", month.getMonthValue());
+        if (cinema != null && !cinema.equals("All")) {
+            query.setParameter("cinema", cinema);
+        }
+        List<Object[]> results = query.getResultList();
+
+        StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Customer Complaints Histogram - ");
+        reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
+        reportBuilder.append("\n\n");
+
+        for (Object[] row : results) {
+            Integer day = (Integer) row[0];
+            Long count = (Long) row[1];
+            reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
+        }
+        return reportBuilder.toString();
     }
-    return reportBuilder.toString();
-}
-    
 }
 
 

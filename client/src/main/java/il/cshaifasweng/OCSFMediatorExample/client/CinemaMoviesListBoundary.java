@@ -151,14 +151,16 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		Platform.runLater(() -> {
 			moviesContainer.getChildren().clear();
 			for (Movie movie : movies) {
-				VBox movieBox = createMovieBox(movie);
-				moviesContainer.getChildren().add(movieBox);
+				if(movie.getIsCinema()) {
+					VBox movieBox = createMovieBox(movie);
+					moviesContainer.getChildren().add(movieBox);
+				}
 			}
 		});
 	}
 
 	private VBox createMovieBox(Movie movie) {
-		System.out.println("in createMovieBox");
+//		System.out.println("in createMovieBox");
 		VBox movieBox = new VBox(5);
 
 		movieBox.setPadding(new Insets(10));
@@ -168,7 +170,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 		byte[] image2 = movie.getMovieIcon();
 		if (image2 != null) {
-			System.out.println("Image byte array length: " + image2.length);
+//			System.out.println("Image byte array length: " + image2.length);
 		} else {
 			System.out.println("Image byte array is null");
 		}
@@ -176,7 +178,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		if (image3 == null) {
 			System.out.println("Image is null");
 		} else {
-			System.out.println("Image created successfully");
+//			System.out.println("Image created successfully");
 		}
 		if (image3 == null || image3.isError()) {
 			System.out.println("Using default image");
@@ -184,9 +186,9 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 				InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
 				if (defaultImageStream != null) {
 					image3 = new Image(defaultImageStream);
-					System.out.println("Default image loaded successfully");
+//					System.out.println("Default image loaded successfully");
 				} else {
-					System.out.println("Default image not found");
+//					System.out.println("Default image not found");
 				}
 			} catch (Exception e) {
 				System.out.println("Error loading default image: " + e.getMessage());

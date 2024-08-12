@@ -53,6 +53,12 @@ public class UpdateContentController implements DataInitializable {
     }
 
     @FXML
+    private void allMoviesList() throws IOException {
+        Person connectedPerson = client.getConnectedPerson();
+        App.setRoot("AllMoviesListView", connectedPerson);
+    }
+
+    @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
         App.setRoot("WorkerMenu", workerType);

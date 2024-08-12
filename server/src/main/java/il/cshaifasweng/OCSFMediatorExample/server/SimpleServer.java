@@ -99,6 +99,16 @@ public class SimpleServer extends AbstractServer {
 					}
 					break;
 
+				case "updateMovie":
+					Movie movie_to_update = objectMapper.readValue(message.getData(), Movie.class);
+					boolean updateSuccess = db.updateMovie(movie_to_update);
+					if (updateSuccess) {
+						client.sendToClient(new Message(0, "Movie update:success"));
+					} else {
+						client.sendToClient(new Message(0, "Movie update:failed", "error occured"));
+					}
+					break;
+
 				case "addScreening":
 					Screening newScreening = objectMapper.readValue(message.getData(), Screening.class);
 					System.out.println("Received screening to add: " + newScreening);
@@ -255,9 +265,10 @@ public class SimpleServer extends AbstractServer {
 			int screeningId = dataNode.get("screeningId").asInt();
 			List<Integer> seatIds = new ArrayList<>();
 			JsonNode seatsIdNode = dataNode.get("seatIds");
-			Iterator<JsonNode> seatsIdIterator = seatsIdNode.elements();
-			while (seatsIdIterator.hasNext()) {
-				seatIds.add(seatsIdIterator.next().asInt());
+			Iterator<String> seatIdFieldNames = seatsIdNode.fieldNames();
+			while (seatIdFieldNames.hasNext()) {
+				String seatIdStr = seatIdFieldNames.next();
+				seatIds.add(Integer.parseInt(seatIdStr));
 			}
 
 			Booking newBooking = null;
@@ -481,9 +492,11 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 				}
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
-				loginSuccess = db.checkCustomerCredentials(customer.getPersonId());
+				customer = db.checkCustomerCredentials(customer.getPersonId());
 				//message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
-				message = loginSuccess ? "Customer login:successful" : "Customer login:failed";
+				message = customer!=null ? "Customer login:successful" : "Customer login:failed";
+				if(customer!=null)
+					p = customer;
 			} else {
 				message = "Invalid login request type";
 			}
@@ -493,7 +506,6 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		}
 
 		try {
-			Warning warning = new Warning(message);
 			Message message1 = new Message(0, message, objectMapper.writeValueAsString(p));
 			client.sendToClient(message1);
 		} catch (IOException e) {
@@ -511,14 +523,14 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 	protected void serverStopped() {
 		super.serverStopped();
 		System.out.println("Server stopped");
-		db.close();
+		db.close(null);
 	}
 
 	@Override
 	protected void serverClosed() {
 		super.serverClosed();
 		System.out.println("Server closed");
-		db.close();
+		db.close(null);
 	}
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {

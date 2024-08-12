@@ -11,6 +11,7 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
         <Text text="Update Content" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+        <Button text="All Movies List" onAction="#allMoviesList" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Edit Home Movies" onAction="#editHomeMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         <Button text="Add movie/Home Movie" onAction="#addMovie" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>

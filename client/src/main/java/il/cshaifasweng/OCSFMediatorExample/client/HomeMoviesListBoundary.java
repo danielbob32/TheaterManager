@@ -71,8 +71,10 @@ public class HomeMoviesListBoundary implements DataInitializable {
         Platform.runLater(() -> {
             moviesContainer.getChildren().clear();
             for (Movie movie : homeMovies) {
-                VBox movieBox = createMovieBox(movie);
-                moviesContainer.getChildren().add(movieBox);
+                if(movie.getIsHome()) {
+                    VBox movieBox = createMovieBox(movie);
+                    moviesContainer.getChildren().add(movieBox);
+                }
             }
         });
     }

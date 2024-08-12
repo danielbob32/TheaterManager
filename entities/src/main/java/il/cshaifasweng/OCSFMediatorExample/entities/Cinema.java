@@ -19,7 +19,8 @@ public class Cinema {
     private String cinemaName;
     private String location;
 
-    @OneToMany(mappedBy = "cinema")
+    @OneToMany(mappedBy = "cinema", fetch = FetchType.EAGER)
+//    @OneToMany(mappedBy = "cinema")
 //    @JsonIgnore
     private List<MovieHall> movieHalls;
 
