@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.greenrobot.eventbus.EventBus;
@@ -46,7 +47,7 @@ public class ManagePriceRequestsController implements DataInitializable {
     public void initialize() {
         objectMapper = new ObjectMapper();
         EventBus.getDefault().register(this);
-        loadPriceChangeRequests();
+        //loadPriceChangeRequests();
         movieColumn.setPrefWidth(150);
         typeColumn.setPrefWidth(120);
         oldPriceColumn.setPrefWidth(80);
@@ -95,11 +96,14 @@ public class ManagePriceRequestsController implements DataInitializable {
     private void approveRequest() {
         PriceChangeRequest selectedRequest = requestsTable.getSelectionModel().getSelectedItem();
         if (selectedRequest != null) {
-            try {
-                System.out.println("Approving price change request: " + selectedRequest.getId());
-                client.sendToServer(new Message(0, "approvePriceChangeRequest", String.valueOf(selectedRequest.getId())));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (selectedRequest.getStatus().equals("Approved")) {
+                showAlert("Cannot Approve", "This request has already been approved.");
+            } else {
+                try {
+                    client.sendToServer(new Message(0, "approvePriceChangeRequest", String.valueOf(selectedRequest.getId())));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -108,10 +112,14 @@ public class ManagePriceRequestsController implements DataInitializable {
     private void denyRequest() {
         PriceChangeRequest selectedRequest = requestsTable.getSelectionModel().getSelectedItem();
         if (selectedRequest != null) {
-            try {
-                client.sendToServer(new Message(0, "denyPriceChangeRequest", String.valueOf(selectedRequest.getId())));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (selectedRequest.getStatus().equals("Approved")) {
+                showAlert("Cannot Deny", "This request has already been approved and cannot be denied.");
+            } else {
+                try {
+                    client.sendToServer(new Message(0, "denyPriceChangeRequest", String.valueOf(selectedRequest.getId())));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -119,23 +127,51 @@ public class ManagePriceRequestsController implements DataInitializable {
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
         Message message = event.getMessage();
-            Platform.runLater(() -> {
-                try {
+        Platform.runLater(() -> {
+            try {
+                if (message.getMessage().equals("priceChangeRequests")) {
                     String jsonString = message.getData();
                     List<PriceChangeRequest> requests = objectMapper.readValue(jsonString,
                             new TypeReference<List<PriceChangeRequest>>() {});
-                    System.out.println("Received price change requests: " + requests);
                     requestsTable.getItems().setAll(requests);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } else if (message.getMessage().contains("Price change request approved") ||
+                        message.getMessage().contains("Price change request denied")) {
+                    PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+                    updateTableRow(updatedRequest);
+                    //showAlert("Success", message.getMessage());
+                } else if (message.getMessage().contains("Failed to approve") ||
+                        message.getMessage().contains("Failed to deny")) {
+                    showAlert("Error", message.getMessage());
                 }
-            });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void updateTableRow(PriceChangeRequest updatedRequest) {
+        for (int i = 0; i < requestsTable.getItems().size(); i++) {
+            PriceChangeRequest request = requestsTable.getItems().get(i);
+            if (request.getId() == updatedRequest.getId()) {
+                requestsTable.getItems().set(i, updatedRequest);
+                requestsTable.refresh();
+                break;
+            }
+        }
     }
 
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
         App.setRoot("WorkerMenu", connectedPerson);
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.show();
     }
 
 

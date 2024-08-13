@@ -146,9 +146,8 @@ public class SimpleServer extends AbstractServer {
 
 				case "getPriceChangeRequests":
 					List<PriceChangeRequest> requests = db.getPriceChangeRequests();
-					String requests2 = objectMapper.writeValueAsString(requests);
-					System.out.println("Sending price change requests to client: " + requests2);
-					client.sendToClient(new Message(0, "priceChangeRequests", requests2));
+					String requestsJson = objectMapper.writeValueAsString(requests);
+					client.sendToClient(new Message(0, "priceChangeRequests", requestsJson));
 					break;
 
 				case "approvePriceChangeRequest":
@@ -156,21 +155,11 @@ public class SimpleServer extends AbstractServer {
 					System.out.println("Approving price change request: " + requestId);
 					boolean price_success = db.updatePriceChangeRequestStatus(requestId, true);
 					if (price_success) {
-						PriceChangeRequest approvedRequest = db.getPriceChangeRequestById(requestId);
-						if (approvedRequest != null) {
-							boolean priceUpdateSuccess = db.updateMoviePrice(approvedRequest.getMovie().getId(), approvedRequest.getMovieType(), approvedRequest.getNewPrice());
-							if (priceUpdateSuccess) {
-								List<PriceChangeRequest> requests4 = db.getPriceChangeRequests();
-								String requests3 = objectMapper.writeValueAsString(requests4);
-								client.sendToClient(new Message(0, "Price change request approved and price updated successfully", requests3));
-							} else {
-								client.sendToClient(new Message(0, "Price change request approved but price update failed"));
-							}
-						} else {
-							client.sendToClient(new Message(0, "Price change request approved but request details not found"));
-						}
+						PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
+						String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
+						client.sendToClient(new Message(0, "Price change request approved and price updated successfully", updatedRequestJson));
 					} else {
-						client.sendToClient(new Message(0, "Failed to approve price change request"));
+						client.sendToClient(new Message(0, "Failed to approve price change request. It may already be approved."));
 					}
 					break;
 
@@ -178,11 +167,11 @@ public class SimpleServer extends AbstractServer {
 					int requestId2 = Integer.parseInt(message.getData());
 					boolean price_success2 = db.updatePriceChangeRequestStatus(requestId2, false);
 					if (price_success2) {
-						List<PriceChangeRequest> requests4 = db.getPriceChangeRequests();
-						String requests3 = objectMapper.writeValueAsString(requests4);
-						client.sendToClient(new Message(0, "Price change request denied and price hasn't updated successfully", requests3));
+						PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId2);
+						String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
+						client.sendToClient(new Message(0, "Price change request denied", updatedRequestJson));
 					} else {
-						client.sendToClient(new Message(0, "Failed to deny price change request"));
+						client.sendToClient(new Message(0, "Failed to deny price change request. It may already be approved."));
 					}
 					break;
 

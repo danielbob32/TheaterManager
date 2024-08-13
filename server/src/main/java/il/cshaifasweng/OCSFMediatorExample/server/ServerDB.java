@@ -47,6 +47,7 @@ public class ServerDB {
             configuration.addAnnotatedClass(Screening.class);
             configuration.addAnnotatedClass(Seat.class);
             configuration.addAnnotatedClass(Ticket.class);
+            configuration.addAnnotatedClass(TicketPurchaseInfo.class);
             configuration.addAnnotatedClass(TicketTab.class);
             configuration.addAnnotatedClass(Warning.class);
             configuration.addAnnotatedClass(Worker.class);
@@ -974,7 +975,24 @@ public class ServerDB {
             Transaction transaction = session.beginTransaction();
             PriceChangeRequest request = session.get(PriceChangeRequest.class, requestId);
             if (request != null) {
-                request.setStatus(isApproved ? "Approved" : "Denied");
+                if (request.getStatus().equals("Approved")) {
+                    // If already approved, don't allow any changes
+                    transaction.rollback();
+                    return false;
+                } else if (isApproved) {
+                    // If approving, update the price and status
+                    request.setStatus("Approved");
+                    Movie movie = request.getMovie();
+                    if (request.getMovieType().equals("Cinema Movies")) {
+                        movie.setCinemaPrice(request.getNewPrice());
+                    } else if (request.getMovieType().equals("Home Movies")) {
+                        movie.setHomePrice(request.getNewPrice());
+                    }
+                    session.update(movie);
+                } else {
+                    // If denying
+                    request.setStatus("Denied");
+                }
                 session.update(request);
                 transaction.commit();
                 return true;

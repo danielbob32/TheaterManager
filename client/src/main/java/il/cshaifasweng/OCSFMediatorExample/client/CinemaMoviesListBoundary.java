@@ -67,6 +67,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		filterButton.setOnAction(event -> applyFilters());
 //		showMovies();
+
 	}
 
 	@Override
@@ -85,6 +86,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	public void initData(Object data) {
 		Person connectedPerson = client.getConnectedPerson();
 		System.out.println("in initData with the next data" + data);
+		showMovies();
 	}
 
 	@Subscribe

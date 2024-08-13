@@ -81,7 +81,7 @@ public class SimpleClient extends AbstractClient {
                 case "Price change request approved and price updated successfully":
                     handlePriceChangeApproved(message);
                     break;
-                case "Price change request denied and price hasn't updated successfully":
+                case "Price change request denied":
                     handlePriceChangeDenied(message);
                     break;
                 case "Price change request error":
