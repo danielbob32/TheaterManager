@@ -59,11 +59,16 @@ public class SimpleServer extends AbstractServer {
 				case "add movie":
 					String movieData = message.getData();
 					Movie movie = objectMapper.readValue(movieData, Movie.class);
-					boolean add_success = db.addMovie(movie);
-					if (add_success) {
-						client.sendToClient(new Message(0,"Movie add:success"));
+					boolean movieExists = db.checkMovieExists(movie.getEnglishName(), movie.getHebrewName());
+					if (movieExists) {
+						client.sendToClient(new Message(0, "Movie add:failed", "Movie already exists"));
 					} else {
-						client.sendToClient(new Message(0,"Movie add:failed"));
+						boolean add_success = db.addMovie(movie);
+						if (add_success) {
+							client.sendToClient(new Message(0, "Movie add:success"));
+						} else {
+							client.sendToClient(new Message(0, "Movie add:failed"));
+						}
 					}
 					break;
 

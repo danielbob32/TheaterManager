@@ -14,7 +14,6 @@ import org.hibernate.service.ServiceRegistry;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1459,6 +1458,20 @@ public class ServerDB {
             reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
         }
         return reportBuilder.toString();
+    }
+
+    public boolean checkMovieExists(String englishName, String hebrewName) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Movie M WHERE M.englishName = :englishName OR M.hebrewName = :hebrewName";
+            Query<Movie> query = session.createQuery(hql, Movie.class);
+            query.setParameter("englishName", englishName);
+            query.setParameter("hebrewName", hebrewName);
+            List<Movie> results = query.getResultList();
+            return !results.isEmpty();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 

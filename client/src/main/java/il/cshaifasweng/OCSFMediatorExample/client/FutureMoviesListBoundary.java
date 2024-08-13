@@ -19,7 +19,9 @@ import javafx.scene.layout.VBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -91,9 +93,33 @@ public class FutureMoviesListBoundary implements DataInitializable {
         HBox contentBox = new HBox(10);
         contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 
-        String imageName = "deadpool.jpg";
-        Image image = new Image(getClass().getResourceAsStream("/Images/" + imageName));
-        ImageView iv = new ImageView(image);
+        byte[] image2 = movie.getMovieIcon();
+        if (image2 != null) {
+//			System.out.println("Image byte array length: " + image2.length);
+        } else {
+            System.out.println("Image byte array is null");
+        }
+        Image image3 = convertByteArrayToImage(image2);
+        if (image3 == null) {
+            System.out.println("Image is null");
+        } else {
+//			System.out.println("Image created successfully");
+        }
+        if (image3 == null || image3.isError()) {
+            System.out.println("Using default image");
+            try {
+                InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+                if (defaultImageStream != null) {
+                    image3 = new Image(defaultImageStream);
+//					System.out.println("Default image loaded successfully");
+                } else {
+//					System.out.println("Default image not found");
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading default image: " + e.getMessage());
+            }
+        }
+        ImageView iv = new ImageView(image3);
         iv.setFitWidth(150);
         iv.setFitHeight(200);
         iv.setPreserveRatio(true);
@@ -131,6 +157,19 @@ public class FutureMoviesListBoundary implements DataInitializable {
         movieBox.getChildren().add(contentBox);
 
         return movieBox;
+    }
+
+    public Image convertByteArrayToImage(byte[] imageData) {
+        if (imageData != null && imageData.length > 0) {
+            // Convert byte[] to InputStream
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+
+            // Create Image from InputStream
+            return new Image(inputStream);
+        } else {
+            System.out.println("No image data available");
+            return null;  // Or handle as needed, e.g., return a default image
+        }
     }
 
     @FXML

@@ -277,7 +277,10 @@ public class SimpleClient extends AbstractClient {
         System.out.println("add movie message received");
         if (status.equals("success")) {
             showSuccessAlert("Movie have been added successfully");
-        } else {
+        } else if (message.getData().equals("Movie already exists")) {
+            showErrorAlert("This movie already exists in the database.");
+        }
+        else {
             showErrorAlert("Failed to add movie");
         }
     }

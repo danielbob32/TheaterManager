@@ -154,6 +154,8 @@ public class AddMovieController implements DataInitializable {
             if (message.contains("added successfully")) {
                 showAlert("Success", message);
                 clearForms();
+            } else if (message.contains("already exists")) {
+                showAlert("Warning", "This movie already exists in the database.");
             } else {
                 showAlert("Warning", message);
             }
