@@ -28,6 +28,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+
+import java.util.Optional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -63,9 +65,22 @@ public class ReportsPageController implements DataInitializable {
     public void initialize() {
         EventBus.getDefault().register(this);
         setupComboBoxes();
-        updateUIBasedOnReportType();
+        hideAllLabels();  // Call this here to ensure all are hidden initially
         exportButton.setDisable(true);
     }
+
+    private void hideAllLabels() {
+        // Ensure labels are not only invisible but also not managed by the layout
+        totalTicketsLabel.setVisible(false);
+        totalTicketsLabel.setManaged(false);
+        totalTicketTabsLabel.setVisible(false);
+        totalTicketTabsLabel.setManaged(false);
+        totalLinksLabel.setVisible(false);
+        totalLinksLabel.setManaged(false);
+        totalComplaintsLabel.setVisible(false);
+        totalComplaintsLabel.setManaged(false);
+    }
+
 
     @Override
     public void setClient(SimpleClient client) {
@@ -150,9 +165,9 @@ public class ReportsPageController implements DataInitializable {
     }
 
     private void updateUIBasedOnReportType() {
-        String reportType = reportTypeComboBox.getValue();
-        boolean showCinemaBox = reportType != null &&
-            (reportType.equals("Monthly Ticket Sales") || reportType.equals("Customer Complaints Histogram"));
+        // This method now only updates the visibility of the cinema combo box based on the report type
+        boolean showCinemaBox = "Monthly Ticket Sales".equals(reportTypeComboBox.getValue()) || 
+                                "Customer Complaints Histogram".equals(reportTypeComboBox.getValue());
         cinemaComboBox.setVisible(showCinemaBox);
         cinemaComboBox.setManaged(showCinemaBox);
     }
@@ -170,32 +185,39 @@ public class ReportsPageController implements DataInitializable {
     
         try {
             client.requestReport(reportType, month.atDay(1), cinema);
-            // Conditionally display the total tickets label
-            totalTicketsLabel.setVisible(reportType.equals("Monthly Ticket Sales"));
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Error requesting report: " + e.getMessage());
             clearReportContainer();
         }
     }
-
+    
     @Subscribe
     public void onReportDataReceived(ReportDataEvent event) {
         Platform.runLater(() -> {
+            hideAllLabels();  // Ensure all labels are hidden before showing the appropriate one
             currentReportData = event.getReportData();
             reportContainer.getChildren().clear();
             switch (event.getReportType()) {
                 case "Monthly Ticket Sales":
                     displayTicketSalesReport(currentReportData);
+                    totalTicketsLabel.setVisible(true);
+                    totalTicketsLabel.setManaged(true);
                     break;
                 case "Ticket Tab Sales":
                     displayTabSalesReport(currentReportData);
+                    totalTicketTabsLabel.setVisible(true);
+                    totalTicketTabsLabel.setManaged(true);
                     break;
                 case "Home Movie Link Sales":
                     displayHomeMovieLinkSalesReport(currentReportData);
+                    totalLinksLabel.setVisible(true);
+                    totalLinksLabel.setManaged(true);
                     break;
                 case "Customer Complaints Histogram":
                     displayComplaintsHistogram(currentReportData);
+                    totalComplaintsLabel.setVisible(true);
+                    totalComplaintsLabel.setManaged(true);
                     break;
                 default:
                     break;
@@ -247,21 +269,30 @@ private void displayTabSalesReport(String reportData) {
 
     XYChart.Series<String, Number> series = new XYChart.Series<>();
     series.setName("Tabs Sold");
-    int totalTabs = 0;
+    int totalTabs = 0;  // This variable will be effectively final by the time it's used.
 
     String[] lines = reportData.split("\n");
     for (String line : lines) {
         String[] parts = line.split(": ");
         if (parts.length == 2) {
-            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
-            totalTabs += Integer.parseInt(parts[1]);
+            int count = Integer.parseInt(parts[1]);
+            series.getData().add(new XYChart.Data<>(parts[0], count));
+            totalTabs += count;  // Total is accumulated here
         }
     }
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
-    totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs); // Update total ticket tabs label
+
+    // Now we use totalTabs which is effectively final here
+    if (totalTicketTabsLabel != null) {
+        totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs);
+    } else {
+        System.err.println("Label totalTicketTabsLabel is not initialized.");
+    }
 }
+
+
 
 
 private void displayHomeMovieLinkSalesReport(String reportData) {
