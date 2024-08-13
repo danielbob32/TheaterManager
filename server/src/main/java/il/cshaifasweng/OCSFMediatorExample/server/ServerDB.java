@@ -832,6 +832,13 @@ public class ServerDB {
             Transaction transaction = session.beginTransaction();
             System.out.println("Attempting to save screening: " + screening);
 
+            // Check if the screening date is in the past
+            if (screening.getTime().before(new Date())) {
+                System.out.println("Cannot add screening with a date in the past");
+                transaction.commit();
+                return false;
+            }
+
             // Fetch the movie from the database
             Movie movie = session.get(Movie.class, screening.getMovie().getId());
             if (movie == null) {

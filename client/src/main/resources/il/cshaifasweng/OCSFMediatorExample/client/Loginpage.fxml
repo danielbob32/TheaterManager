@@ -10,11 +10,13 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane minHeight="640.0" minWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController">
+<AnchorPane fx:id="mainAnchorPane" minHeight="640.0" minWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController">
     <VBox alignment="CENTER" spacing="20" style="-fx-background-color: rgba(255,255,255,0.95); -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 20, 0, 0, 0);" AnchorPane.bottomAnchor="30" AnchorPane.leftAnchor="30" AnchorPane.rightAnchor="30" AnchorPane.topAnchor="30">
         <padding>
             <Insets bottom="20" left="20" right="20" top="20" />
@@ -26,13 +28,16 @@
             </font>
         </Text>
 
-        <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 24px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-border-color: #1e3c72; -fx-border-width: 0 0 2 0;">
-            <effect>
-                <DropShadow color="#00000040" />
-            </effect>
-        </TextField>
+        <StackPane>
+            <Circle fx:id="clockBackground" radius="60" fill="#1e3c72" />
+            <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 20px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: white;">
+                <effect>
+                    <DropShadow color="#00000040" />
+                </effect>
+            </TextField>
+        </StackPane>
 
-        <ImageView fitHeight="200" fitWidth="300" preserveRatio="true">
+        <ImageView fx:id="moviePoster" fitHeight="200" fitWidth="300" preserveRatio="true">
             <Image url="@/Images/MovieTheater.jpg" />
             <effect>
                 <DropShadow />
@@ -40,22 +45,22 @@
         </ImageView>
 
         <HBox alignment="CENTER" spacing="15">
-            <Button onAction="#viewFutureMovies" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Coming Soon">
+            <Button fx:id="comingSoonBtn" onAction="#viewFutureMovies" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Coming Soon">
                 <effect>
                     <DropShadow />
                 </effect>
             </Button>
-            <Button onAction="#viewHomeMovies" style="-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="View Home Movies">
+            <Button fx:id="homeMoviesBtn" onAction="#viewHomeMovies" style="-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="View Home Movies">
                 <effect>
                     <DropShadow />
                 </effect>
             </Button>
-            <Button onAction="#viewMovieList" style="-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Now in Theaters">
+            <Button fx:id="inTheatersBtn" onAction="#viewMovieList" style="-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Now in Theaters">
                 <effect>
                     <DropShadow />
                 </effect>
             </Button>
-            <Button onAction="#buyTicketTab" style="-fx-background-color: #e156c3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Buy Ticket Tab">
+            <Button fx:id="buyTicketBtn" onAction="#buyTicketTab" style="-fx-background-color: #e156c3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Buy Ticket Tab">
                 <effect>
                     <DropShadow />
                 </effect>
@@ -66,7 +71,7 @@
             <ComboBox fx:id="userTypeComboBox" maxWidth="250" promptText="Select User Type" style="-fx-font-size: 14px;" />
             <TextField fx:id="idTextField" maxWidth="250" promptText="Enter ID" style="-fx-font-size: 14px;" />
             <PasswordField fx:id="passwordTextField" maxWidth="250" promptText="Enter Password" style="-fx-font-size: 14px;" />
-            <Button maxWidth="250" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-font-size: 16px; -fx-background-radius: 30;" text="Login">
+            <Button fx:id="loginButton" maxWidth="250" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-font-size: 16px; -fx-background-radius: 30;" text="Login">
                 <effect>
                     <DropShadow />
                 </effect>

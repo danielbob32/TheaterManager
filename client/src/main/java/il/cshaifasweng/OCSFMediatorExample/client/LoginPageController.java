@@ -3,13 +3,16 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -39,6 +42,24 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private TextField timeField;
 
+    @FXML
+    private Circle clockBackground;
+
+    @FXML
+    private ImageView moviePoster;
+
+    @FXML
+    private Button comingSoonBtn;
+    @FXML
+    private Button homeMoviesBtn;
+    @FXML
+    private Button inTheatersBtn;
+    @FXML
+    private Button buyTicketBtn;
+
+    @FXML
+    private AnchorPane mainAnchorPane;
+
     @Override
     public void setClient(SimpleClient client) {
         this.client = client;
@@ -56,16 +77,11 @@ public class LoginPageController implements Initializable, DataInitializable {
         userTypeComboBox.setOnAction(this::handleUserTypeSelection);
         passwordTextField.setVisible(false);
         passwordTextField.setManaged(false);
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
-        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
-            LocalTime currentTime = LocalTime.now();
-            timeField.setText(currentTime.format(dtf));
-        }),
-                new KeyFrame(Duration.seconds(1))
-        );
-        clock.setCycleCount(Animation.INDEFINITE);
-        clock.play();
+        setupClock();
+        animateClock();
+        startMoviePosterSlideshow();
+        addButtonHoverEffects();
+        addParticleEffect();
     }
 
 
@@ -154,5 +170,106 @@ public class LoginPageController implements Initializable, DataInitializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    private void animateClock() {
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(clockBackground.scaleXProperty(), 1)),
+                new KeyFrame(Duration.ZERO, new KeyValue(clockBackground.scaleYProperty(), 1)),
+                new KeyFrame(Duration.seconds(0.5), new KeyValue(clockBackground.scaleXProperty(), 1.1)),
+                new KeyFrame(Duration.seconds(0.5), new KeyValue(clockBackground.scaleYProperty(), 1.1)),
+                new KeyFrame(Duration.seconds(1), new KeyValue(clockBackground.scaleXProperty(), 1)),
+                new KeyFrame(Duration.seconds(1), new KeyValue(clockBackground.scaleYProperty(), 1))
+        );
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.play();
+    }
+
+    private void startMoviePosterSlideshow() {
+        String[] posterUrls = {
+                "./Images/deadpool.jpg",
+                "./Images/smurfs.jpg",
+                "./Images/default.jpg"
+        };
+
+        Timeline timeline = new Timeline();
+        for (int i = 0; i < posterUrls.length; i++) {
+            final int index = i;
+            KeyFrame keyFrame = new KeyFrame(Duration.seconds(i * 5), event -> {
+                Image image = new Image(posterUrls[index]);
+                FadeTransition ft = new FadeTransition(Duration.seconds(1), moviePoster);
+                ft.setFromValue(1.0);
+                ft.setToValue(0.0);
+                ft.setOnFinished(e -> {
+                    moviePoster.setImage(image);
+                    FadeTransition ft2 = new FadeTransition(Duration.seconds(1), moviePoster);
+                    ft2.setFromValue(0.0);
+                    ft2.setToValue(1.0);
+                    ft2.play();
+                });
+                ft.play();
+            });
+            timeline.getKeyFrames().add(keyFrame);
+        }
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
+    private void addButtonHoverEffects() {
+        addHoverEffect(comingSoonBtn);
+        addHoverEffect(homeMoviesBtn);
+        addHoverEffect(inTheatersBtn);
+        addHoverEffect(buyTicketBtn);
+    }
+
+    private void addHoverEffect(Button button) {
+        button.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), button);
+            st.setToX(1.1);
+            st.setToY(1.1);
+            st.play();
+        });
+        button.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), button);
+            st.setToX(1);
+            st.setToY(1);
+            st.play();
+        });
+    }
+
+    private void addParticleEffect() {
+        for (int i = 0; i < 50; i++) {
+            Circle particle = new Circle(2, Color.WHITE);
+            particle.setOpacity(0.7);
+            mainAnchorPane.getChildren().add(particle);
+
+            double startX = Math.random() * mainAnchorPane.getWidth();
+            double startY = Math.random() * mainAnchorPane.getHeight();
+
+            Timeline timeline = new Timeline(
+                    new KeyFrame(Duration.ZERO,
+                            new KeyValue(particle.translateXProperty(), startX),
+                            new KeyValue(particle.translateYProperty(), startY)
+                    ),
+                    new KeyFrame(Duration.seconds(10 + Math.random() * 20),
+                            new KeyValue(particle.translateXProperty(), Math.random() * mainAnchorPane.getWidth()),
+                            new KeyValue(particle.translateYProperty(), Math.random() * mainAnchorPane.getHeight())
+                    )
+            );
+            timeline.setCycleCount(Animation.INDEFINITE);
+            timeline.play();
+        }
+    }
+
+    private void setupClock() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
+            LocalTime currentTime = LocalTime.now();
+            timeField.setText(currentTime.format(dtf));
+        }),
+                new KeyFrame(Duration.seconds(1))
+        );
+        clock.setCycleCount(Animation.INDEFINITE);
+        clock.play();
     }
 }

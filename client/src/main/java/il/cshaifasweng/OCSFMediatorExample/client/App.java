@@ -33,7 +33,7 @@ public class App extends Application {
         Object controller = loader.getController();
         ((DataInitializable)controller).setClient(client);
 
-        scene = new Scene(root, 800, 640);
+        scene = new Scene(root, 800, 750);
         primaryStage = stage;
         stage.setScene(scene);
         stage.show();
