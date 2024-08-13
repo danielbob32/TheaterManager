@@ -191,6 +191,26 @@ public class ServerDB {
 
     }
     
+     // genereate ticket tabs function
+    private void generateTicketTabs() {
+        try(Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            Random random = new Random();
+            List<Customer> customers = getOrCreateCustomers(50, session);  // Get or create 50 customers
+
+            for (int i = 0; i < 50; i++) {  // Generate 50 ticket tabs
+                Customer customer = customers.get(random.nextInt(customers.size()));
+                Date purchaseTime = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
+                TicketTab ticketTab = new TicketTab(customer, purchaseTime);
+                session.save(ticketTab);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            System.err.println("Error in generateTicketTabs " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     private List<Customer> getOrCreateCustomers(int count, Session session) {
         List<Customer> customers = new ArrayList<>();
         String hql = "FROM Customer";
@@ -403,7 +423,9 @@ public class ServerDB {
             System.out.println("5. Tickets generated");
             generateComplaints(cinemas);
             System.out.println("6. Complaints generated");
-            
+            generateTicketTabs();
+            System.out.println("7. Ticket tabs generated");
+
             session.getTransaction().commit();
             System.out.println("Data generated successfully");
     
@@ -1305,7 +1327,7 @@ public class ServerDB {
                 case "Monthly Ticket Sales":
                     return generateMonthlyTicketSalesReport(session, month, cinema);
                 case "Ticket Tab Sales":
-                    return generateTicketTabSalesReport(session, month);
+                    return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY);
                 case "Home Movie Link Sales":
                     return generateHomeMovieLinkSalesReport(session, month);
                 case "Customer Complaints Histogram":
@@ -1321,97 +1343,99 @@ public class ServerDB {
     }
 
     private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
-        String hql = "SELECT c.cinemaName, COUNT(t) " +
-                     "FROM Ticket t " +
-                     "JOIN t.screening s " +
-                     "JOIN s.cinema c " +
-                     "WHERE YEAR(t.purchaseTime) = :year " +
-                     "AND MONTH(t.purchaseTime) = :month ";
+        StringBuilder hql = new StringBuilder("SELECT ");
         if (cinema != null && !cinema.equals("All")) {
-            hql += "AND c.cinemaName = :cinema ";
+            // When a specific cinema is selected, show daily sales
+            hql.append("DAY(t.purchaseTime) as day, COUNT(t) ");
+        } else {
+            // When "All" is selected, aggregate by cinema
+            hql.append("c.cinemaName, COUNT(t) ");
         }
-        hql += "GROUP BY c.cinemaName";
-
-        Query<Object[]> query = session.createQuery(hql, Object[].class);
+    
+        hql.append("FROM Ticket t JOIN t.screening s JOIN s.cinema c WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month ");
+        if (cinema != null && !cinema.equals("All")) {
+            hql.append("AND c.cinemaName = :cinema ");
+        }
+        hql.append("GROUP BY ");
+        if (cinema != null && !cinema.equals("All")) {
+            hql.append("DAY(t.purchaseTime) ");  // Group by day for specific cinema
+        } else {
+            hql.append("c.cinemaName ");  // Group by cinema for "All"
+        }
+        hql.append("ORDER BY 1");  // Order by the first selected column
+    
+        Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
         query.setParameter("year", month.getYear());
         query.setParameter("month", month.getMonthValue());
         if (cinema != null && !cinema.equals("All")) {
             query.setParameter("cinema", cinema);
         }
+    
         List<Object[]> results = query.getResultList();
-
         StringBuilder reportBuilder = new StringBuilder();
-        reportBuilder.append("Monthly Ticket Sales - ");
-        reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
-        reportBuilder.append("\n\n");
-
-        for (Object[] row : results) {
-            String cinemaName = (String) row[0];
-            Long ticketCount = (Long) row[1];
-            reportBuilder.append(cinemaName).append(": ").append(ticketCount).append("\n");
+        if (cinema != null && !cinema.equals("All")) {
+            reportBuilder.append("Daily Ticket Sales - ");
+            reportBuilder.append(cinema);
+            reportBuilder.append("\n\n");
+            for (Object[] row : results) {
+                Integer day = (Integer) row[0];
+                Long ticketCount = (Long) row[1];
+                reportBuilder.append("Day ").append(day).append(": ").append(ticketCount).append("\n");
+            }
+        } else {
+            reportBuilder.append("Monthly Ticket Sales - All Cinemas\n\n");
+            for (Object[] row : results) {
+                String cinemaName = (String) row[0];
+                Long ticketCount = (Long) row[1];
+                reportBuilder.append(cinemaName).append(": ").append(ticketCount).append("\n");
+            }
         }
         return reportBuilder.toString();
     }
+    
 
 
     public enum TimeFrame {
         YEARLY, QUARTERLY, MONTHLY
     }
 
-    private String generateTicketTabSalesReport(Session session, LocalDate month) {
-        return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY); // Default to MONTHLY
-    }
-
     private String generateTicketTabSalesReport(Session session, LocalDate month, TimeFrame timeFrame) {
         StringBuilder hql = new StringBuilder("SELECT ");
         switch (timeFrame) {
             case YEARLY:
-                hql.append("YEAR(t.purchaseTime), COUNT(t) ");
+                hql.append("YEAR(t.purchaseTime) as period, COUNT(t) ");
                 break;
             case QUARTERLY:
-                hql.append("QUARTER(t.purchaseTime), COUNT(t) ");
+                hql.append("QUARTER(t.purchaseTime) as period, COUNT(t) ");
                 break;
             case MONTHLY:
             default:
-                hql.append("DAY(t.purchaseTime), COUNT(t) ");
+                hql.append("DAY(t.purchaseTime) as period, COUNT(t) ");
                 break;
         }
         hql.append("FROM TicketTab t WHERE YEAR(t.purchaseTime) = :year ");
         if (timeFrame == TimeFrame.MONTHLY) {
             hql.append("AND MONTH(t.purchaseTime) = :month ");
         }
-        hql.append("GROUP BY ");
-        switch (timeFrame) {
-            case YEARLY:
-                hql.append("YEAR(t.purchaseTime) ");
-                break;
-            case QUARTERLY:
-                hql.append("QUARTER(t.purchaseTime) ");
-                break;
-            case MONTHLY:
-            default:
-                hql.append("DAY(t.purchaseTime) ");
-                break;
-        }
-        hql.append("ORDER BY 1");
-
+        hql.append("GROUP BY period ORDER BY period");
+    
         Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
         query.setParameter("year", month.getYear());
         if (timeFrame == TimeFrame.MONTHLY) {
             query.setParameter("month", month.getMonthValue());
         }
-
+    
         List<Object[]> results = query.getResultList();
         StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Ticket Tab Sales - ");
+        reportBuilder.append(timeFrame == TimeFrame.MONTHLY ? "Daily\n\n" : (timeFrame == TimeFrame.QUARTERLY ? "Quarterly\n\n" : "Yearly\n\n"));
         for (Object[] row : results) {
             reportBuilder.append(timeFrame == TimeFrame.MONTHLY ? "Day " : (timeFrame == TimeFrame.QUARTERLY ? "Quarter " : "Year "))
                          .append(row[0]).append(": ").append(row[1]).append("\n");
         }
         return reportBuilder.toString();
     }
-
-
-
+    
 
 
     private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
