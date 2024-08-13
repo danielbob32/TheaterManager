@@ -1473,6 +1473,18 @@ public class ServerDB {
             return false;
         }
     }
+//MESSAGE FOR THE NEW MOVIE ADD
+//    public List<Customer> getTicketTabOwners() {
+//        try (Session session = sessionFactory.openSession()) {
+//            String hql = "SELECT DISTINCT c FROM Customer c JOIN c.products p WHERE TYPE(p) = TicketTab";
+//            Query<Customer> query = session.createQuery(hql, Customer.class);
+//            return query.getResultList();
+//        } catch (Exception e) {
+//            System.err.println("Error getting ticket tab owners: " + e.getMessage());
+//            e.printStackTrace();
+//            return new ArrayList<>();
+//        }
+//    }
 
 
     private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {

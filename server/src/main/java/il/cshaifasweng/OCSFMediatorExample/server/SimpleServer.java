@@ -66,6 +66,7 @@ public class SimpleServer extends AbstractServer {
 						boolean add_success = db.addMovie(movie);
 						if (add_success) {
 							client.sendToClient(new Message(0, "Movie add:success"));
+							//notifyTicketTabOwners(movie);
 						} else {
 							client.sendToClient(new Message(0, "Movie add:failed"));
 						}
@@ -517,6 +518,33 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 			e.printStackTrace();
 		}
 	}
+//MESSAGE FOR THE NEW MOVIE ADD
+//	private void notifyTicketTabOwners(Movie newMovie) {
+//		try {
+//			List<Customer> ticketTabOwners = db.getTicketTabOwners();
+//			String notificationMessage = "New movie added: " + newMovie.getEnglishName();
+//			for (Customer owner : ticketTabOwners) {
+//				sendNotificationToClient(owner, notificationMessage);
+//			}
+//		} catch (IOException e) {
+//			System.err.println("Error notifying ticket tab owners: " + e.getMessage());
+//		}
+//	}
+//
+//	private void sendNotificationToClient(Customer customer, String notificationMessage) throws IOException {
+//		Message notification = new Message(0, "newMovieNotification", notificationMessage);
+//		Thread[] clientThreads = getClientConnections();
+//		for (Thread clientThread : clientThreads) {
+//			if (clientThread instanceof ConnectionToClient) {
+//				ConnectionToClient connection = (ConnectionToClient) clientThread;
+//				Object userInfo = connection.getInfo("user");
+//				if (userInfo != null && userInfo.equals(customer.getPersonId())) {
+//					connection.sendToClient(notification);
+//					break;
+//				}
+//			}
+//		}
+//	}
 
 	@Override
 	protected void serverStarted() {

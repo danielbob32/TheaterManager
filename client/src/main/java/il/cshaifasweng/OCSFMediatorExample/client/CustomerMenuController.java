@@ -1,8 +1,13 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
 
@@ -17,6 +22,12 @@ public class CustomerMenuController implements DataInitializable{
     public void setClient(SimpleClient client) {
         this.client = client;
     }
+//MESSAGE FOR THE NEW MOVIE ADD
+//    @FXML
+//    public void initialize() {
+//        EventBus.getDefault().register(this);
+//        // ... other initialization code
+//    }
 
     @Override
     public void initData(Object data) {
@@ -52,6 +63,19 @@ public class CustomerMenuController implements DataInitializable{
         App.setRoot("CinemaMovieList", connectedPerson);
     }
 
+    @Subscribe
+    public void onNewMovieNotification(MessageEvent event) {
+        if (event.getMessage().getMessage().equals("newMovieNotification")) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("New Movie Added");
+                alert.setHeaderText(null);
+                alert.setContentText(event.getMessage().getData());
+                alert.show();
+            });
+        }
+    }
+
 //    @FXML
 //    private void buyTickets() throws IOException {
 //        Person connectedPerson = client.getConnectedPerson();
@@ -83,7 +107,6 @@ public class CustomerMenuController implements DataInitializable{
     @FXML
     private void fileComplaint() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
         App.setRoot("FileComplaint", connectedPerson);
     }
 
@@ -91,5 +114,9 @@ public class CustomerMenuController implements DataInitializable{
     private void handleLogout() throws IOException {
         client.logout();
         App.setRoot("LoginPage", null);
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 }
