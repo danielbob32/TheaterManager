@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.UpdatePricesController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+    <ComboBox fx:id="movieTypeComboBox" promptText="Select Movie Type"/>
+    <ComboBox fx:id="movieComboBox" promptText="Select Movie"/>
+    <Label fx:id="currentPriceLabel" text="Current Price: "/>
+    <TextField fx:id="newPriceField" promptText="Enter New Price"/>
+    <Button text="Update Price" onAction="#updatePrice"/>
+    <Button text="Back" onAction="#goBack"/>
+</VBox>

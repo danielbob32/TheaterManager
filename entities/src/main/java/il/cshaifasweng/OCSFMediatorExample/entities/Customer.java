@@ -31,6 +31,9 @@ public class Customer extends Person{
     public Customer(String name, String email, int id) {
         super(name, id);
         this.email = email;
+        this.products = new ArrayList<Product>();
+        this.bookings = new ArrayList<Booking>();
+        this.complaints = new ArrayList<Complaint>();
     }
 
     // Getters and setters
@@ -53,39 +56,43 @@ public class Customer extends Person{
        this.bookings = bookings;
    }
 
-    public List<HomeMovieLink> getHomeMovies() {
-        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
-        for(Product product : products) {
-            if(product instanceof HomeMovieLink) {
-                homeLinks.add((HomeMovieLink) product);
-            }
-        }
-        return homeLinks;
-    }
+//    public List<HomeMovieLink> getHomeMovies() {
+//        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
+//        for(Product product : products) {
+//            if(product instanceof HomeMovieLink) {
+//                homeLinks.add((HomeMovieLink) product);
+//            }
+//        }
+//        return homeLinks;
+//    }
 
     public void setProducts(List<Product> products) {
         this.products = products;
     }
 
-    public List<TicketTab> getTicketTabs() {
-        List<TicketTab> tabs = new ArrayList<TicketTab>();
-        for(Product product : products) {
-            if(product instanceof TicketTab) {
-                tabs.add((TicketTab) product);
-            }
-        }
-        return tabs;
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public List<Ticket> getTickets() {
-        List<Ticket> tickets = new ArrayList<Ticket>();
-        for(Product product : products) {
-            if(product instanceof Ticket) {
-                tickets.add((Ticket) product);
-            }
-        }
-        return tickets;
-    }
+//    public List<TicketTab> getTicketTabs() {
+//        List<TicketTab> tabs = new ArrayList<TicketTab>();
+//        for(Product product : products) {
+//            if(product instanceof TicketTab) {
+//                tabs.add((TicketTab) product);
+//            }
+//        }
+//        return tabs;
+//    }
+
+//    public List<Ticket> getTickets() {
+//        List<Ticket> tickets = new ArrayList<Ticket>();
+//        for(Product product : products) {
+//            if(product instanceof Ticket) {
+//                tickets.add((Ticket) product);
+//            }
+//        }
+//        return tickets;
+//    }
 
     public List<Complaint> getComplaints() {
         return complaints;
@@ -104,5 +111,8 @@ public class Customer extends Person{
     {
         this.products.add(b);
     }
+
+
+
 
 }

@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 public class Worker extends Person{
 
-    private String name;
     private String workerType;
     private String password;
 
@@ -18,20 +17,14 @@ public class Worker extends Person{
     public Worker(String name, String password, int worker_id) {
         super(name, worker_id);
         this.password = password;
+        this.workerType = "Content";
     }
 
     public Worker(String name, String workerType, String password, int worker_id) {
         super(name, worker_id);
-        this.name = name;
         this.workerType = workerType;
         this.password = password;
     }
-
-    public Worker(int id, String password) {
-        this.worker_id = id;
-        this.password = password;
-    }
-
 
     // Getters and setters
 
@@ -51,9 +44,4 @@ public class Worker extends Person{
         this.password = password;
     }
 
-
-
-    public int getId() {
-        return worker_id;
-    }
 }

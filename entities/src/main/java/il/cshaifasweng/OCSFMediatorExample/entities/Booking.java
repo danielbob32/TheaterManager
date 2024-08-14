@@ -1,11 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
-public class Booking extends Product {
+public class Booking {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int bookingId;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -13,64 +17,75 @@ public class Booking extends Product {
 
     private Date purchaseTime;
 
+    private String email;
+    private String creditCard;
+    private int ticketTabId;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "bookingId")
     private List<Product> products;
 
 
-    @ManyToOne
-    private Movie movie;
-
-    @ManyToOne
-    private Seat seat;
-
-    @ManyToOne
-    private MovieHall hall;
+//    @ManyToOne
+//    private Movie movie;
+//
+//    @ManyToOne
+//    private Seat seat;
+//
+//    @ManyToOne
+//    private MovieHall hall;
 
     // Constructors
     public Booking() {
+        this.products = new ArrayList<>();
     }
 
-    public Booking(int bookingId, Customer customer, Date purchaseTime, List<Product> products, Movie movie, Seat seat, MovieHall hall) {
-        this.bookingId = bookingId;
+    public Booking(Customer customer, Date purchaseTime, List<Product> products, Movie movie, Seat seat, MovieHall hall) {
         this.customer = customer;
         this.purchaseTime = purchaseTime;
-        this.products = products;
-        this.movie = movie;
-        this.seat = seat;
-        this.hall = hall;
+        this.products = new ArrayList<>();
+        this.creditCard = "";
+        this.email = "";
+        this.ticketTabId = 0;
+//        this.movie = movie;
+//        this.seat = seat;
+//        this.hall = hall;
     }
 
-    // Getters and setters
-    public Movie getMovie() {
-        return movie;
+
+    public Booking(Customer customer, Date purchaseTime, String email, String creditCard) {
+        setCustomerAndBooking(customer);
+
+        this.products = new ArrayList<>();
+        this.purchaseTime = purchaseTime;
+        this.email = email;
+        this.creditCard = creditCard;
     }
 
-    public void setMovie(Movie movie) {
-        this.movie = movie;
+    public Booking(Customer customer, Date purchaseTime, String email) {
+        setCustomerAndBooking(customer);
+        this.products = new ArrayList<>();
+        this.purchaseTime = purchaseTime;
+        this.email = email;
     }
 
-    public Seat getSeat() {
-        return seat;
-    }
+//    public void setSeat(Seat seat) {
+//        this.seat = seat;
+//    }
+//
+//    public MovieHall getHall() {
+//        return hall;
+//    }
+//
+//    public void setHall(MovieHall hall) {
+//        this.hall = hall;
+//    }
 
-    public void setSeat(Seat seat) {
-        this.seat = seat;
-    }
-
-    public MovieHall getHall() {
-        return hall;
-    }
-
-    public void setHall(MovieHall hall) {
-        this.hall = hall;
-    }
-
-    public int getBookidId() {
+    public int getBookingId() {
         return bookingId;
     }
 
-    public void setBookidId(int bookingId) {
+    public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
     }
 
@@ -80,6 +95,14 @@ public class Booking extends Product {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public void setCustomerAndBooking(Customer customer) {
+        //System.out.println("in Booking setCustomer");
+        this.customer = customer;
+        if (!customer.getBookings().contains(this)) {
+            customer.getBookings().add(this);
+        }
     }
 
     public Date getPurchaseTime() {
@@ -116,6 +139,27 @@ public class Booking extends Product {
 
     public void removeAllProducts() {
         this.products.clear();
+    }
+
+    public void addProduct(Product p)
+    {
+        this.products.add(p);
+    }
+
+    public void setTicketTabId(int ticketTabId) {
+        this.ticketTabId = ticketTabId;
+    }
+
+    public int getTicketTabId() {
+        return ticketTabId;
+    }
+
+    public String getCreditCard() {
+        return creditCard;
+    }
+
+    public void setCreditCard(String creditCard) {
+        this.creditCard = creditCard;
     }
 
 }

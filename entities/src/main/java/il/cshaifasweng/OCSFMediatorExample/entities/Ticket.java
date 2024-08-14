@@ -14,16 +14,36 @@ public class Ticket extends Product {
     @ManyToOne
     private MovieHall hall;
 
+    @ManyToOne
+    private Screening screening;
+
     // Constructors
     public Ticket() {
     }
 
     // Constructor for Ticket with super class Product
     public Ticket(int clientId, int price, boolean isActive, Cinema cinema, Movie movie, Seat seat, MovieHall hall, Date purchaseTime) {
-        super(clientId, price, isActive, cinema, purchaseTime);
+        super(clientId, price, isActive, purchaseTime);
         this.movie = movie;
         this.seat = seat;
         this.hall = hall;
+    }
+
+    // Constructor for Ticket with super class Product
+    public Ticket(int clientId, int price, boolean isActive, Cinema cinema, Movie movie, Seat seat, MovieHall hall, Date purchaseTime, Screening screening) {
+        super(clientId, price, isActive, purchaseTime);
+        this.movie = movie;
+        this.seat = seat;
+        this.hall = hall;
+        this.screening = screening;
+    }
+
+    public Ticket(int clientId, int price, Date purchaseTime, Screening screening, Seat seat) {
+        super(clientId, price, true, purchaseTime);
+        this.movie = screening.getMovie();
+        this.seat = seat;
+        this.hall = screening.getHall();
+        this.screening = screening;
     }
 
     // Getters and setters
@@ -50,5 +70,12 @@ public class Ticket extends Product {
     public void setHall(MovieHall hall) {
         this.hall = hall;
     }
-    
+
+    public Screening getScreening() {
+        return screening;
+    }
+
+    public void setScreening(Screening screening) {
+        this.screening = screening;
+    }
 }

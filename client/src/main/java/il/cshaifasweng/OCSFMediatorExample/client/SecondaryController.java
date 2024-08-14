@@ -1,7 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import java.io.IOException;
 import javafx.fxml.FXML;
+
+import java.io.IOException;
 
 public class SecondaryController {
 

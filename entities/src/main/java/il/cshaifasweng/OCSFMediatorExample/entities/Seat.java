@@ -1,5 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 
 @Entity
@@ -13,7 +15,12 @@ public class Seat {
     private boolean isAvailable;
 
     @ManyToOne
+    @JsonBackReference
     private MovieHall movieHall;
+
+    @ManyToOne
+    @JoinColumn(name = "screening_id")
+    private Screening screening;
 
     // Constructors
     public Seat() {

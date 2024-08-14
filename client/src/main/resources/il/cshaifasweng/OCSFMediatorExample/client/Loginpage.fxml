@@ -1,30 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
-    <VBox alignment="CENTER" spacing="20" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50" AnchorPane.topAnchor="50" AnchorPane.bottomAnchor="50" style="-fx-background-color: rgba(255,255,255,0.8); -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+<AnchorPane fx:id="mainAnchorPane" minHeight="640.0" minWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LoginPageController">
+    <VBox alignment="CENTER" spacing="20" style="-fx-background-color: rgba(255,255,255,0.95); -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 20, 0, 0, 0);" AnchorPane.bottomAnchor="30" AnchorPane.leftAnchor="30" AnchorPane.rightAnchor="30" AnchorPane.topAnchor="30">
         <padding>
-            <Insets top="20" right="20" bottom="20" left="20"/>
+            <Insets bottom="20" left="20" right="20" top="20" />
         </padding>
 
-        <Text text="Welcome to Movie Theater" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+        <Text style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: #1e3c72; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);" text="Welcome to Movie Theater">
+            <font>
+                <Font name="System Bold" size="36.0" />
+            </font>
+        </Text>
 
-        <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <StackPane>
+            <Circle fx:id="clockBackground" radius="60" fill="#1e3c72" />
+            <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 20px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: white;">
+                <effect>
+                    <DropShadow color="#00000040" />
+                </effect>
+            </TextField>
+        </StackPane>
 
-        <ImageView fitWidth="200" fitHeight="150" preserveRatio="true">
-            <Image url="@/Images/MovieTheater.jpg"/>
+        <ImageView fx:id="moviePoster" fitHeight="200" fitWidth="300" preserveRatio="true">
+            <Image url="@/Images/MovieTheater.jpg" />
+            <effect>
+                <DropShadow />
+            </effect>
         </ImageView>
 
-        <ComboBox fx:id="userTypeComboBox" promptText="Select User Type"/>
-        <TextField fx:id="idTextField" promptText="Enter ID"/>
-        <PasswordField fx:id="passwordTextField" promptText="Enter Password"/>
-        <Button text="Login" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <HBox alignment="CENTER" spacing="15">
+            <Button fx:id="comingSoonBtn" onAction="#viewFutureMovies" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Coming Soon">
+                <effect>
+                    <DropShadow />
+                </effect>
+            </Button>
+            <Button fx:id="homeMoviesBtn" onAction="#viewHomeMovies" style="-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="View Home Movies">
+                <effect>
+                    <DropShadow />
+                </effect>
+            </Button>
+            <Button fx:id="inTheatersBtn" onAction="#viewMovieList" style="-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Now in Theaters">
+                <effect>
+                    <DropShadow />
+                </effect>
+            </Button>
+            <Button fx:id="buyTicketBtn" onAction="#buyTicketTab" style="-fx-background-color: #e156c3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-background-radius: 30;" text="Buy Ticket Tab">
+                <effect>
+                    <DropShadow />
+                </effect>
+            </Button>
+        </HBox>
+
+        <VBox alignment="CENTER" spacing="10" style="-fx-background-color: rgba(30,60,114,0.1); -fx-padding: 20; -fx-background-radius: 15;">
+            <ComboBox fx:id="userTypeComboBox" maxWidth="250" promptText="Select User Type" style="-fx-font-size: 14px;" />
+            <TextField fx:id="idTextField" maxWidth="250" promptText="Enter ID" style="-fx-font-size: 14px;" />
+            <PasswordField fx:id="passwordTextField" maxWidth="250" promptText="Enter Password" style="-fx-font-size: 14px;" />
+            <Button fx:id="loginButton" maxWidth="250" onAction="#handleLogin" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20; -fx-font-size: 16px; -fx-background-radius: 30;" text="Login">
+                <effect>
+                    <DropShadow />
+                </effect>
+            </Button>
+        </VBox>
     </VBox>
 </AnchorPane>
-
