@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.WorkerComplaintBoundary">
+    <children>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Hide non-active:" />
+            <CheckBox fx:id="hideNonActiveCheckBox" text="Hide non-active" />
+        </HBox>
+        <TableView fx:id="complaintTable" prefHeight="200.0" prefWidth="600.0">
+            <columns>
+                <TableColumn fx:id="complaintIdColumn" text="Complaint ID" />
+                <TableColumn fx:id="titleColumn" text="Title" />
+                <TableColumn fx:id="dateColumn" text="Date" />
+                <TableColumn fx:id="descriptionColumn" text="Description" />
+                <TableColumn fx:id="isActiveColumn" text="Active" />
+                <TableColumn fx:id="refundColumn" text="Refund" />
+                <TableColumn fx:id="responseColumn" text="Response" />
+                <TableColumn fx:id="customerIdColumn" text="Customer ID" />
+            </columns>
+        </TableView>
+        <TextArea fx:id="descriptionField" prefHeight="100.0" prefWidth="200.0" />
+        <TextField fx:id="responseField" />
+        <Button fx:id="selectComplaintButton" text="Select Complaint" onAction="#handleSelectComplaint" />
+        <Button fx:id="submitReplyButton" text="Submit Reply" onAction="#handleSubmitReply" />
+        <Button fx:id="backButton" text="Back" onAction="#handleBackButton" />
+    </children>
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10" />
+    </padding>
+</VBox>

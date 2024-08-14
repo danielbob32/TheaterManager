@@ -1,5 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,7 +11,7 @@ import java.util.List;
 
 
 @Entity
-
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,  property = "personId")
 public class Customer extends Person{
 
 
@@ -22,6 +26,7 @@ public class Customer extends Person{
     private List<Product> products;
 
     @OneToMany(mappedBy = "customer")
+//    @JsonManagedReference(value="customer-complaints")
     private List<Complaint> complaints;
 
     // Constructors
@@ -35,7 +40,6 @@ public class Customer extends Person{
         this.bookings = new ArrayList<Booking>();
         this.complaints = new ArrayList<Complaint>();
     }
-
     // Getters and setters
 
 

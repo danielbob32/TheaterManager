@@ -1,0 +1,80 @@
+/* styles.css */
+
+.root {
+    -fx-background-color: #f0f0f0;
+    -fx-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333333;
+}
+
+.button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 4;
+}
+
+.button:hover {
+    -fx-background-color: #1976D2;
+}
+
+#viewComplaintButton {
+    -fx-background-color: #FFA000;
+}
+
+#viewComplaintButton:hover {
+    -fx-background-color: #FF8F00;
+}
+
+#submitNewComplaintButton {
+    -fx-background-color: #4CAF50;
+}
+
+#submitNewComplaintButton:hover {
+    -fx-background-color: #45A049;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #BDBDBD;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+}
+
+.list-cell {
+    -fx-padding: 8 16;
+    -fx-background-color: transparent;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #E3F2FD;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #F5F5F5;
+}
+
+.dialog-pane {
+    -fx-background-color: #f0f0f0;
+}
+
+.dialog-pane .label {
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .content {
+    -fx-padding: 16;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+}
+
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color: #1976D2;
+}

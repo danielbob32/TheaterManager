@@ -1,0 +1,173 @@
+package il.cshaifasweng.OCSFMediatorExample.client;
+
+import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CustomerComplaintHandlingBoundary implements DataInitializable {
+
+    @FXML
+    private ListView<Complaint> complaintListView;
+
+    @FXML
+    private Button viewComplaintButton;
+
+    @FXML
+    private Button submitNewComplaintButton;
+
+    private SimpleClient client;
+
+    @FXML
+    public void initialize() {
+        EventBus.getDefault().register(this);
+
+        complaintListView.setCellFactory(lv -> new ListCell<Complaint>() {
+            @Override
+            protected void updateItem(Complaint complaint, boolean empty) {
+                super.updateItem(complaint, empty);
+                if (empty || complaint == null) {
+                    setText(null);
+                } else {
+                    setText(complaint.getTitle() + " | " + complaint.getDate() + " | " +
+                            (complaint.isActive() ? "Active" : "Resolved"));
+                }
+            }
+        });
+
+        viewComplaintButton.setOnAction(this::handleViewComplaint);
+        submitNewComplaintButton.setOnAction(this::handleSubmitNewComplaint);
+    }
+
+    @Override
+    public void setClient(SimpleClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public void initData(Object data) {
+        loadComplaints();
+    }
+
+    private void loadComplaints() {
+        Customer customer = (Customer) client.getConnectedPerson();
+        if (customer == null) {
+            showAlert("Error", "No customer is connected.");
+            return;
+        }
+
+        List<Complaint> complaints = customer.getComplaints();
+        if (complaints == null) {
+            System.out.println("Complaints list is null. Initializing to an empty list.");
+            complaints = new ArrayList<>(); // Initialize to an empty list if null
+        }
+
+        System.out.println("Loaded complaints: " + complaints.size() + " items.");
+        complaintListView.getItems().setAll(complaints);
+    }
+
+    private void handleViewComplaint(ActionEvent event) {
+        Complaint selectedComplaint = complaintListView.getSelectionModel().getSelectedItem();
+        if (selectedComplaint != null) {
+            showComplaintDetails(selectedComplaint);
+        } else {
+            showAlert("Error", "Please select a complaint to view.");
+        }
+    }
+
+    private void showComplaintDetails(Complaint complaint) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Complaint Details");
+        dialog.setHeaderText(null);
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+                new Label("Title: " + complaint.getTitle()),
+                new Label("Description: " + complaint.getDescription()),
+                new Label("Date Submitted: " + complaint.getDate()),
+                new Label("Status: " + (complaint.isActive() ? "Active" : "Resolved"))
+        );
+
+        if (!complaint.isActive()) {
+            content.getChildren().addAll(
+                    new Label("Response: " + complaint.getResponse()),
+                    new Label("Refund Amount: $" + complaint.getRefund())
+            );
+        }
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+    }
+
+    private void handleSubmitNewComplaint(ActionEvent event) {
+        Dialog<Complaint> dialog = new Dialog<>();
+        dialog.setTitle("Submit New Complaint");
+        dialog.setHeaderText(null);
+
+        TextField titleField = new TextField();
+        titleField.setPromptText("Title");
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Description");
+
+        VBox content = new VBox(10, new Label("Title:"), titleField, new Label("Description:"), descriptionArea);
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == submitButtonType) {
+                Customer customer = (Customer) client.getConnectedPerson();
+                return new Complaint(new java.util.Date(), titleField.getText(), descriptionArea.getText(), true, customer);
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(complaint -> {
+            try {
+                client.submitComplaint(complaint);
+                loadComplaints();
+            } catch (IOException e) {
+                showAlert("Error", "Failed to submit complaint.");
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Subscribe
+    public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
+        Platform.runLater(() -> {
+            showAlert("Success", "Complaint submitted successfully!");
+            loadComplaints();
+        });
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    @FXML
+    void handleBackButton(ActionEvent event) {
+        try {
+            App.setRoot("CustomerMenu", null);
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Failed to return to the main menu.");
+        }
+    }
+}

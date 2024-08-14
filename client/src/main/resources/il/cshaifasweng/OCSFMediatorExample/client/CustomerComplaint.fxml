@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import java.net.URL?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomerComplaintHandlingBoundary"
+      spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+
+    <Label text="Complaints" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+
+    <ListView fx:id="complaintListView" VBox.vgrow="ALWAYS"/>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="viewComplaintButton" text="View Complaint"/>
+        <Button fx:id="submitNewComplaintButton" text="Submit New Complaint" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    </HBox>
+
+    <Button text="Back to Main Menu" onAction="#handleBackButton"/>
+
+    <stylesheets>
+        <URL value="@ComplaintStyle.css"/>
+    </stylesheets>
+</VBox>

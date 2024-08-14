@@ -1,32 +1,49 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,  property = "complaint_id")
 public class Complaint {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int complaint_id;
-
+    private String title;
     private Date date;
     private String description;
     private boolean isActive;
     private int refund;
+    private String response;
 
     @ManyToOne
+//    @JsonBackReference(value="customer-complaints")
     private Customer customer;
 
     // Constructors
     public Complaint() {
     }
-
+    public Complaint(Date date, String title, String description, boolean isActive, Customer customer) {
+        this.date = date;
+        this.title = title;
+        this.description = description;
+        this.refund = 0;
+        this.isActive = isActive;
+        this.customer = customer;
+        this.response = "No response yet";
+    }
     public Complaint(Date date, String description, boolean isActive, int refund, Customer customer) {
         this.date = date;
         this.description = description;
         this.isActive = isActive;
         this.refund = refund;
         this.customer = customer;
+
     }
 
     
@@ -51,6 +68,12 @@ public class Complaint {
     public String getDescription() {
         return description;
     }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public void setDescription(String description) {
         this.description = description;
@@ -63,7 +86,13 @@ public class Complaint {
     public void setActive(boolean active) {
         isActive = active;
     }
+    public String getResponse() {
+        return response;
+    }
 
+    public void setResponse(String response) {
+        this.response = response;
+    }
     public int getRefund() {
         return refund;
     }

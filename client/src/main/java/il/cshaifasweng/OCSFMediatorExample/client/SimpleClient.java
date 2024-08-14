@@ -111,6 +111,25 @@ public class SimpleClient extends AbstractClient {
                 case "reportData":
                     handleReportData(message.getData());
                     break;
+                //YONI`S CASES:
+                case "fetchUserBookingsResponse":
+                    handleFetchUserBookingsResponse(message);
+                    break;
+                case "cancelBookingResponse":
+                    handleCancelBookingResponse(message);
+                    break;
+                case "submitComplaintResponse":
+                    handleSubmitComplaintResponse(message);
+                    break;
+                case "fetchComplaintsResponse":
+                    handleFetchComplaintsResponse(message);
+                    break;
+                case "respondToComplaintResponse":
+                    handleRespondToComplaintResponse(message);
+                    break;
+                case "fetchRandomPersonResponse":
+                    handleFetchRandomPersonResponse(message);
+                    break;
                 default:
                     System.out.println("Received unknown message: " + message.getMessage());
                     break;
@@ -339,321 +358,70 @@ public class SimpleClient extends AbstractClient {
                 System.out.println("Received successful purchase response: " + message.getData());
                 EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", message.getData()));
             } else {
-                EventBus.getDefault().post(new PurchaseResponseEvent(false, "Purchase failed"));
+                EventBus.getDefault().post(new PurchaseResponseEvent(false, "Purchase failed", message.getData()));
             }
         });
     }
 
+    private void handleFetchUserBookingsResponse(Message message) {
+        try {
+            System.out.println("got fetchUserBookingsResponse");
+            List<Booking> bookings = objectMapper.readValue(message.getData(), new TypeReference<List<Booking>>() {});
+            System.out.println("Finished deserializing bookings - SimpleClient");
+            EventBus.getDefault().post(new BookingListEvent(Integer.parseInt(message.getAdditionalData()), bookings));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize bookings"));
+        }
+    }
 
-//    @Override
-//    protected void handleMessageFromServer(Object msg) {
-//        if (msg instanceof Message) {
-//            Message message = (Message) msg;
-//            System.out.println("in SimpleClient got " + message.getMessage());
-//            if (message.getMessage().equals("movieList")) {
-//                try {
-//                    List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {
-//                    });
-//                    String movieType = message.getAdditionalData();
-//                    if (movieType != null) {
-//                        List<Movie> filteredMovies = movies.stream()
-//                                .filter(movie -> ("Cinema Movies".equals(movieType) && movie.getIsCinema()) ||
-//                                        ("Home Movies".equals(movieType) && movie.getIsHome()))
-//                                .collect(Collectors.toList());
-//                        EventBus.getDefault().post(new MovieListEvent(filteredMovies));
-//                    } else {
-//                        EventBus.getDefault().post(new MovieListEvent(movies));
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
-//                }
-//            } else if (message.getMessage().equals("movie refreshed")) {
-//                try {
-//                    Movie movie = objectMapper.readValue(message.getData() , Movie.class);
-//                    EventBus.getDefault().post(new MovieEvent(movie));
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
-//                }
-//
-//            } else if (message.getMessage().startsWith("Customer login:")) {
-//                String success = message.getMessage().split(":")[1];
-//                if (success.equals("successful")) {
-//                    Platform.runLater(() -> {
-//                        try {
-//                            Customer current = objectMapper.readValue(message.getData(), Customer.class);
-//                            login(current);
-//                            App.setRoot("CustomerMenu", current);
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    });
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("ID was not found. Please check credentials and try again");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Price:")) {
-//                System.out.println("Price message received");
-//                String price_message = message.getMessage().split(":")[1];
-//                if (price_message.equals("success")) {
-//                    System.out.println("Prices updated successfully in simple client");
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Price updated successfully");
-//                        alert.showAndWait();
-//                    });
-//                    try {
-//                        sendToServer(new Message(0, "getMovies", "Cinema Movies"));
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Failed to update prices");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Worker login:")) {
-//                String success = message.getMessage().split(":")[1];
-//                if (success.equals("successful")) {
-//                    System.out.println("Worker login successful");
-//                    Platform.runLater(() -> {
-//                        try {
-//                            Worker current = objectMapper.readValue(message.getData(), Worker.class);
-//                            String workerType = current.getWorkerType();
-//                            System.out.println("Worker type: " + workerType);
-//                            login(current);
-//                            App.setRoot("WorkerMenu", current);
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    });
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("One of the fields is incorrect. Please check credentials and try again");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Screening add:")) {
-//                System.out.println("screening add message received");
-//                String screening_add_message = message.getMessage().split(":")[1];
-//                if (screening_add_message.equals("success")) {
-//                    System.out.println("Screening added successfully in simple client");
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Screening added successfully");
-//                        alert.showAndWait();
-//                    });
-//                    EventBus.getDefault().post(new MessageEvent(message));
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText(message.getData() != null ? message.getData() : "Failed to add screening");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Screening delete:")) {
-//                System.out.println("screening delete message received");
-//                String screening_delete_message = message.getMessage().split(":")[1];
-//                if (screening_delete_message.equals("success")) {
-//                    System.out.println("Screening added successfully in simple client");
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Screening deleted successfully");
-//                        alert.showAndWait();
-//
-//                        EventBus.getDefault().post(new MessageEvent(message));
-//                    });
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Failed to delete screening");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Movie delete:")) {
-//                System.out.println("all movie delete message received");
-//                String movie_delete_message = message.getMessage().split(":")[1];
-//                if (movie_delete_message.equals("success")) {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Movie deleted successfully");
-//                        alert.showAndWait();
-//                    });
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Failed");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Movie is currently in use and cannot be deleted");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else if (message.getMessage().startsWith("Movie add:")) {
-//                System.out.println("add movie message received");
-//                String movie_add_message = message.getMessage().split(":")[1];
-//                if (movie_add_message.equals("success")) {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Movie have been added successfully");
-//                        alert.showAndWait();
-//                    });
-//                } else {
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Failed to delete movie");
-//                        alert.showAndWait();
-//                    });
-//                }
-//            } else switch (message.getMessage()) {
-//
-//                case "Price change request created":
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Price change request created successfully");
-//                        alert.showAndWait();
-//                    });
-//                    break;
-//
-//                case "priceChangeRequests":
-//                    System.out.println("Price change requests in simple client: " + message.getData());
-//                    EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
-//                    break;
-//
-//                case "Price change request approved and price updated successfully":
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Success");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Price change request approved and price updated successfully");
-//                        alert.showAndWait();
-//                    });
-//                    EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
-//                    break;
-//
-//                case "Price change request denied and price hasn't updated successfully":
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        alert.setTitle("Information");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText("Price change request denied");
-//                        alert.showAndWait();
-//                    });
-//                    EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
-//                    break;
-//
-//                case "Price change request error":
-//                    Platform.runLater(() -> {
-//                        Alert alert = new Alert(Alert.AlertType.ERROR);
-//                        alert.setTitle("Error");
-//                        alert.setHeaderText(null);
-//                        alert.setContentText(message.getData() != null ? message.getData() : "An error occurred with the price change request");
-//                        alert.showAndWait();
-//                    });
-//                    break;
-//
-//                case "seatAvailabilityResponse":
-//                    Platform.runLater(() -> {
-//                        try {
-//                            System.out.println("got seatAvailabilityResponse");
-//                            List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {
-//                            });
-//                            EventBus.getDefault().post(new SeatAvailabilityEvent(Integer.parseInt(message.getAdditionalData()), seats));
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                            EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
-//                        }
-//                    });
-//                    break;
-//
-//                case "ticketTabResponse":
-//                    Platform.runLater(() -> {
-//                        boolean isValid = Boolean.parseBoolean(message.getData());
-//                        String ticketTabNumber = message.getAdditionalData();
-//                        System.out.println("Received ticket tab response. Valid: " + isValid + ", Number: " + ticketTabNumber);
-//                        EventBus.getDefault().post(new TicketTabResponseEvent(isValid, ticketTabNumber));
-//                    });
-//                    break;
-//
-//                case "addedTicketsSuccessfully":
-//                    Platform.runLater(() -> {
-//                        System.out.println("got addedTicketsSuccessfully");
-//                        handleAddedTicketsSuccessfully(message.getData());
-//                    });
-//                    break;
-//
-//                case "purchasedTicketTabSuccessfully":
-//                    Platform.runLater(() -> {
-//                        System.out.println("got purchasedTicketTabSuccessfully");
-//                        try {
-//                            App.setRoot("TicketTabDetails", message.getData());
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    });
-//                    break;
-//                    case "purchasedHomeMovieLinkSuccessfully":
-//                    Platform.runLater(() -> {
-//                        System.out.println("Received successful purchase response: " + message.getData());
-//                        EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", message.getData()));
-//                    });
-//                    break;
-//                case "purchasingHomeMovieLinkFailed":
-//                    Platform.runLater(() -> {
-//                        EventBus.getDefault().post(new PurchaseResponseEvent(false, "Purchase failed"));
-//                    });
-//                    break;
-//
-//                case "cinemaList":
-//                    handleCinemaList(message.getData());
-//                    break;
-//
-//                case "reportData":
-//                    handleReportData(message.getData());
-//                    break;
-//
-//                default:
-//                    System.out.println("Received unknown message: " + message.getMessage());
-//                    break;
-//            }
-//        } else if (msg instanceof Warning) {
-//            Warning warning = (Warning) msg;
-//            EventBus.getDefault().post(new WarningEvent(warning));
-//        } else {
-//            System.out.println("Received unknown message type: " + msg.getClass().getName());
-//        }
-//    }
+    private void handleCancelBookingResponse(Message message)
+    {
+//        System.out.println("got cancelBookingResponse");
+        String[] parts = message.getAdditionalData().split(":");
+        int bookingId = Integer.parseInt(parts[0]);
+        double refund = Double.parseDouble(parts[1]);
+//        System.out.println("In cancelBookingResponse: " + bookingId);
+//        System.out.println("In cancelBookingResponse: " + message.getAdditionalData());
+        EventBus.getDefault().post(new CancelBookingEvent(bookingId, refund));
+    }
+
+    private void handleSubmitComplaintResponse(Message message)
+    {
+//        System.out.println("got submitComplaintResponse");
+        EventBus.getDefault().post(new SubmitComplaintEvent(message.getAdditionalData()));
+    }
+
+    private void handleFetchComplaintsResponse(Message message)
+    {
+        try {
+//            System.out.println("got fetchComplaintsResponse");
+            List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
+            System.out.println("Got all the complaints, size: " + complaints.size());
+            EventBus.getDefault().post(new ComplaintListEvent(complaints));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize complaints"));
+        }
+    }
+
+    private void handleRespondToComplaintResponse(Message message)
+    {
+//        System.out.println("got updateComplaintResponse");
+        EventBus.getDefault().post(new RespondToComplaintEvent(message.getAdditionalData()));
+    }
+
+    private void handleFetchRandomPersonResponse(Message message)
+    {
+        try {
+//            System.out.println("got fetchRandomPersonResponse");
+            Person person = objectMapper.readValue(message.getData(), Person.class);
+            EventBus.getDefault().post(new FetchRandomPersonEvent(person));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize person"));
+        }
+    }
 
     public static SimpleClient getClient() {
         if (client == null) {
@@ -871,5 +639,39 @@ public class SimpleClient extends AbstractClient {
 
     public Person getConnectedPerson() {
         return connectedPerson;
+    }
+
+    // ----- YONATHAN`S PART ------
+    public void fetchUserBookings() throws IOException {
+        Message message = new Message(0, "fetchUserBookings", String.valueOf(this.connectedPerson.getPersonId()));
+        sendToServer(message);
+    }
+
+    public void cancelPurchase(int purchaseId, double refund) throws IOException {
+        Message message = new Message(0, "cancelPurchase", String.valueOf(purchaseId),String.valueOf(refund));
+        sendToServer(message);
+    }
+    public void submitComplaint(Complaint data) throws IOException {
+        String jsonData = objectMapper.writeValueAsString(data);
+        Message message = new Message(0, "submitComplaint", jsonData);
+        sendToServer(message);
+    }
+    public void respondToComplaint(Complaint complaint) {
+        try {
+            int complaintId = complaint.getComplaint_id();
+            String response = complaint.getResponse();
+            int refund = complaint.getRefund();
+            sendToServer(new Message(0, "respondToComplaint", complaintId + ";" + response + ";" + refund));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void fetchAllComplaints() throws IOException {
+        Message message = new Message(0, "fetchAllComplaints");
+        sendToServer(message);
+    }
+    public void fetchComplaints(String status) throws IOException {
+        Message message = new Message(0, "fetchComplaints", status);
+        sendToServer(message);
     }
 }
