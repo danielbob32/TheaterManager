@@ -5,9 +5,14 @@ import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -62,15 +67,28 @@ public class AllMoviesListController implements DataInitializable {
 
     private VBox createMovieBox(Movie movie) {
         VBox movieBox = new VBox(5);
+        movieBox.setPadding(new Insets(10));
+        movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
+
+        HBox contentBox = new HBox(10);
+        contentBox.prefWidthProperty().bind(moviesContainer.widthProperty().multiply(0.80));
 
         ImageView iv = new ImageView(convertByteArrayToImage(movie.getMovieIcon()));
         iv.setFitWidth(150);
         iv.setFitHeight(200);
+        iv.setPreserveRatio(true);
 
+        VBox textContent = new VBox(5);
         Label titleLabel = new Label(movie.getEnglishName());
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
         Label typeLabel = new Label(getMovieType(movie));
 
+        textContent.getChildren().addAll(titleLabel, typeLabel);
+        HBox.setHgrow(textContent, Priority.ALWAYS);
+
         Button moviePageButton = new Button("Movie Page");
+        moviePageButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
+        moviePageButton.setCursor(Cursor.HAND);
         moviePageButton.setOnAction(e -> {
             try {
                 openMoviePage(movie);
@@ -79,7 +97,13 @@ public class AllMoviesListController implements DataInitializable {
             }
         });
 
-        movieBox.getChildren().addAll(iv, titleLabel, typeLabel, moviePageButton);
+        VBox buttonBox = new VBox(moviePageButton);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(buttonBox, Priority.NEVER);
+
+        contentBox.getChildren().addAll(iv, textContent, buttonBox);
+
+        movieBox.getChildren().add(contentBox);
         return movieBox;
     }
 
