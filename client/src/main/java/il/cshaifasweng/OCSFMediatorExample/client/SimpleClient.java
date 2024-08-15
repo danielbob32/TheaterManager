@@ -57,6 +57,9 @@ public class SimpleClient extends AbstractClient {
                 case "Worker login":
                     handleWorkerLogin(message, messageStatus);
                     break;
+                case "Cinema manager login":
+                    handleCinemaManagerLogin(message, messageStatus);
+                    break;
                 case "Screening add":
                     handleScreeningAdd(message, messageStatus);
                     break;
@@ -246,6 +249,24 @@ public class SimpleClient extends AbstractClient {
         } else {
             showErrorAlert("One of the fields is incorrect. Please check credentials and try again");
         }
+    }
+
+    private void handleCinemaManagerLogin(Message message, String status) {
+        if (status.equals("successful")) {
+            System.out.println("Cinema Manager login successful");
+            Platform.runLater(() -> {
+                try {
+                    CinemaManager current = objectMapper.readValue(message.getData(), CinemaManager.class);
+                    login(current);
+                    App.setRoot("WorkerMenu", current);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            showErrorAlert("One of the fields is incorrect. Please check credentials and try again");
+        }
+
     }
     
 

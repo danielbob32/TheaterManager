@@ -40,7 +40,7 @@ public class WorkerMenuController implements DataInitializable {
     
         // Make sure the string comparisons match the worker types as returned from the server.
         if (updateContentButton != null) {
-            boolean showUpdateContent = "Content manager".equalsIgnoreCase(workerType) || "Chain manager".equalsIgnoreCase(workerType);
+            boolean showUpdateContent = "Content manager".equalsIgnoreCase(workerType) || "Chain manager".equalsIgnoreCase(workerType) || "CinemaManager".equalsIgnoreCase(workerType);
             updateContentButton.setVisible(showUpdateContent);
             updateContentButton.setManaged(showUpdateContent);
         }

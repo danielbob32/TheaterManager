@@ -2,8 +2,6 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
-import il.cshaifasweng.OCSFMediatorExample.server.ServerDB.TimeFrame;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -324,9 +322,10 @@ public class ServerDB {
                 if (worker instanceof CinemaManager) {
                     System.out.println("in checkworkercredentials after if instance of");
                     System.out.println("worker is cinema manager");
+                    CinemaManager c = session.get(CinemaManager.class, id);
     
                     // Cast the worker to CinemaManager instead of re-fetching it
-                    return (CinemaManager) worker;
+                    return c;
                 }
     
                 System.out.println("in checkworkercredentials after if not instance of");

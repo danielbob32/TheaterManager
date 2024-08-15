@@ -81,7 +81,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private void checkUserPermissions() {
         Person connectedPerson = client.getConnectedPerson();
         isContentManager = (connectedPerson instanceof Worker) &&
-                ((Worker) connectedPerson).getWorkerType().equals("Content manager");
+                (((Worker) connectedPerson).getWorkerType().equals("Content manager") || ((Worker) connectedPerson).getWorkerType().equals("Chain manager") || ((Worker)connectedPerson).getWorkerType().equals("CinemaManager"));
 
         deleteMovieButton.setVisible(isContentManager);
         addScreeningButton.setVisible(isContentManager);

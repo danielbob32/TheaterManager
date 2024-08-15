@@ -485,9 +485,16 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 				System.out.println("Worker login: " + (worker != null));
 				System.out.println("Worker: " + worker);
 				if (worker != null) {
-					p = worker;
-					message = "Worker login:successful";
-					System.out.println("Inside if: Worker login successful");
+					if (worker instanceof CinemaManager) {
+						CinemaManager manager = (CinemaManager) worker;
+						p = manager;
+						message = "Cinema manager login:successful";
+						System.out.println("Inside if: Cinema manager login successful");
+					} else {
+						p = worker;
+						message = "Worker login:successful";
+						System.out.println("Inside if: Worker login successful");
+					}
 				} else {
 					message = "Worker login:failed";
 					System.out.println("Inside else: Worker login failed");

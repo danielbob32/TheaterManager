@@ -1,12 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Cinema;
-import il.cshaifasweng.OCSFMediatorExample.entities.CinemaManager;
-import il.cshaifasweng.OCSFMediatorExample.entities.Person;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.CinemaManager;
+import il.cshaifasweng.OCSFMediatorExample.entities.Person;
+import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
@@ -18,8 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import org.apache.poi.ss.usermodel.Row;
@@ -29,12 +26,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-
-import java.util.Optional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 
@@ -203,11 +197,12 @@ public class ReportsPageController implements DataInitializable {
             if ("CinemaManager".equals(workerType)) {
                 System.out.println("Connected person is a CinemaManager");
                 reportType = "Monthly Ticket Sales Manager";
-                // if (worker.getCinema() != null) {
-                //     cinema = worker.getCinema().getCinemaName();
-                // } else {
-                //     cinema = "No Cinema Assigned";
-                // }
+                CinemaManager c = (CinemaManager) worker;
+                 if (c.getCinema() != null) {
+                     cinema = c.getCinema().getCinemaName();
+                 } else {
+                     cinema = "No Cinema Assigned";
+                 }
                 System.out.println("CinemaManager detected. Cinema: " + cinema);
             } else {
                 System.out.println("Connected person is not a CinemaManager");
