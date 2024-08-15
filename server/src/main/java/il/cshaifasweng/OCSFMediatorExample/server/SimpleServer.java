@@ -209,6 +209,7 @@ public class SimpleServer extends AbstractServer {
 					break;
 	
 				case "generateReport":
+					System.out.println("Handling generate report request");
 					handleGenerateReport(message.getData(), client);
 					break;
 
@@ -472,19 +473,26 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
+		System.out.println("Handling login request");
 		Person p = (Person) loginRequest;
 		boolean loginSuccess = false;
 		String message = "";
 		try {
 			if (loginRequest instanceof Worker) {
+				System.out.println("Worker login request");
 				Worker worker = (Worker) loginRequest;
 				worker = db.checkWorkerCredentials(worker.getPersonId(), worker.getPassword());
+				System.out.println("Worker login: " + (worker != null));
+				System.out.println("Worker: " + worker);
 				if (worker != null) {
 					p = worker;
 					message = "Worker login:successful";
+					System.out.println("Inside if: Worker login successful");
 				} else {
 					message = "Worker login:failed";
+					System.out.println("Inside else: Worker login failed");
 				}
+				
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
 				customer = db.checkCustomerCredentials(customer.getPersonId());
@@ -501,11 +509,17 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		}
 
 		try {
-			Message message1 = new Message(0, message, objectMapper.writeValueAsString(p));
+			System.out.println("About to serialize the worker/customer object: " + p);
+			String jsonString = objectMapper.writeValueAsString(p);
+			System.out.println("Serialization successful, JSON: " + jsonString);
+			Message message1 = new Message(0, message, jsonString);
 			client.sendToClient(message1);
-		} catch (IOException e) {
+			System.out.println("Message sent to client successfully");
+		} catch (Exception e) {
+			System.err.println("Error during serialization or sending: " + e.getMessage());
 			e.printStackTrace();
 		}
+		
 	}
 //MESSAGE FOR THE NEW MOVIE ADD
 //	private void notifyTicketTabOwners(Movie newMovie) {
@@ -575,18 +589,20 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
     client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
 }
 
-	private void handleGenerateReport(String data, ConnectionToClient client) throws IOException {
-		JsonNode dataNode = objectMapper.readTree(data);
-		String reportType = dataNode.get("reportType").asText();
-		LocalDate month = LocalDate.parse(dataNode.get("month").asText());
-		String cinema = dataNode.get("cinema").asText();
+private void handleGenerateReport(String data, ConnectionToClient client) throws IOException {
+    JsonNode dataNode = objectMapper.readTree(data);
+    String reportType = dataNode.get("reportType").asText();
+    LocalDate month = LocalDate.parse(dataNode.get("month").asText());
+    String cinema = dataNode.get("cinema").asText();
 
-		String reportData = db.generateReport(reportType, month, cinema);
+    String reportData = db.generateReport(reportType, month, cinema);
 
-		ObjectNode responseNode = objectMapper.createObjectNode();
-		responseNode.put("reportType", reportType);
-		responseNode.put("reportData", reportData);
+    ObjectNode responseNode = objectMapper.createObjectNode();
+    responseNode.put("reportType", reportType);
+    responseNode.put("reportData", reportData);
 
-		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
-	}
+    client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
+}
+
+
 }

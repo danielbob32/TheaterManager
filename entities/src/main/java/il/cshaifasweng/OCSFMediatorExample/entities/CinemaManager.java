@@ -11,20 +11,20 @@ public class CinemaManager extends Worker{
 
     // Constructors
     public CinemaManager() {
+        super();  // Calls the default constructor of Worker
+        this.setWorkerType("CinemaManager");  // Ensures that the workerType is set correctly
     }
 
 
+    // Parameterized constructor
     public CinemaManager(String name, String password, int id, Cinema cinema) {
-        super(name, password, id);
+        super(name, "CinemaManager", password, id);  // Setting the workerType explicitly
         this.cinema = cinema;
     }
     
     // Getters and setters
    
-    public Cinema getCinemas() {
-        return this.cinema;
-    
-    }
+
 
     public Cinema getCinema() {
         return this.cinema;
