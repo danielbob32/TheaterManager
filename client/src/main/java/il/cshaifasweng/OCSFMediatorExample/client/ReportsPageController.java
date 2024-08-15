@@ -203,10 +203,11 @@ public class ReportsPageController implements DataInitializable {
             if ("CinemaManager".equals(workerType)) {
                 System.out.println("Connected person is a CinemaManager");
                 reportType = "Monthly Ticket Sales Manager";
-                // get workers cinema
-                CinemaManager cinemaManager = (CinemaManager) worker;
-                cinema = cinemaManager.getCinema().getCinemaName();
-                
+                // if (worker.getCinema() != null) {
+                //     cinema = worker.getCinema().getCinemaName();
+                // } else {
+                //     cinema = "No Cinema Assigned";
+                // }
                 System.out.println("CinemaManager detected. Cinema: " + cinema);
             } else {
                 System.out.println("Connected person is not a CinemaManager");
