@@ -1,11 +1,12 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Cinema;
 import il.cshaifasweng.OCSFMediatorExample.entities.CinemaManager;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
+import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
@@ -17,6 +18,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,9 +29,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+
+import java.util.Optional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 
@@ -106,16 +112,12 @@ public class ReportsPageController implements DataInitializable {
             if (isCinemaManager && user instanceof CinemaManager) {
                 CinemaManager cinemaManager = (CinemaManager) user;
                 // Lock the cinema selection to the cinema managed by the CinemaManager
-                cinemaComboBox.getItems().clear();
-                cinemaComboBox.getItems().add(cinemaManager.getCinema().getCinemaName());
-                cinemaComboBox.getSelectionModel().selectFirst();
-                cinemaComboBox.setDisable(true);  // Disable cinema dropdown
+                cinemaComboBox.setVisible(false);
+                cinemaComboBox.setManaged(false);
         
                 // Lock the report type to "Monthly Ticket Sales"
-                reportTypeComboBox.getItems().clear();
-                reportTypeComboBox.getItems().add("Monthly Ticket Sales");
-                reportTypeComboBox.setValue("Monthly Ticket Sales");
-                reportTypeComboBox.setDisable(true);  // Disable report type dropdown
+                reportTypeComboBox.setVisible(false);
+                reportTypeComboBox.setManaged(false);
         
                 // Enable the export button since Cinema Managers should be able to export
                 exportButton.setDisable(false);
@@ -185,6 +187,9 @@ public class ReportsPageController implements DataInitializable {
         String reportType = reportTypeComboBox.getValue();
         YearMonth month = monthPicker.getValue();
         String cinema = cinemaComboBox.getValue();
+
+        //set labels to invisible
+        hideAllLabels();
     
         Person connectedPerson = client.getConnectedPerson();
         System.out.println("Connected person instance: " + connectedPerson.getClass().getName());
@@ -197,12 +202,6 @@ public class ReportsPageController implements DataInitializable {
             if ("CinemaManager".equals(workerType)) {
                 System.out.println("Connected person is a CinemaManager");
                 reportType = "Monthly Ticket Sales Manager";
-                CinemaManager c = (CinemaManager) worker;
-                 if (c.getCinema() != null) {
-                     cinema = c.getCinema().getCinemaName();
-                 } else {
-                     cinema = "No Cinema Assigned";
-                 }
                 System.out.println("CinemaManager detected. Cinema: " + cinema);
             } else {
                 System.out.println("Connected person is not a CinemaManager");
@@ -263,11 +262,21 @@ public class ReportsPageController implements DataInitializable {
         try {
             System.out.println("Report data received: " + reportData);
             String[] lines = reportData.split("\n");
+    
+            if (lines.length < 2) {
+                showAlert("No valid data available in the report.");
+                return;
+            }
+    
+            // Skip the title line and any empty line right after it
+            String titleLine = lines[0];
+            String cinema = titleLine.split("for ")[1].split(" -")[0]; // Extract cinema name from title
+    
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-            
-            barChart.setTitle("Monthly Ticket Sales for Cinema Manager");
+    
+            barChart.setTitle("Monthly Ticket Sales for " + cinema);
             xAxis.setLabel("Day of Month");
             yAxis.setLabel("Number of Tickets Sold");
     
@@ -275,19 +284,30 @@ public class ReportsPageController implements DataInitializable {
             series.setName("Ticket Sales");
             int totalTickets = 0;
     
-            for (String line : lines) {
-                System.out.println("Processing line: " + line);  // Add this for debugging
-                String[] parts = line.split(": ");
+            for (int i = 2; i < lines.length; i++) { // Start from index 2 to skip the title and the empty line
+                System.out.println("Processing line: " + lines[i]);  // Debugging
+    
+                if (lines[i].trim().isEmpty()) {
+                    continue; // Skip any empty lines
+                }
+    
+                String[] parts = lines[i].split(": ");
                 if (parts.length == 2) {
-                    int tickets = Integer.parseInt(parts[1]);
-                    series.getData().add(new XYChart.Data<>(parts[0], tickets));
-                    totalTickets += tickets;
+                    try {
+                        int tickets = Integer.parseInt(parts[1]);
+                        series.getData().add(new XYChart.Data<>(parts[0], tickets));
+                        totalTickets += tickets;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Skipping line due to number format issue: " + lines[i]);
+                    }
                 }
             }
     
             barChart.getData().add(series);
             reportContainer.getChildren().add(barChart);
-            totalTicketsLabel.setText("Total Tickets: " + totalTickets); // Update total tickets label
+            totalTicketsLabel.setText("Total Tickets: " + totalTickets);
+            totalTicketsLabel.setVisible(true);
+            totalTicketsLabel.setManaged(true);
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Error parsing ticket sales report data: " + e.getMessage());
@@ -321,7 +341,9 @@ private void displayTicketSalesReport(String reportData) {
 
         barChart.getData().add(series);
         reportContainer.getChildren().add(barChart);
-        totalTicketsLabel.setText("Total Tickets: " + totalTickets); // Update total tickets label
+        totalTicketsLabel.setText("Total Tickets: " + totalTickets);
+        totalTicketsLabel.setVisible(true);
+        totalTicketsLabel.setManaged(true);
     } catch (Exception e) {
         e.printStackTrace();
         showAlert("Error parsing ticket sales report data: " + e.getMessage());
@@ -356,6 +378,8 @@ private void displayTabSalesReport(String reportData) {
     // Now we use totalTabs which is effectively final here
     if (totalTicketTabsLabel != null) {
         totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs);
+        totalTicketTabsLabel.setVisible(true);
+        totalTicketTabsLabel.setManaged(true);
     } else {
         System.err.println("Label totalTicketTabsLabel is not initialized.");
     }
@@ -387,7 +411,9 @@ private void displayHomeMovieLinkSalesReport(String reportData) {
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
-    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); // Update total links label
+    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); 
+    totalLinksLabel.setVisible(true);
+    totalLinksLabel.setManaged(true);
 }
 
 
@@ -414,7 +440,9 @@ private void displayComplaintsHistogram(String reportData) {
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
-    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); // Update total complaints label
+    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); 
+    totalComplaintsLabel.setVisible(true);
+    totalComplaintsLabel.setManaged(true);
 }
 
 
