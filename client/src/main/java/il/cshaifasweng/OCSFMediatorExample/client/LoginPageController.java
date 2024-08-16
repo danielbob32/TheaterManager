@@ -1,6 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.animation.*;
@@ -14,11 +16,16 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class LoginPageController implements Initializable, DataInitializable {
@@ -46,7 +53,7 @@ public class LoginPageController implements Initializable, DataInitializable {
     private Circle clockBackground;
 
     @FXML
-    private ImageView moviePoster;
+    private  ImageView moviePoster;
 
     @FXML
     private Button comingSoonBtn;
@@ -60,6 +67,9 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private AnchorPane mainAnchorPane;
 
+    private List<Movie> allMovies;
+
+
     @Override
     public void setClient(SimpleClient client) {
         this.client = client;
@@ -67,11 +77,18 @@ public class LoginPageController implements Initializable, DataInitializable {
 
     @Override
     public void initData(Object data) {
-        System.out.println("CustomerMenuController initialized");
+        System.out.println("LoginPageController initialized");
+        System.out.println("Requesting movies from server");
+        if (client == null) {
+            client = SimpleClient.getClient();
+        }
+        client.getMovies();
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        EventBus.getDefault().register(this);
+        System.out.println("Requesting movies from server");
         System.out.println("LoginPageController initialized");
         userTypeComboBox.getItems().addAll("Worker", "Customer");
         userTypeComboBox.setOnAction(this::handleUserTypeSelection);
@@ -79,9 +96,20 @@ public class LoginPageController implements Initializable, DataInitializable {
         passwordTextField.setManaged(false);
         setupClock();
         animateClock();
-        startMoviePosterSlideshow();
         addButtonHoverEffects();
         addParticleEffect();
+//        if (client == null) {
+//            client = SimpleClient.getClient();
+//        }
+//        client.getMovies();
+    }
+
+    @Subscribe
+    public void onMovieListEvent(MovieListEvent event) {
+        System.out.println("Received MovieListEvent");
+        allMovies = event.getMovies();
+        filterMovies(allMovies);
+        startMoviePosterSlideshow();
     }
 
 
@@ -126,10 +154,12 @@ public class LoginPageController implements Initializable, DataInitializable {
         System.out.println("Sending login request to server");
         if ("Worker".equals(userType)) {
             Worker worker = new Worker("Yaren", password, id);
+            cleanup();
             client.tryWorkerLogin(worker);
     //                SimpleClient.getClient().sendToServer(worker);
         } else {
             Customer customer = new Customer("Yarden", "yarden@gmail.com", id);
+            cleanup();
             client.tryCustomerLogin(customer);
 //            SimpleClient.getClient().sendToServer(customer);
         }
@@ -138,13 +168,14 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private void viewFutureMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("FutureMoviesPage", null);
     }
 
     @FXML
     private void viewHomeMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
 
         App.setRoot("HomeMovieList", null);
     }
@@ -152,7 +183,7 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private void viewMovieList() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("CinemaMovieList", null);
     }
 
@@ -160,7 +191,7 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     void buyTicketTab(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("purchaseTicketTab", null);
     }
 
@@ -185,34 +216,91 @@ public class LoginPageController implements Initializable, DataInitializable {
         timeline.play();
     }
 
+    public void filterMovies(List<Movie> movies) {
+        // Iterate through the list of movies
+        movies.removeIf(movie -> !movie.getIsHome() && !movie.getIsCinema());
+    }
+
+
     private void startMoviePosterSlideshow() {
-        String[] posterUrls = {
-                "./Images/deadpool.jpg",
-                "./Images/smurfs.jpg",
-                "./Images/default.jpg"
-        };
+
+        if (allMovies == null || allMovies.isEmpty()) {
+            System.out.println("No movies available for slideshow");
+            return;
+        }
+
+        System.out.println("Number of movies received: " + allMovies.size());
 
         Timeline timeline = new Timeline();
-        for (int i = 0; i < posterUrls.length; i++) {
+        for (int i = 0; i < allMovies.size(); i++) {
             final int index = i;
             KeyFrame keyFrame = new KeyFrame(Duration.seconds(i * 5), event -> {
-                Image image = new Image(posterUrls[index]);
-                FadeTransition ft = new FadeTransition(Duration.seconds(1), moviePoster);
-                ft.setFromValue(1.0);
-                ft.setToValue(0.0);
-                ft.setOnFinished(e -> {
-                    moviePoster.setImage(image);
-                    FadeTransition ft2 = new FadeTransition(Duration.seconds(1), moviePoster);
-                    ft2.setFromValue(0.0);
-                    ft2.setToValue(1.0);
-                    ft2.play();
+                Movie movie = allMovies.get(index);
+                byte[] image = movie.getMovieIcon();
+
+                // Convert byte array to Image
+                Image image2 = convertByteArrayToImage(image);
+                // Handle null or error image
+                if (image2 == null || image2.isError()) {
+                    System.out.println("Using default image");
+                    try {
+                        InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+                        if (defaultImageStream != null) {
+                            image2 = new Image(defaultImageStream);
+                            System.out.println("Default image loaded successfully");
+                        } else {
+                            System.out.println("Default image not found");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error loading default image: " + e.getMessage());
+                    }
+                }
+
+                // Apply fade transition for the image
+                FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), moviePoster);
+                fadeOut.setFromValue(1.0);
+                fadeOut.setToValue(0.0);
+                System.out.println("Fading out image: " + index + "movie title:" + movie.getEnglishName());
+                // Set the image after fading out
+                Image finalImage = image2;
+                fadeOut.setOnFinished(e -> {
+                    moviePoster.setImage(finalImage);
+                    if (finalImage == null) {
+                        System.out.println("Final image is null");
+                    } else {
+                        System.out.println("Setting image to ImageView");
+                    }
+                    // Fade in the new image
+                    FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), moviePoster);
+                    fadeIn.setFromValue(0.0);
+                    fadeIn.setToValue(1.0);
+                    fadeIn.play();
                 });
-                ft.play();
+
+                fadeOut.play();
             });
             timeline.getKeyFrames().add(keyFrame);
         }
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
+    }
+
+
+    public Image convertByteArrayToImage(byte[] imageData) {
+        if (imageData != null && imageData.length > 0) {
+            // Convert byte[] to InputStream
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+
+            // Create Image from InputStream
+            return new Image(inputStream);
+        } else {
+            System.out.println("No image data available");
+            return null;  // Or handle as needed, e.g., return a default image
+        }
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 
     private void addButtonHoverEffects() {

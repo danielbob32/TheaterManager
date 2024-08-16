@@ -31,9 +31,9 @@
         </TableView>
         <TextArea fx:id="descriptionField" prefHeight="100.0" prefWidth="200.0" />
         <TextField fx:id="responseField" />
-        <Button fx:id="selectComplaintButton" text="Select Complaint" onAction="#handleSelectComplaint" />
-        <Button fx:id="submitReplyButton" text="Submit Reply" onAction="#handleSubmitReply" />
-        <Button fx:id="backButton" text="Back" onAction="#handleBackButton" />
+        <Button fx:id="selectComplaintButton" text="Select Complaint" onAction="#handleSelectComplaint" styleClass="menu-button" />
+        <Button fx:id="submitReplyButton" text="Submit Reply" onAction="#handleSubmitReply" styleClass="menu-button" />
+        <Button fx:id="backButton" text="Back" onAction="#handleBackButton" styleClass="menu-button" />
     </children>
     <padding>
         <Insets top="10" right="10" bottom="10" left="10" />

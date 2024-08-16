@@ -11,11 +11,11 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
         <Text text="Update Content" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
-        <Button text="All Movies List" onAction="#allMoviesList" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Edit Home Movies" onAction="#editHomeMovies" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Add movie/Home Movie" onAction="#addMovie" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Update Prices" onAction="#updatePrices" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-        <Button text="Back" onAction="#goBack" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="All Movies List" onAction="#allMoviesList" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Edit Home Movies" onAction="#editHomeMovies" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Add movie/Home Movie" onAction="#addMovie" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Update Prices" onAction="#updatePrices" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        <Button text="Back" onAction="#goBack" styleClass="menu-button" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
     </VBox>
 </AnchorPane>

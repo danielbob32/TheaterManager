@@ -130,6 +130,16 @@ public class SimpleClient extends AbstractClient {
                 case "fetchRandomPersonResponse":
                     handleFetchRandomPersonResponse(message);
                     break;
+
+                case "notifications":
+                    try {
+                        List<Notification> notifications = objectMapper.readValue(message.getData(), new TypeReference<List<Notification>>() {
+                        });
+                        EventBus.getDefault().post(new NotificationEvent(notifications));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 default:
                     System.out.println("Received unknown message: " + message.getMessage());
                     break;
@@ -478,6 +488,7 @@ public class SimpleClient extends AbstractClient {
 
     public void getMovies() {
         try {
+            System.out.println("Sending getMovies request to server");
             sendToServer(new Message(0, "getMovies"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -678,4 +689,19 @@ public class SimpleClient extends AbstractClient {
         Message message = new Message(0, "fetchComplaints", status);
         sendToServer(message);
     }
+
+    public void requestNotifications() throws IOException {
+        int customerId = ((Customer) connectedPerson).getPersonId();
+        sendToServer(new Message(0, "getNotifications", String.valueOf(customerId)));
+    }
+
+    public void markNotificationAsRead(int notificationId) throws IOException {
+        int customerId = ((Customer) connectedPerson).getPersonId();
+        sendToServer(new Message(0, "markNotificationAsRead", notificationId + "," + customerId));
+    }
+
+    public void markNotificationsAsRead(List<Integer> notificationIds) throws IOException {
+        sendToServer(new Message(0, "markNotificationsAsRead", objectMapper.writeValueAsString(notificationIds)));
+    }
+
 }

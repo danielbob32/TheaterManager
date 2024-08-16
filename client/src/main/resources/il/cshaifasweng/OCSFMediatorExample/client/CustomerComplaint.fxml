@@ -14,11 +14,11 @@
     <ListView fx:id="complaintListView" VBox.vgrow="ALWAYS"/>
 
     <HBox spacing="10" alignment="CENTER">
-        <Button fx:id="viewComplaintButton" text="View Complaint"/>
-        <Button fx:id="submitNewComplaintButton" text="Submit New Complaint" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <Button fx:id="viewComplaintButton" styleClass="menu-button" text="View Complaint"/>
+        <Button fx:id="submitNewComplaintButton" styleClass="menu-button" text="Submit New Complaint" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
     </HBox>
 
-    <Button text="Back to Main Menu" onAction="#handleBackButton"/>
+    <Button text="Back to Main Menu" onAction="#handleBackButton" styleClass="menu-button"/>
 
     <stylesheets>
         <URL value="@ComplaintStyle.css"/>

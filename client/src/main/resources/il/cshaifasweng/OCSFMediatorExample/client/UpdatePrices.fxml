@@ -8,6 +8,6 @@
     <ComboBox fx:id="movieComboBox" promptText="Select Movie"/>
     <Label fx:id="currentPriceLabel" text="Current Price: "/>
     <TextField fx:id="newPriceField" promptText="Enter New Price"/>
-    <Button text="Update Price" onAction="#updatePrice"/>
-    <Button text="Back" onAction="#goBack"/>
+    <Button text="Update Price" onAction="#updatePrice" styleClass="menu-button"/>
+    <Button text="Back" onAction="#goBack" styleClass="menu-button"/>
 </VBox>

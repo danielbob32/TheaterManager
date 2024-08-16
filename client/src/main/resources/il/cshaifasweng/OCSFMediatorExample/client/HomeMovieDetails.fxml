@@ -15,7 +15,7 @@
 
 <AnchorPane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.HomeMovieDetailsBoundary">
     <children>
-        <Button fx:id="backButton" onAction="#handleBackButton" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Back" textFill="WHITE" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+        <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Back" textFill="WHITE" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
             <cursor>
                 <Cursor fx:constant="HAND" />
             </cursor>
@@ -54,7 +54,7 @@
                     <Cursor fx:constant="HAND" />
                 </cursor>
             </DatePicker>
-            <Button fx:id="buyLinkButton" onAction="#handleBuyLink" style="-fx-background-color: green; -fx-font-weight: bold;" text="Buy Link" textFill="WHITE" prefWidth="200" prefHeight="40">
+            <Button fx:id="buyLinkButton" styleClass="menu-button" onAction="#handleBuyLink" style="-fx-background-color: green; -fx-font-weight: bold;" text="Buy Link" textFill="WHITE" prefWidth="200" prefHeight="40">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>

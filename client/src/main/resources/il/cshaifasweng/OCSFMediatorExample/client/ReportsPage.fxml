@@ -16,7 +16,7 @@
             <ComboBox fx:id="monthPicker" prefWidth="120" promptText="Month" />
             <ComboBox fx:id="cinemaComboBox" prefWidth="150" promptText="Cinema" />
         </HBox>
-        <Button fx:id="generateReportButton" onAction="#generateReport" prefWidth="200" style="-fx-background-color: darkblue; -fx-text-fill: white;" text="Generate Report" />
+        <Button fx:id="generateReportButton" onAction="#generateReport" styleClass="menu-button" prefWidth="200" style="-fx-background-color: darkblue; -fx-text-fill: white;" text="Generate Report" />
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
             <VBox fx:id="reportContainer" alignment="CENTER" fillWidth="true" spacing="10" />
         </ScrollPane>
@@ -25,8 +25,8 @@
         <Label fx:id="totalLinksLabel" style="-fx-font-size: 14px; -fx-text-fill: white;" text="Total Links: 0" />
         <Label fx:id="totalComplaintsLabel" style="-fx-font-size: 14px; -fx-text-fill: white;" text="Total Complaints: 0" />
         <HBox alignment="CENTER" spacing="10">
-            <Button fx:id="exportButton" onAction="#exportToExcel" prefWidth="120" style="-fx-background-color: darkgreen; -fx-text-fill: white;" text="Export to Excel" />
-            <Button fx:id="backButton" onAction="#handleBackButton" prefWidth="120" style="-fx-background-color: darkred; -fx-text-fill: white;" text="Back" />
+            <Button fx:id="exportButton" onAction="#exportToExcel" styleClass="menu-button" prefWidth="120" style="-fx-background-color: darkgreen; -fx-text-fill: white;" text="Export to Excel" />
+            <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" prefWidth="120" style="-fx-background-color: darkred; -fx-text-fill: white;" text="Back" />
         </HBox>
     </VBox>
 </AnchorPane>

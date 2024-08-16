@@ -24,6 +24,10 @@ public class Customer extends Person{
     @OneToMany(mappedBy = "customer")
     private List<Complaint> complaints;
 
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
+
+
     // Constructors
     public Customer() {
     }
@@ -40,7 +44,6 @@ public class Customer extends Person{
     public String getEmail() {
         return email;
     }
-
     public void setEmail(String email) {
         this.email = email;
     }
@@ -48,7 +51,6 @@ public class Customer extends Person{
    public List<Booking> getBookings() {
        return bookings;
    }
-
    public void setBookings(List<Booking> bookings) {
        this.bookings = bookings;
    }
@@ -56,7 +58,6 @@ public class Customer extends Person{
     public void setProducts(List<Product> products) {
         this.products = products;
     }
-
     public List<Product> getProducts() {
         return products;
     }
@@ -64,7 +65,6 @@ public class Customer extends Person{
     public List<Complaint> getComplaints() {
         return complaints;
     }
-
     public void setComplaints(List<Complaint> complaints) {
         this.complaints = complaints;
     }
@@ -73,9 +73,9 @@ public class Customer extends Person{
     {
         this.bookings.add(b);
     }
-
     public void addProduct(Product b)
     {
         this.products.add(b);
     }
+
 }

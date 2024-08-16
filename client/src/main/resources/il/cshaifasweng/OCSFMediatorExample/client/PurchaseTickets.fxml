@@ -16,14 +16,14 @@
         <Label fx:id="cinemaLabel" style="-fx-font-size: 15;" />
         <Label fx:id="screeningTimeLabel" style="-fx-font-size: 15;" />
         <Label fx:id="totalPriceLabel" style="-fx-font-size: 15; -fx-font-weight: bold;" />
-        <Button fx:id="purchaseButton" onAction="#handlePurchase" prefHeight="38.0" prefWidth="166.0" style="-fx-background-color: green; -fx-font-size: 15; -fx-font-weight: bold;" text="Proceed to Payment" textFill="WHITE">
+        <Button fx:id="purchaseButton" onAction="#handlePurchase" styleClass="menu-button" prefHeight="38.0" prefWidth="166.0" style="-fx-background-color: green; -fx-font-size: 15; -fx-font-weight: bold;" text="Proceed to Payment" textFill="WHITE">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-        <Button fx:id="backButton" onAction="#handleBackButton" prefWidth="54.0" style="-fx-background-color: gray; -fx-font-size: 14; -fx-font-weight: bold;" text="Back" textFill="WHITE">
+        <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" prefWidth="54.0" style="-fx-background-color: gray; -fx-font-size: 14; -fx-font-weight: bold;" text="Back" textFill="WHITE">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>

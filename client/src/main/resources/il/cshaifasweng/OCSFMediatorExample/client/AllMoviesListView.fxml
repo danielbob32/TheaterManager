@@ -10,7 +10,7 @@
 
 <VBox alignment="CENTER" prefHeight="640.0" prefWidth="800.0" spacing="10" style="-fx-padding: 20; -fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AllMoviesListController">
     <HBox alignment="CENTER_LEFT" spacing="10">
-        <Button onAction="#handleBackButton" style="-fx-background-color: gray;" text="Back" textFill="WHITE">
+        <Button onAction="#handleBackButton" styleClass="menu-button" style="-fx-background-color: gray;" text="Back" textFill="WHITE">
             <font>
                 <Font name="System Bold" size="12.0" />
             </font>
@@ -19,7 +19,7 @@
             </cursor>
         </Button>
     </HBox>
-    <Button onAction="#showAllMovies" style="-fx-background-color: green; -fx-font-weight: bold;" text="Refresh Movies List" textFill="WHITE">
+    <Button onAction="#showAllMovies" styleClass="menu-button" style="-fx-background-color: green; -fx-font-weight: bold;" text="Refresh Movies List" textFill="WHITE">
         <cursor>
             <Cursor fx:constant="HAND" />
         </cursor>

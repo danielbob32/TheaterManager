@@ -33,7 +33,7 @@
                   <Font size="14.0" />
                </font>
             </TextField>
-            <Button fx:id="buyTabButton" layoutX="219.0" layoutY="241.0" mnemonicParsing="false" onAction="#handlePurchaseTicketTab" style="-fx-background-color: green;" text="Purchase Ticket Tab" textFill="WHITE">
+            <Button fx:id="buyTabButton" layoutX="219.0" layoutY="241.0" mnemonicParsing="false" onAction="#handlePurchaseTicketTab" styleClass="menu-button" style="-fx-background-color: green;" text="Purchase Ticket Tab" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
@@ -41,7 +41,7 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Button>
-            <Button fx:id="backButton" layoutX="271.0" layoutY="288.0" mnemonicParsing="false" onAction="#handleBackButton" prefHeight="31.0" prefWidth="59.0" style="-fx-background-color: gray;" text="Back" textFill="WHITE">
+            <Button fx:id="backButton" layoutX="271.0" layoutY="288.0" mnemonicParsing="false" onAction="#handleBackButton" styleClass="menu-button" prefHeight="31.0" prefWidth="59.0" style="-fx-background-color: gray;" text="Back" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>

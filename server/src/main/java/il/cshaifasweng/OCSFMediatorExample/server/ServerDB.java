@@ -38,6 +38,7 @@ public class ServerDB {
             configuration.addAnnotatedClass(Message.class);
             configuration.addAnnotatedClass(Movie.class);
             configuration.addAnnotatedClass(MovieHall.class);
+            configuration.addAnnotatedClass(Notification.class);
             configuration.addAnnotatedClass(Person.class);
             configuration.addAnnotatedClass(PriceChangeRequest.class);
             configuration.addAnnotatedClass(Product.class);
@@ -375,10 +376,20 @@ public class ServerDB {
     }
 
     public boolean addMovie(Movie movie) {
-        try(Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             try {
                 session.beginTransaction();
+
+                // Save the movie
                 session.save(movie);
+
+                List<Customer> allCustomers = getAllCustomers();
+                for (Customer customer : allCustomers) {
+                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+                    notification.setCustomer(customer);
+                    session.save(notification);
+                }
+
                 session.getTransaction().commit();
                 return true;
             } catch (Exception e) {
@@ -388,12 +399,24 @@ public class ServerDB {
                 e.printStackTrace();
                 return false;
             }
-        }        catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Error in addMovie: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
+    }
 
+    public List<Customer> getAllCustomers() {
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Customer> query = builder.createQuery(Customer.class);
+            query.from(Customer.class);
+            return session.createQuery(query).getResultList();
+        } catch (Exception e) {
+            System.err.println("Error in getAllCustomers: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void addHomeMovie(HomeMovieLink homeMovieLink) {
@@ -558,6 +581,13 @@ public class ServerDB {
                 }
                 session.save(movie);
                 movies.add(movie);
+
+                // Create and save a notification for each customer for each generated movie
+                for (Customer customer : getAllCustomers()) {
+                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+                    notification.setCustomer(customer);
+                    session.save(notification);
+                }
             }
             session.flush();
             session.getTransaction().commit();
@@ -788,12 +818,12 @@ public class ServerDB {
             if(movie == null) // If the movie not found, return false.
                 return false;
 
-            if (movieType.equals("cinema") && movie.getIsHome()) {
+            if (movieType.equals("cinema")) {
                 movie.setIsCinema(false);
                 session.update(movie);
                 transaction.commit();
                 return true;
-            } else if (movieType.equals("home") && movie.getIsCinema()) {
+            } else if (movieType.equals("home")) {
                 movie.setIsHome(false);
                 session.update(movie);
                 transaction.commit();
@@ -1844,6 +1874,49 @@ public class ServerDB {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public void createNotification(Movie movie, Customer customer) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+            notification.setCustomer(customer);
+            session.save(notification);
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public List<Notification> getUnreadNotificationsForCustomer(int customerId) {
+        try (Session session = sessionFactory.openSession()) {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Notification> query = builder.createQuery(Notification.class);
+            Root<Notification> root = query.from(Notification.class);
+            query.select(root).where(
+                    builder.and(
+                            builder.equal(root.get("customer").get("personId"), customerId),
+                            builder.equal(root.get("isRead"), false)
+                    )
+            );
+            return session.createQuery(query).getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public void markNotificationAsRead(int notificationId, int customerId) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Notification notification = session.get(Notification.class, notificationId);
+            if (notification != null && notification.getCustomer().getPersonId() == customerId) {
+                notification.setRead(true);
+                session.update(notification);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

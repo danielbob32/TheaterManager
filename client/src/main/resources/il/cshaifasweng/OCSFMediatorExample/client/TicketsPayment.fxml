@@ -25,7 +25,7 @@
             <Label fx:id="screeningTimeLabel" style="-fx-font-size: 15" />
             <Label fx:id="selectedSeatsLabel" style="-fx-font-size: 15" />
             <Label fx:id="totalPriceLabel" style="-fx-font-size: 15; -fx-font-weight: bold;" />
-             <Button fx:id="backButton" onAction="#handleBack" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
+             <Button fx:id="backButton" onAction="#handleBack" styleClass="menu-button" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
             <cursor>
                <Cursor fx:constant="HAND" />
             </cursor>

@@ -30,6 +30,6 @@
         </HBox>
     </VBox>
 
-    <Button fx:id="saveChangesButton" text="Save Changes" onAction="#handleSaveChanges"/>
-    <Button text="Back" onAction="#handleBackButton"/>
+    <Button fx:id="saveChangesButton" styleClass="menu-button" text="Save Changes" onAction="#handleSaveChanges"/>
+    <Button text="Back" styleClass="menu-button" onAction="#handleBackButton"/>
 </VBox>

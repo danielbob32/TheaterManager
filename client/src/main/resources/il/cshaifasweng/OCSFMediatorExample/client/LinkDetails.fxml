@@ -29,7 +29,7 @@
                         <Cursor fx:constant="HAND" />
                     </cursor>
                 </Button>
-                <Text fx:id="movieTitleText" layoutX="132.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Movie: Deadpool" wrappingWidth="438.9367370605469">
+                <Text fx:id="movieTitleText" styleClass="menu-button" layoutX="132.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Movie: Deadpool" wrappingWidth="438.9367370605469">
                     <font>
                         <Font size="20.0" />
                     </font>

@@ -32,8 +32,9 @@ public class App extends Application {
         Parent root = loader.load();
         Object controller = loader.getController();
         ((DataInitializable)controller).setClient(client);
-
+        ((DataInitializable)controller).initData(null);
         scene = new Scene(root, 800, 750);
+        scene.getStylesheets().add(getClass().getResource("App.css").toExternalForm());
         primaryStage = stage;
         stage.setScene(scene);
         stage.show();

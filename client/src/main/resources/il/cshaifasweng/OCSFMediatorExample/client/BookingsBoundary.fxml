@@ -23,7 +23,7 @@
             <TableColumn fx:id="statusColumn" text="Status"/> <!-- New Status Column -->
         </columns>
     </TableView>
-    <Button fx:id="applyRefundButton" text="Apply for Refund"/>
-    <Button fx:id="showBookingsButton" text="Show All Bookings"/>
-    <Button onAction="#handleBackButton" text="Back"/>
+    <Button fx:id="applyRefundButton" styleClass="menu-button" text="Apply for Refund"/>
+    <Button fx:id="showBookingsButton" styleClass="menu-button" text="Show All Bookings"/>
+    <Button onAction="#handleBackButton" styleClass="menu-button" text="Back"/>
 </VBox>

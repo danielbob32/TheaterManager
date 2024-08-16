@@ -28,7 +28,7 @@
         <TextField fx:id="creditCardNumberField" promptText="Credit Card Number" />
 
         <HBox alignment="CENTER" spacing="10">
-            <Button fx:id="confirmPaymentButton" onAction="#handleConfirmPayment" style="-fx-background-color: green; -fx-font-size: 15; -fx-font-weight: bold;" text="Confirm Payment" textFill="WHITE">
+            <Button fx:id="confirmPaymentButton" onAction="#handleConfirmPayment" styleClass="menu-button" style="-fx-background-color: green; -fx-font-size: 15; -fx-font-weight: bold;" text="Confirm Payment" textFill="WHITE">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
@@ -36,7 +36,7 @@
                     <Font size="15.0" />
                 </font>
             </Button>
-            <Button fx:id="backButton" onAction="#handleBackButton" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
+            <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>

@@ -3,7 +3,6 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
@@ -31,8 +30,8 @@ public class SimpleServer extends AbstractServer {
 
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-		System.out.println("Received message from client: " + msg);
 		Message message = (Message) msg;
+		System.out.println("Received message from client: " + msg);
 		String request = message.getMessage();
 		try {
 			String action = request.split(":")[0];
@@ -66,11 +65,25 @@ public class SimpleServer extends AbstractServer {
 						boolean add_success = db.addMovie(movie);
 						if (add_success) {
 							client.sendToClient(new Message(0, "Movie add:success"));
-							//notifyTicketTabOwners(movie);
+							// Notify all connected clients about the new movie
+							sendToAllClients(new Message(0, "new_movie_added", objectMapper.writeValueAsString(movie)));
 						} else {
 							client.sendToClient(new Message(0, "Movie add:failed"));
 						}
 					}
+					break;
+				case "getNotifications":
+					int customerId = Integer.parseInt(message.getData());
+					List<Notification> notifications = db.getUnreadNotificationsForCustomer(customerId);
+					client.sendToClient(new Message(0, "notifications", objectMapper.writeValueAsString(notifications)));
+					break;
+
+				case "markNotificationAsRead":
+					String[] parts2 = message.getData().split(",");
+					int notificationId = Integer.parseInt(parts2[0]);
+					int customerIdForMarkRead = Integer.parseInt(parts2[1]);
+					db.markNotificationAsRead(notificationId, customerIdForMarkRead);
+					client.sendToClient(new Message(0, "notificationMarkedAsRead"));
 					break;
 
 				case "getMovies":
@@ -583,7 +596,7 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		message.setData(jsonMovies);
 		message.setAdditionalData(movieType);
 		message.setMessage("movieList");
-		//System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
+		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
 	}

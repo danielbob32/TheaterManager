@@ -18,7 +18,7 @@
                 <TextField fx:id="producerField" promptText="Producer" />
                 <TextField fx:id="actorsField" promptText="Actors" />
                 <TextField fx:id="durationField" promptText="Duration" />
-                <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage"/>
+                <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage" styleClass="menu-button"/>
                 <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
                 <TextField fx:id="genreField" promptText="Genre" />
                 <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
@@ -30,8 +30,8 @@
                 <VBox fx:id="homeMovieFields" visible="false" managed="false" spacing="10.0">
                     <TextField fx:id="homePriceField" promptText="Home Movie Price" />
                 </VBox>
-                <Button mnemonicParsing="false" onAction="#submitMovie" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
-                <Button mnemonicParsing="false" onAction="#goBack" text="Go Back" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Button mnemonicParsing="false" onAction="#submitMovie" styleClass="menu-button" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Button mnemonicParsing="false" onAction="#goBack" styleClass="menu-button" text="Go Back" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
             </children>
         </VBox>
     </children>

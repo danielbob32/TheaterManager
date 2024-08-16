@@ -1,18 +1,22 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.NotificationEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Notification;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
+import java.util.List;
 
 public class CustomerMenuController implements DataInitializable {
 
@@ -27,6 +31,9 @@ public class CustomerMenuController implements DataInitializable {
     @FXML
     private VBox buttonBox;
 
+    @FXML
+    private VBox notificationsBoard;
+
     @Override
     public void setClient(SimpleClient client) {
         this.client = client;
@@ -36,7 +43,9 @@ public class CustomerMenuController implements DataInitializable {
     public void initData(Object data) {
         System.out.println("CustomerMenuController initialized");
         updateWelcomeMessage();
-        addDynamicEffects();
+        EventBus.getDefault().register(this);
+        displayNotifications();
+        //addDynamicEffects();
     }
 
     private void updateWelcomeMessage() {
@@ -46,24 +55,81 @@ public class CustomerMenuController implements DataInitializable {
         }
     }
 
-    private void addDynamicEffects() {
-        // Adding a particle effect
-        for (int i = 0; i < 100; i++) {
-            javafx.scene.shape.Circle particle = new javafx.scene.shape.Circle(2, javafx.scene.paint.Color.web("rgba(255, 255, 255, 0.8)"));
-            rootPane.getChildren().add(particle);
+//    private void addDynamicEffects() {
+//        // Adding a particle effect
+//        for (int i = 0; i < 100; i++) {
+//            javafx.scene.shape.Circle particle = new javafx.scene.shape.Circle(2, javafx.scene.paint.Color.web("rgba(255, 255, 255, 0.8)"));
+//            rootPane.getChildren().add(particle);
+//
+//            double startX = Math.random() * rootPane.getWidth();
+//            double startY = Math.random() * rootPane.getHeight();
+//
+//            particle.setTranslateX(startX);
+//            particle.setTranslateY(startY);
+//
+//            javafx.animation.FadeTransition fadeTransition = new javafx.animation.FadeTransition(Duration.seconds(4), particle);
+//            fadeTransition.setFromValue(1);
+//            fadeTransition.setToValue(0);
+//            fadeTransition.setCycleCount(javafx.animation.FadeTransition.INDEFINITE);
+//            fadeTransition.setAutoReverse(true);
+//            fadeTransition.play();
+//        }
+//    }
 
-            double startX = Math.random() * rootPane.getWidth();
-            double startY = Math.random() * rootPane.getHeight();
+    private void requestNotifications() {
+        try {
+            client.requestNotifications();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-            particle.setTranslateX(startX);
-            particle.setTranslateY(startY);
+    @Subscribe
+    public void onNotificationEvent(NotificationEvent event) {
+        Platform.runLater(() -> updateNotificationsDisplay(event.getNotifications()));
+    }
 
-            javafx.animation.FadeTransition fadeTransition = new javafx.animation.FadeTransition(Duration.seconds(4), particle);
-            fadeTransition.setFromValue(1);
-            fadeTransition.setToValue(0);
-            fadeTransition.setCycleCount(javafx.animation.FadeTransition.INDEFINITE);
-            fadeTransition.setAutoReverse(true);
-            fadeTransition.play();
+    @FXML
+    public void displayNotifications() {
+        try {
+            client.requestNotifications();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to request notifications: " + e.getMessage());
+        }
+    }
+
+    private void updateNotificationsDisplay(List<Notification> notifications) {
+        notificationsBoard.getChildren().clear();
+        if (notifications.isEmpty()) {
+            Label noNotificationsLabel = new Label("No new notifications");
+            noNotificationsLabel.getStyleClass().add("notification");
+            notificationsBoard.getChildren().add(noNotificationsLabel);
+        } else {
+            for (Notification notification : notifications) {
+                HBox notificationBox = new HBox(10);
+                notificationBox.getStyleClass().add("notification");
+
+                Label notificationLabel = new Label(notification.getMessage());
+                Button markReadButton = new Button("Mark as Read");
+                markReadButton.setOnAction(e -> markNotificationAsRead(notification));
+
+                notificationBox.getChildren().addAll(notificationLabel, markReadButton);
+                notificationsBoard.getChildren().add(notificationBox);
+            }
+        }
+    }
+
+    private void markNotificationAsRead(Notification notification) {
+        try {
+            client.markNotificationAsRead(notification.getId());
+            notificationsBoard.getChildren().removeIf(node ->
+                    node instanceof HBox && ((HBox) node).getChildren().get(0) instanceof Label &&
+                            ((Label) ((HBox) node).getChildren().get(0)).getText().equals(notification.getMessage())
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to mark notification as read: " + e.getMessage());
         }
     }
 
@@ -121,6 +187,11 @@ public class CustomerMenuController implements DataInitializable {
     private void handleLogout() throws IOException {
         client.logout();
         App.setRoot("LoginPage", null);
+    }
+
+    @FXML
+    private void handleRefreshNotifications() {
+        displayNotifications();
     }
 
     public void cleanup() {

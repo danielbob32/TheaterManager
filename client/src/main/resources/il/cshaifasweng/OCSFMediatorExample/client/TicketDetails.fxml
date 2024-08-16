@@ -11,7 +11,7 @@
    <children>
       <Pane layoutX="27.0" layoutY="119.0" prefHeight="493.0" prefWidth="746.0" style="-fx-background-color: #d9d9d9;">
          <children>
-            <Button fx:id="homePageButton" layoutX="290.0" layoutY="418.0" mnemonicParsing="false" onAction="#handleBackButton" prefHeight="40.0" prefWidth="166.0" style="-fx-background-color: green;" text="Back to Movie List" textFill="WHITE">
+            <Button fx:id="homePageButton" layoutX="290.0" layoutY="418.0" mnemonicParsing="false" onAction="#handleBackButton" styleClass="menu-button" prefHeight="40.0" prefWidth="166.0" style="-fx-background-color: green;" text="Back to Movie List" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
@@ -19,7 +19,7 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Button>
-            <Text fx:id="nameText" layoutX="153.0" layoutY="336.0" strokeType="OUTSIDE" strokeWidth="0.0" text="name" wrappingWidth="333.13671875">
+            <Text fx:id="nameText" styleClass="menu-button" layoutX="153.0" layoutY="336.0" strokeType="OUTSIDE" strokeWidth="0.0" text="name" wrappingWidth="333.13671875">
                <font>
                   <Font size="20.0" />
                </font>
