@@ -7,20 +7,26 @@
 <?import java.net.URL?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomerComplaintHandlingBoundary"
-      spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+      spacing="10" alignment="CENTER" styleClass="complaints-root">
 
-    <Label text="Complaints" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+    <Label text="Complaints" styleClass="complaints-label" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
 
-    <ListView fx:id="complaintListView" VBox.vgrow="ALWAYS"/>
+    <!-- Updated TableView -->
+    <TableView fx:id="complaintTableView" VBox.vgrow="ALWAYS" styleClass="complaints-table-view">
+        <columns>
+            <TableColumn fx:id="titleColumn" text="Title" />
+            <TableColumn fx:id="dateColumn" text="Date Submitted" />
+            <TableColumn fx:id="statusColumn" text="Status" />
+        </columns>
+    </TableView>
 
     <HBox spacing="10" alignment="CENTER">
-        <Button fx:id="viewComplaintButton" styleClass="menu-button" text="View Complaint"/>
-        <Button fx:id="submitNewComplaintButton" styleClass="menu-button" text="Submit New Complaint" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <Button fx:id="viewComplaintButton" text="View Complaint" styleClass="complaints-button complaints-view-button"/>
+        <Button fx:id="submitNewComplaintButton" text="Submit New Complaint" styleClass="complaints-button complaints-submit-button"/>
     </HBox>
 
     <Button text="Back to Main Menu" onAction="#handleBackButton" styleClass="menu-button"/>
-
     <stylesheets>
-        <URL value="@ComplaintStyle.css"/>
+        <URL value="@App.css"/>
     </stylesheets>
 </VBox>
