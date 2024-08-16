@@ -20,6 +20,7 @@
             <TableColumn fx:id="purchaseTimeColumn" text="Purchase Time"/>
             <TableColumn fx:id="productsCountColumn" text="Products Count"/>
             <TableColumn fx:id="totalAmountPaidColumn" text="Total Amount Paid"/>
+            <TableColumn fx:id="statusColumn" text="Status"/> <!-- New Status Column -->
         </columns>
     </TableView>
     <Button fx:id="applyRefundButton" text="Apply for Refund"/>

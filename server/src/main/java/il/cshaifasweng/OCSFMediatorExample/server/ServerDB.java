@@ -344,6 +344,9 @@ public class ServerDB {
 
             System.out.println("Checking customer credentials for ID: " + id);
             System.out.println("Found customer: " + (customer != null));
+            for(Complaint c : customer.getComplaints()) {
+                System.out.println("Complaint title: " + c.getTitle());
+            }
 
             return customer;
         } catch (Exception e) {
@@ -1603,62 +1606,128 @@ public class ServerDB {
         }
     }
 
+//    public List<Booking> fetchUserBookings(int userId) throws Exception {
+//        try {
+//            System.out.println("DB1");
+//            CriteriaBuilder builder = session.getCriteriaBuilder();
+//            System.out.println("DB1.1");
+//            CriteriaQuery<Booking> query = builder.createQuery(Booking.class);
+//            System.out.println("DB1.2");
+//            Root<Booking> root = query.from(Booking.class);
+//            System.out.println("DB2");
+//            // Filter bookings by userId
+//            query.select(root).where(builder.equal(root.get("customer").get("personId"), userId));
+//            System.out.println("DB3");
+//            List<Booking> bookings = session.createQuery(query).getResultList();
+//            System.out.println("DB4");
+//            for (Booking booking : bookings) {
+//                // Load products
+//                Hibernate.initialize(booking.getProducts());
+//                System.out.println("DB5");
+//
+//                for (Product product : booking.getProducts()) {
+//                    System.out.println("DB6");
+//                    if (product instanceof Ticket) {
+//                        System.out.println("DB7");
+//                        Ticket ticket = (Ticket) product;
+//                        Movie movie = ticket.getMovie();
+//                        Screening screening = ticket.getScreening();
+////                        Cinema cinema = ticket.getCinema();
+//                        System.out.println("DB7.5");
+//                        System.out.println("movie.getScreenings:" + movie.getScreenings());
+//                        System.out.println("screening.getSeats():" + screening.getSeats());
+//                        System.out.println("screening.getHall():" + screening.getHall());
+//                        Hibernate.initialize(movie.getScreenings()); // Load movie screenings
+//                        Hibernate.initialize(screening.getSeats()); // Load screening seats
+//                        Hibernate.initialize(screening.getHall()); // Load screening hall
+////                        Hibernate.initialize(cinema.getMovieHalls()); // Load cinema movie halls
+//
+////                        for (MovieHall hall : cinema.getMovieHalls()) {
+////                            Hibernate.initialize(hall.getSeats()); // Load hall seats
+////                        }
+//                        System.out.println("DB8");
+//
+//                    } else if (product instanceof HomeMovieLink) {
+//                        System.out.println("DB9");
+//                        HomeMovieLink homeMovieLink = (HomeMovieLink) product;
+//                        Hibernate.initialize(homeMovieLink.getMovie()); // Load home movie link movie
+//                    }
+//                }
+//            }
+//            System.out.println("DB5");
+//            return bookings;
+//        } catch (Exception e) {
+//            throw new Exception("Error fetching bookings: " + e.getMessage(), e);
+//        }
+//    }
+
     public List<Booking> fetchUserBookings(int userId) throws Exception {
         try {
-            System.out.println("DB1");
+//            System.out.println("DB1");
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            System.out.println("DB1.1");
+//            System.out.println("DB1.1");
             CriteriaQuery<Booking> query = builder.createQuery(Booking.class);
-            System.out.println("DB1.2");
+//            System.out.println("DB1.2");
             Root<Booking> root = query.from(Booking.class);
-            System.out.println("DB2");
-            // Filter bookings by userId
+//            System.out.println("DB2");
             query.select(root).where(builder.equal(root.get("customer").get("personId"), userId));
-            System.out.println("DB3");
+//            System.out.println("DB3");
             List<Booking> bookings = session.createQuery(query).getResultList();
-            System.out.println("DB4");
+//            System.out.println("DB4");
             for (Booking booking : bookings) {
-                // Load products
-                Hibernate.initialize(booking.getProducts());
 
-                for (Product product : booking.getProducts()) {
-                    if (product instanceof Ticket) {
-                        Ticket ticket = (Ticket) product;
-                        Movie movie = ticket.getMovie();
-                        Screening screening = ticket.getScreening();
-//                        Cinema cinema = ticket.getCinema();
+                System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+                try {
+                    Hibernate.initialize(booking.getProducts());
+//                    System.out.println("DB5");
 
-                        Hibernate.initialize(movie.getScreenings()); // Load movie screenings
-                        Hibernate.initialize(screening.getSeats()); // Load screening seats
-                        Hibernate.initialize(screening.getHall()); // Load screening hall
-//                        Hibernate.initialize(cinema.getMovieHalls()); // Load cinema movie halls
+                    for (Product product : booking.getProducts()) {
+//                        System.out.println("DB6");
+                        if (product instanceof Ticket) {
+//                            System.out.println("DB7");
+                            Ticket ticket = (Ticket) product;
+                            Movie movie = ticket.getMovie();
+                            Screening screening = ticket.getScreening();
+//                            System.out.println("DB7.5");
 
-//                        for (MovieHall hall : cinema.getMovieHalls()) {
-//                            Hibernate.initialize(hall.getSeats()); // Load hall seats
-//                        }
-                    } else if (product instanceof HomeMovieLink) {
-                        HomeMovieLink homeMovieLink = (HomeMovieLink) product;
-                        Hibernate.initialize(homeMovieLink.getMovie()); // Load home movie link movie
+                            if (movie == null) {
+//                                System.out.println("Movie is null for ticket: " + ticket.getProduct_id());
+                            } else {
+//                                System.out.println("movie.getScreenings:" + movie.getScreenings());
+                                Hibernate.initialize(movie.getScreenings());
+                            }
+
+                            if (screening == null) {
+                                System.out.println("Screening is null for ticket: " + ticket.getProduct_id());
+                            } else {
+//                                System.out.println("screening.getSeats():" + screening.getSeats());
+//                                System.out.println("screening.getHall():" + screening.getHall());
+                                Hibernate.initialize(screening.getSeats());
+                                Hibernate.initialize(screening.getHall());
+                            }
+
+//                            System.out.println("DB8");
+                        } else if (product instanceof HomeMovieLink) {
+//                            System.out.println("DB9");
+                            HomeMovieLink homeMovieLink = (HomeMovieLink) product;
+                            Hibernate.initialize(homeMovieLink.getMovie());
+                        }
                     }
+                } catch (Exception e) {
+                    System.out.println("Error processing booking " + booking.getBookingId() + ": " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-            System.out.println("DB5");
+//            System.out.println("DB5");
             return bookings;
         } catch (Exception e) {
+            System.out.println("Error fetching bookings: " + e.getMessage());
+            e.printStackTrace();
             throw new Exception("Error fetching bookings: " + e.getMessage(), e);
         }
     }
-//    public void addComplaint(int userId, String title, String description) {
-    public void addComplaint(Complaint c) {
-//        System.out.println("Adding complaint for user ID: (in serverDB) " + userId);
-//        // Assuming Customer is an entity with a constructor that takes userId
-//        Customer customer = session.get(Customer.class, userId);
-//        Date date = new Date(); // Set the current date
-//        boolean isActive = true; // Initial status
-//
-//        // Create a new Complaint object using the specified constructor
-//        Complaint complaint = new Complaint(date, title, description, isActive, customer);
 
+    public void addComplaint(Complaint c) {
         session.beginTransaction();
         session.save(c);
         session.getTransaction().commit();
@@ -1751,10 +1820,13 @@ public class ServerDB {
 
                     session.update(product);
                 }
+                booking.setIsActive(false);
+                session.update(booking);
                 System.out.println("Cancelled booking with ID: " + bookingId);
             } else {
                 System.out.println("Booking not found for ID: " + bookingId);
             }
+
 
             transaction.commit();
         } catch (Exception e) {

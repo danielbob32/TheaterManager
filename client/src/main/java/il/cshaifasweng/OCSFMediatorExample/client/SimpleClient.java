@@ -366,8 +366,12 @@ public class SimpleClient extends AbstractClient {
     private void handleFetchUserBookingsResponse(Message message) {
         try {
             System.out.println("got fetchUserBookingsResponse");
+            System.out.println("Received Data: " + message.getData());
             List<Booking> bookings = objectMapper.readValue(message.getData(), new TypeReference<List<Booking>>() {});
             System.out.println("Finished deserializing bookings - SimpleClient");
+            for (Booking booking : bookings) {
+                System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+            }
             EventBus.getDefault().post(new BookingListEvent(Integer.parseInt(message.getAdditionalData()), bookings));
         } catch (IOException e) {
             e.printStackTrace();

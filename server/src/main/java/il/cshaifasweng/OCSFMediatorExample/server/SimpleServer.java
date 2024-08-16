@@ -621,6 +621,10 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		System.out.println("1");
 		List<Booking> bookings = db.fetchUserBookings(userId);
 		System.out.println("2");
+		for (Booking booking : bookings) {
+			System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+		}
+		System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
 		Message response = new Message(0, "fetchUserBookingsResponse", objectMapper.writeValueAsString(bookings));
 		System.out.println("3");
 		response.setAdditionalData(String.valueOf(userId));

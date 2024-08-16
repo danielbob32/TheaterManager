@@ -4,6 +4,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 @Entity
 public class Booking {
@@ -16,24 +18,17 @@ public class Booking {
     private Customer customer;
 
     private Date purchaseTime;
-
     private String email;
     private String creditCard;
     private int ticketTabId;
+    @JsonProperty("isActive")
+    boolean isActive; // Saves if this booking is active or cancelled
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "bookingId")
     private List<Product> products;
 
 
-//    @ManyToOne
-//    private Movie movie;
-//
-//    @ManyToOne
-//    private Seat seat;
-//
-//    @ManyToOne
-//    private MovieHall hall;
 
     // Constructors
     public Booking() {
@@ -47,9 +42,7 @@ public class Booking {
         this.creditCard = "";
         this.email = "";
         this.ticketTabId = 0;
-//        this.movie = movie;
-//        this.seat = seat;
-//        this.hall = hall;
+        this.isActive = true;
     }
 
 
@@ -59,26 +52,16 @@ public class Booking {
         this.email = email;
         this.creditCard = creditCard;
         this.products = new ArrayList<>();
+        this.isActive = true;
     }
 
     public Booking(Customer customer, Date purchaseTime, String email) {
         setCustomerAndBooking(customer);
         this.products = new ArrayList<>();
         this.purchaseTime = purchaseTime;
+        this.isActive = true;
         this.email = email;
     }
-
-//    public void setSeat(Seat seat) {
-//        this.seat = seat;
-//    }
-//
-//    public MovieHall getHall() {
-//        return hall;
-//    }
-//
-//    public void setHall(MovieHall hall) {
-//        this.hall = hall;
-//    }
 
     public int getBookingId() {
         return bookingId;
@@ -102,6 +85,14 @@ public class Booking {
         if (!customer.getBookings().contains(this)) {
             customer.getBookings().add(this);
         }
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public boolean isActive() {
+        return isActive;
     }
 
     public Date getPurchaseTime() {
