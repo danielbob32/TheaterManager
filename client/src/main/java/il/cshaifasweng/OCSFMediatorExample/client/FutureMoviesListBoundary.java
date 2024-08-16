@@ -46,19 +46,21 @@ public class FutureMoviesListBoundary implements DataInitializable {
 
     @FXML
     private void showFutureMovies() {
-        System.out.println("in showFutureMovies");
+//        System.out.println("in showFutureMovies");
         moviesContainer.getChildren().clear();
         client.getMovies();
     }
 
     @Override
     public void initData(Object data) {
-        System.out.println("in initData with the next data" + data);
+//        System.out.println("in initData with the next data" + data);
+        moviesContainer.getChildren().clear();
+        client.getMovies();
     }
 
     @Subscribe
     public void onMovieListEvent(MovieListEvent event) {
-        System.out.println("in onMovieListEvent");
+//        System.out.println("in onMovieListEvent");
         allMovies = event.getMovies();
         displayFutureMovies();
     }
@@ -71,7 +73,9 @@ public class FutureMoviesListBoundary implements DataInitializable {
         Date futureDate = calendar.getTime();
 
         List<Movie> futureMovies = allMovies.stream()
-                .filter(movie -> movie.getPremier().after(futureDate))
+                .filter(movie -> movie.getPremier().after(futureDate)
+                        && !movie.getIsHome()
+                        && !movie.getIsCinema())
                 .collect(Collectors.toList());
 
         Platform.runLater(() -> {
@@ -84,7 +88,7 @@ public class FutureMoviesListBoundary implements DataInitializable {
     }
 
     private VBox createMovieBox(Movie movie) {
-        System.out.println("in createMovieBox");
+//        System.out.println("in createMovieBox");
         VBox movieBox = new VBox(5);
 
         movieBox.setPadding(new Insets(10));
@@ -106,14 +110,14 @@ public class FutureMoviesListBoundary implements DataInitializable {
 //			System.out.println("Image created successfully");
         }
         if (image3 == null || image3.isError()) {
-            System.out.println("Using default image");
+//            System.out.println("Using default image");
             try {
                 InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
                 if (defaultImageStream != null) {
                     image3 = new Image(defaultImageStream);
 //					System.out.println("Default image loaded successfully");
                 } else {
-//					System.out.println("Default image not found");
+					System.out.println("Default image not found");
                 }
             } catch (Exception e) {
                 System.out.println("Error loading default image: " + e.getMessage());
