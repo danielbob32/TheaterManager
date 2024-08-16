@@ -2,10 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
@@ -179,10 +176,18 @@ public class ServerDB {
                 for (int i = 0; i < 30; i++) {  // Generate 30 complaints per cinema
                     Customer customer = customers.get(random.nextInt(customers.size()));
                     Date complaintDate = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
-                    Complaint complaint = new Complaint(complaintDate, "Sample complaint " + i, true, 0, customer);
+                    Complaint complaint = new Complaint(complaintDate, "Sample title" + i,"Sample complaint " + i, true,  customer);
                     session.save(complaint);
                 }
             }
+
+            // Generate complaints for customer with id: 2001
+            Customer myCostumer = session.get(Customer.class, 2001);
+            Complaint c1 = new Complaint(new Date(), "First Comaplaint", "Too Expensive", true, myCostumer);
+            Complaint c2 = new Complaint(new Date(), "Second Comaplaint", "Too Hot", true, myCostumer);
+            session.save(c1);
+            session.save(c2);
+
         }
         catch (Exception e) {
             System.err.println("Error in getOrCreateCustomers " + e.getMessage());
@@ -1541,6 +1546,237 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
+
+    // -----------------------------------------
+    // YONATHAN FUNCTIONS:
+    // -----------------------------------------
+
+    public Seat getSeatByIds(int seatId) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Seat.class, seatId);
+        }
+    }
+
+    public Customer getCustomerById(int id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(Customer.class, id);
+        }
+    }
+
+    public void saveCustomer(Customer customer) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.save(customer);
+            tx.commit();
+        }
+    }
+
+    public void updateSeat(Seat seat) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.update(seat);
+            tx.commit();
+        }
+    }
+
+    public void saveTicket(Ticket ticket) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.save(ticket);
+            tx.commit();
+        }
+    }
+
+    public void updateTicketTab(TicketTab ticketTab) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.update(ticketTab);
+            tx.commit();
+        }
+    }
+
+    public void saveBooking(Booking booking) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.save(booking);
+            tx.commit();
+        }
+    }
+
+    public List<Booking> fetchUserBookings(int userId) throws Exception {
+        try {
+            System.out.println("DB1");
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            System.out.println("DB1.1");
+            CriteriaQuery<Booking> query = builder.createQuery(Booking.class);
+            System.out.println("DB1.2");
+            Root<Booking> root = query.from(Booking.class);
+            System.out.println("DB2");
+            // Filter bookings by userId
+            query.select(root).where(builder.equal(root.get("customer").get("personId"), userId));
+            System.out.println("DB3");
+            List<Booking> bookings = session.createQuery(query).getResultList();
+            System.out.println("DB4");
+            for (Booking booking : bookings) {
+                // Load products
+                Hibernate.initialize(booking.getProducts());
+
+                for (Product product : booking.getProducts()) {
+                    if (product instanceof Ticket) {
+                        Ticket ticket = (Ticket) product;
+                        Movie movie = ticket.getMovie();
+                        Screening screening = ticket.getScreening();
+//                        Cinema cinema = ticket.getCinema();
+
+                        Hibernate.initialize(movie.getScreenings()); // Load movie screenings
+                        Hibernate.initialize(screening.getSeats()); // Load screening seats
+                        Hibernate.initialize(screening.getHall()); // Load screening hall
+//                        Hibernate.initialize(cinema.getMovieHalls()); // Load cinema movie halls
+
+//                        for (MovieHall hall : cinema.getMovieHalls()) {
+//                            Hibernate.initialize(hall.getSeats()); // Load hall seats
+//                        }
+                    } else if (product instanceof HomeMovieLink) {
+                        HomeMovieLink homeMovieLink = (HomeMovieLink) product;
+                        Hibernate.initialize(homeMovieLink.getMovie()); // Load home movie link movie
+                    }
+                }
+            }
+            System.out.println("DB5");
+            return bookings;
+        } catch (Exception e) {
+            throw new Exception("Error fetching bookings: " + e.getMessage(), e);
+        }
+    }
+//    public void addComplaint(int userId, String title, String description) {
+    public void addComplaint(Complaint c) {
+//        System.out.println("Adding complaint for user ID: (in serverDB) " + userId);
+//        // Assuming Customer is an entity with a constructor that takes userId
+//        Customer customer = session.get(Customer.class, userId);
+//        Date date = new Date(); // Set the current date
+//        boolean isActive = true; // Initial status
+//
+//        // Create a new Complaint object using the specified constructor
+//        Complaint complaint = new Complaint(date, title, description, isActive, customer);
+
+        session.beginTransaction();
+        session.save(c);
+        session.getTransaction().commit();
+
+        System.out.println("Complaint added successfully. (In serverDB)");
+    }
+
+    public List<Complaint> fetchAllComplaints() throws Exception {
+        try {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Complaint> query = builder.createQuery(Complaint.class);
+            Root<Complaint> root = query.from(Complaint.class);
+
+            query.select(root);
+
+            List<Complaint> complaints = session.createQuery(query).getResultList();
+
+            return complaints;
+        } catch (Exception e) {
+            throw new Exception("Error fetching complaints: " + e.getMessage(), e);
+        }
+    }
+
+    public List<Complaint> fetchComplaints(String status) {
+        try {
+            String hql = "FROM Complaint C WHERE C.isActive = :status";
+            Query<Complaint> query = session.createQuery(hql, Complaint.class);
+            query.setParameter("status", status);
+            List<Complaint> complaints = query.list();
+
+            System.out.println("Fetching complaints with status: " + status);
+            System.out.println("Found complaints: " + complaints.size());
+
+            return complaints;
+        } catch (Exception e) {
+            System.err.println("Error fetching complaints: " + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public void respondToComplaint(int complaintId, String responseText,int refund) {
+        try {
+            Transaction transaction = session.beginTransaction();
+            String hql = "FROM Complaint C WHERE C.id = :complaintId";
+            Query<Complaint> query = session.createQuery(hql, Complaint.class);
+            query.setParameter("complaintId", complaintId);
+            Complaint complaint = query.uniqueResult();
+
+            if (complaint != null) {
+                complaint.setRefund(refund);
+                complaint.setActive(false);
+                complaint.setResponse(responseText);
+                session.update(complaint);
+                System.out.println("Responded to complaint ID: " + complaintId);
+            } else {
+                System.out.println("Complaint not found for ID: " + complaintId);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            System.err.println("Error responding to complaint: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void updateComplaint(Complaint complaint) {
+        try {
+            session.beginTransaction();
+
+            session.update(complaint);
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            System.err.println("Error updating complaint: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void cancelBooking(int bookingId) {
+        try {
+            Transaction transaction = session.beginTransaction();
+            String hql = "FROM Booking B WHERE B.id = :bookingId";
+            Query<Booking> query = session.createQuery(hql, Booking.class);
+            query.setParameter("bookingId", bookingId);
+            Booking booking = query.uniqueResult();
+
+            if (booking != null) {
+                for (Product product : booking.getProducts()) {
+                    product.setActive(false);
+
+                    session.update(product);
+                }
+                System.out.println("Cancelled booking with ID: " + bookingId);
+            } else {
+                System.out.println("Booking not found for ID: " + bookingId);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            System.err.println("Error cancelling booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public Person fetchRandomCustomer() {
+        try {
+            String hql = "FROM Customer ORDER BY RAND()";
+            Query<Customer> query = session.createQuery(hql, Customer.class);
+            query.setMaxResults(1);
+            return query.uniqueResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
 }
 
 

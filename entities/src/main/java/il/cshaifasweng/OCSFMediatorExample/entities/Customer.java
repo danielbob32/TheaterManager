@@ -1,21 +1,21 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Entity
-
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,  property = "personId")
 public class Customer extends Person{
-
 
     private String email;
 
     @OneToMany(mappedBy = "customer")
     private List<Booking> bookings;
-
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "customer_id")
@@ -37,9 +37,6 @@ public class Customer extends Person{
     }
 
     // Getters and setters
-
-
-
     public String getEmail() {
         return email;
     }
@@ -56,16 +53,6 @@ public class Customer extends Person{
        this.bookings = bookings;
    }
 
-//    public List<HomeMovieLink> getHomeMovies() {
-//        List<HomeMovieLink> homeLinks = new ArrayList<HomeMovieLink>();
-//        for(Product product : products) {
-//            if(product instanceof HomeMovieLink) {
-//                homeLinks.add((HomeMovieLink) product);
-//            }
-//        }
-//        return homeLinks;
-//    }
-
     public void setProducts(List<Product> products) {
         this.products = products;
     }
@@ -73,26 +60,6 @@ public class Customer extends Person{
     public List<Product> getProducts() {
         return products;
     }
-
-//    public List<TicketTab> getTicketTabs() {
-//        List<TicketTab> tabs = new ArrayList<TicketTab>();
-//        for(Product product : products) {
-//            if(product instanceof TicketTab) {
-//                tabs.add((TicketTab) product);
-//            }
-//        }
-//        return tabs;
-//    }
-
-//    public List<Ticket> getTickets() {
-//        List<Ticket> tickets = new ArrayList<Ticket>();
-//        for(Product product : products) {
-//            if(product instanceof Ticket) {
-//                tickets.add((Ticket) product);
-//            }
-//        }
-//        return tickets;
-//    }
 
     public List<Complaint> getComplaints() {
         return complaints;
@@ -111,8 +78,4 @@ public class Customer extends Person{
     {
         this.products.add(b);
     }
-
-
-
-
 }

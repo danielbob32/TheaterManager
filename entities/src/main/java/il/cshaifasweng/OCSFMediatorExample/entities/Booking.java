@@ -55,11 +55,10 @@ public class Booking {
 
     public Booking(Customer customer, Date purchaseTime, String email, String creditCard) {
         setCustomerAndBooking(customer);
-
-        this.products = new ArrayList<>();
         this.purchaseTime = purchaseTime;
         this.email = email;
         this.creditCard = creditCard;
+        this.products = new ArrayList<>();
     }
 
     public Booking(Customer customer, Date purchaseTime, String email) {

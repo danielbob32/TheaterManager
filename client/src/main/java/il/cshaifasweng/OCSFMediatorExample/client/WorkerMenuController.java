@@ -79,7 +79,7 @@ public class WorkerMenuController implements DataInitializable {
     private void handleComplaint() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
 
-        App.setRoot("HandleComplaint", connectedPerson);
+        App.setRoot("WorkerComplaintBoundary", connectedPerson);
     }
 
     @FXML

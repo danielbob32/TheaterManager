@@ -108,13 +108,13 @@ public class CustomerMenuController implements DataInitializable {
     @FXML
     private void refundTickets() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        App.setRoot("RefundTickets", connectedPerson);
+        App.setRoot("BookingsBoundary", connectedPerson);
     }
 
     @FXML
     private void fileComplaint() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        App.setRoot("FileComplaint", connectedPerson);
+        App.setRoot("CustomerComplaint", null);
     }
 
     @FXML
