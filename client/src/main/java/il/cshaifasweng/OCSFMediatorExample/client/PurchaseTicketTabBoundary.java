@@ -1,24 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
-
-
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-
 import javax.xml.bind.ValidationException;
 import java.io.IOException;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,12 +106,9 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     }
 
     private void validateName() throws ValidationException {
-        String name = nameTextField.getText();
-        if (name.isBlank()) {
-            throw new ValidationException("Name cannot be empty.");
-        }
-        if (!isAllLetters(name)) {
-            throw new ValidationException("Name should contain only letters.");
+        String name = nameTextField.getText().trim();
+        if (!Pattern.matches("[a-zA-Z\\s]+", name)) {
+            throw new ValidationException("Invalid name. Please use only letters and spaces.");
         }
     }
 
@@ -150,10 +138,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
 
     private static boolean isAllNums(String s) {
         return s != null && s.matches("[0-9]*");
-    }
-
-    private static boolean isAllLetters(String s) {
-        return s != null && s.matches("[a-zA-Z]+");
     }
 
     private static boolean isEmailValid(String email) {

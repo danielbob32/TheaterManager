@@ -323,7 +323,6 @@ public class SimpleServer extends AbstractServer {
 				newBooking = db.purchaseTicketWithCreditCard(name, id, email, paymentNum, cinemaPrice, screeningId, seatIds);
 			} else if (paymentMethod.equals("ticketTab")) {
 				newBooking = db.purchaseTicketWithTicketTab(name, id, email, paymentNum, screeningId, seatIds);
-				System.out.println("0");
 				ticketTab = db.getTicketTabById(Integer.parseInt(paymentNum));
 			}
 
@@ -346,7 +345,7 @@ public class SimpleServer extends AbstractServer {
 
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
-				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("name", name);
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketNum", ticketNum);
 				bookingNode.put("seats", seats);
@@ -358,15 +357,12 @@ public class SimpleServer extends AbstractServer {
 
 				if (paymentMethod.equals("ticketTab")) {
 					if (ticketTab != null) {
-						System.out.println("1");
 						bookingNode.put("amountLeft", ticketTab.getAmount());
 					} else {
-						System.out.println("2");
 						bookingNode.put("amountLeft", 0);
 					}
 				}
 
-				System.out.println("3");
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
 				client.sendToClient(new Message(0,"addedTicketsSuccessfully", jsonBooking));
 
@@ -412,7 +408,7 @@ public class SimpleServer extends AbstractServer {
 			if (newBooking != null) {
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
-				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("name", name);
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketTabId", newBooking.getTicketTabId());
 
