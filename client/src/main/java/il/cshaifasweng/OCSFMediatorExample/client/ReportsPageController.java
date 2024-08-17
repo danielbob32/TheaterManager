@@ -5,6 +5,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.CinemaManager;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -94,38 +95,47 @@ public class ReportsPageController implements DataInitializable {
             }
         }
     }
-
+    
     @Override
     public void initData(Object data) {
-        if (data instanceof Person) {
-            Person user = (Person) data;
-            if (user instanceof Worker) {
-                Worker worker = (Worker) user;
-                boolean isBranchManager = "Chain manager".equals(worker.getWorkerType());
-                cinemaComboBox.setVisible(isBranchManager);
-                cinemaComboBox.setManaged(isBranchManager);
-                if (isBranchManager) {
-                    try {
-                        client.requestCinemaList();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        showAlert("Error requesting cinema list: " + e.getMessage());
-                    }
-                } else if (worker instanceof CinemaManager) {
-                    CinemaManager cinemaManager = (CinemaManager) worker;
-                    Cinema managerCinema = cinemaManager.getCinema();
-                    if (managerCinema != null) {
-                        cinemaComboBox.getItems().add(managerCinema.getCinemaName());
-                        cinemaComboBox.getSelectionModel().selectFirst();
-                    } else {
-                        System.err.println("CinemaManager has no associated cinema");
-                    }
-                } else {
-                    System.err.println("Worker is not a CinemaManager");
-                }
+        System.out.println("inside init data before if data");
+        if (data instanceof Worker) {
+            Worker user = (Worker) data;
+            System.out.println("inside init data before instance");
+            boolean isCinemaManager = "CinemaManager".equalsIgnoreCase(user.getWorkerType());
+            boolean isChainManager = "Chain manager".equalsIgnoreCase(user.getWorkerType());
+    
+            System.out.println("Worker Type: " + user.getWorkerType());
+            System.out.println("Is Cinema Manager: " + isCinemaManager);
+            System.out.println("Is Chain Manager: " + isChainManager);
+    
+            if (isCinemaManager && user instanceof CinemaManager) {
+                CinemaManager cinemaManager = (CinemaManager) user;
+                // Lock the cinema selection to the cinema managed by the CinemaManager
+                cinemaComboBox.setVisible(false);
+                cinemaComboBox.setManaged(false);
+        
+                // Lock the report type to "Monthly Ticket Sales"
+                reportTypeComboBox.setVisible(false);
+                reportTypeComboBox.setManaged(false);
+        
+                // Enable the export button since Cinema Managers should be able to export
+                exportButton.setDisable(false);
+            } else if (isChainManager) {
+                // Chain manager can see all options
+                cinemaComboBox.setVisible(true);
+                reportTypeComboBox.setVisible(true);
+                exportButton.setDisable(false);
+            } else {
+                // Other worker types: hide the report options
+                cinemaComboBox.setVisible(false);
+                reportTypeComboBox.setVisible(false);
+                exportButton.setDisable(true);
             }
         }
     }
+    
+    
 
     private void setupComboBoxes() {
         reportTypeComboBox.getItems().addAll(
@@ -172,13 +182,37 @@ public class ReportsPageController implements DataInitializable {
         cinemaComboBox.setManaged(showCinemaBox);
     }
 
+    
+
     @FXML
     private void generateReport() {
         String reportType = reportTypeComboBox.getValue();
         YearMonth month = monthPicker.getValue();
         String cinema = cinemaComboBox.getValue();
+
+        //set labels to invisible
+        hideAllLabels();
     
-        if (reportType == null || month == null || (cinemaComboBox.isVisible() && cinema == null)) {
+        Person connectedPerson = client.getConnectedPerson();
+        System.out.println("Connected person instance: " + connectedPerson.getClass().getName());
+    
+        if (connectedPerson instanceof Worker) {
+            Worker worker = (Worker) connectedPerson;
+            String workerType = worker.getWorkerType();
+            System.out.println("Worker detected. Worker Type: " + workerType);
+    
+            if ("CinemaManager".equals(workerType)) {
+                System.out.println("Connected person is a CinemaManager");
+                reportType = "Monthly Ticket Sales Manager";
+                System.out.println("CinemaManager detected. Cinema: " + cinema);
+            } else {
+                System.out.println("Connected person is not a CinemaManager");
+            }
+        } else {
+            System.out.println("Connected person is not a Worker");
+        }
+    
+        if (reportType == null || month == null || cinema == null) {
             showAlert("Please select all required fields.");
             return;
         }
@@ -194,38 +228,95 @@ public class ReportsPageController implements DataInitializable {
     
     @Subscribe
     public void onReportDataReceived(ReportDataEvent event) {
+        System.out.println("Received report data event: type=" + event.getReportType() + ", data=" + event.getReportData());
         Platform.runLater(() -> {
-            hideAllLabels();  // Ensure all labels are hidden before showing the appropriate one
             currentReportData = event.getReportData();
             reportContainer.getChildren().clear();
             switch (event.getReportType()) {
                 case "Monthly Ticket Sales":
+                    System.out.println("Displaying Monthly Ticket Sales report");
                     displayTicketSalesReport(currentReportData);
-                    totalTicketsLabel.setVisible(true);
-                    totalTicketsLabel.setManaged(true);
+                    break;
+                case "Monthly Ticket Sales Manager":  // Add this case
+                    System.out.println("Displaying Monthly Ticket Sales Manager report");
+                    displayTicketSalesManagerReport(currentReportData);
                     break;
                 case "Ticket Tab Sales":
+                    System.out.println("Displaying Ticket Tab Sales report");
                     displayTabSalesReport(currentReportData);
-                    totalTicketTabsLabel.setVisible(true);
-                    totalTicketTabsLabel.setManaged(true);
                     break;
                 case "Home Movie Link Sales":
+                    System.out.println("Displaying Home Movie Link Sales report");
                     displayHomeMovieLinkSalesReport(currentReportData);
-                    totalLinksLabel.setVisible(true);
-                    totalLinksLabel.setManaged(true);
                     break;
                 case "Customer Complaints Histogram":
+                    System.out.println("Displaying Customer Complaints Histogram");
                     displayComplaintsHistogram(currentReportData);
-                    totalComplaintsLabel.setVisible(true);
-                    totalComplaintsLabel.setManaged(true);
                     break;
                 default:
+                    System.out.println("Unknown report type: " + event.getReportType());
                     break;
             }
-            exportButton.setDisable(false);
         });
     }
-
+    
+    private void displayTicketSalesManagerReport(String reportData) {
+        try {
+            System.out.println("Report data received: " + reportData);
+            String[] lines = reportData.split("\n");
+    
+            if (lines.length < 2) {
+                showAlert("No valid data available in the report.");
+                return;
+            }
+    
+            // Skip the title line and any empty line right after it
+            String titleLine = lines[0];
+            String cinema = titleLine.split("for ")[1].split(" -")[0]; // Extract cinema name from title
+    
+            CategoryAxis xAxis = new CategoryAxis();
+            NumberAxis yAxis = new NumberAxis();
+            BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+    
+            barChart.setTitle("Monthly Ticket Sales for " + cinema);
+            xAxis.setLabel("Day of Month");
+            yAxis.setLabel("Number of Tickets Sold");
+    
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Ticket Sales");
+            int totalTickets = 0;
+    
+            for (int i = 2; i < lines.length; i++) { // Start from index 2 to skip the title and the empty line
+                System.out.println("Processing line: " + lines[i]);  // Debugging
+    
+                if (lines[i].trim().isEmpty()) {
+                    continue; // Skip any empty lines
+                }
+    
+                String[] parts = lines[i].split(": ");
+                if (parts.length == 2) {
+                    try {
+                        int tickets = Integer.parseInt(parts[1]);
+                        series.getData().add(new XYChart.Data<>(parts[0], tickets));
+                        totalTickets += tickets;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Skipping line due to number format issue: " + lines[i]);
+                    }
+                }
+            }
+    
+            barChart.getData().add(series);
+            reportContainer.getChildren().add(barChart);
+            totalTicketsLabel.setText("Total Tickets: " + totalTickets);
+            totalTicketsLabel.setVisible(true);
+            totalTicketsLabel.setManaged(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error parsing ticket sales report data: " + e.getMessage());
+        }
+    }
+    
+    
 private void displayTicketSalesReport(String reportData) {
     try {
         String[] lines = reportData.split("\n");
@@ -252,7 +343,9 @@ private void displayTicketSalesReport(String reportData) {
 
         barChart.getData().add(series);
         reportContainer.getChildren().add(barChart);
-        totalTicketsLabel.setText("Total Tickets: " + totalTickets); // Update total tickets label
+        totalTicketsLabel.setText("Total Tickets: " + totalTickets);
+        totalTicketsLabel.setVisible(true);
+        totalTicketsLabel.setManaged(true);
     } catch (Exception e) {
         e.printStackTrace();
         showAlert("Error parsing ticket sales report data: " + e.getMessage());
@@ -287,6 +380,8 @@ private void displayTabSalesReport(String reportData) {
     // Now we use totalTabs which is effectively final here
     if (totalTicketTabsLabel != null) {
         totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs);
+        totalTicketTabsLabel.setVisible(true);
+        totalTicketTabsLabel.setManaged(true);
     } else {
         System.err.println("Label totalTicketTabsLabel is not initialized.");
     }
@@ -318,7 +413,9 @@ private void displayHomeMovieLinkSalesReport(String reportData) {
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
-    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); // Update total links label
+    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); 
+    totalLinksLabel.setVisible(true);
+    totalLinksLabel.setManaged(true);
 }
 
 
@@ -345,7 +442,9 @@ private void displayComplaintsHistogram(String reportData) {
 
     barChart.getData().add(series);
     reportContainer.getChildren().add(barChart);
-    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); // Update total complaints label
+    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); 
+    totalComplaintsLabel.setVisible(true);
+    totalComplaintsLabel.setManaged(true);
 }
 
 
@@ -394,11 +493,19 @@ private void displayComplaintsHistogram(String reportData) {
         showAlert("Alert", message);
     }
 
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    @Subscribe
+    public void onFailureEvent(FailureEvent event) {
+    Platform.runLater(() -> {
+        System.out.println("Report generation failed: " + event.getErrorMessage());
+        showAlert("Report Generation Failed", event.getErrorMessage());
+    });
+    }
+    
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 

@@ -317,17 +317,27 @@ public class ServerDB {
             Query<Worker> query = session.createQuery(hql, Worker.class);
             query.setParameter("id", id);
             Worker worker = query.uniqueResult();
-
+    
             System.out.println("Checking worker credentials for ID: " + id);
             System.out.println("Found worker: " + (worker != null));
-            boolean passcode = false;
-            if (worker != null) {
-                passcode = worker.getPassword().equals(password);
-                System.out.println("Password match: " + worker.getPassword().equals(password));
-                if (passcode) {
-                    return worker;
+            System.out.println("in checkworkercredentials before if");
+    
+            if (worker != null && worker.getPassword().equals(password)) {
+                System.out.println("in checkworkercredentials after if");
+    
+                if (worker instanceof CinemaManager) {
+                    System.out.println("in checkworkercredentials after if instance of");
+                    System.out.println("worker is cinema manager");
+                    CinemaManager manager = session.get(CinemaManager.class, id);
+                    // Cast the worker to CinemaManager instead of re-fetching it
+                    return manager;
                 }
+    
+                System.out.println("in checkworkercredentials after if not instance of");
+                return worker;  // Return the worker as is for other types
             }
+    
+            System.out.println("in checkworkercredentials after if not found");
             return null;
         } catch (Exception e) {
             System.err.println("Error checking worker credentials: " + e.getMessage());
@@ -335,7 +345,9 @@ public class ServerDB {
             return null;
         }
     }
-
+    
+    
+    
     public Customer checkCustomerCredentials(int id) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Customer C WHERE C.id = :id";
@@ -358,6 +370,7 @@ public class ServerDB {
     }
 
     public String getWorkerType(int id) {
+        System.out.println("in getWorkerType");
         try (Session session = sessionFactory.openSession()) {
             String hql = "SELECT W.workerType FROM Worker W WHERE W.id = :id";
             Query<String> query = session.createQuery(hql, String.class);
@@ -598,20 +611,28 @@ public class ServerDB {
             return null;
         }
     }
-
+    // added here the cinema manager foir each cinema
     private List<Cinema> generateCinemas() {
-        try(Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
             String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
-
+    
             List<Cinema> cinemas = new ArrayList<>();
             Random random = new Random();
-
+    
             for (int i = 0; i < 4; i++) {
                 Cinema cinema = new Cinema(cinemaNames[i], locations[i], new ArrayList<>(), null);
+                // print cinema created
+                System.out.println("Cinema created: " + cinemaNames[i]);
+                // Create a CinemaManager for each cinema
+                Worker w = new CinemaManager("Cinema Manager " + (i+1), "" + (i+1), 1004 + i, cinema);
+                cinema.setManager((CinemaManager) w);
+
+                session.save(w);
                 session.save(cinema);
 
+    
                 // Generate 5 halls for each cinema
                 for (int j = 0; j < 5; j++) {
                     MovieHall hall = new MovieHall(j + 1, new ArrayList<>(), cinema);
@@ -630,6 +651,7 @@ public class ServerDB {
             return null;
         }
     }
+    
 
     
     private void generateScreenings(List<Movie> movies, List<Cinema> cinemas) {
@@ -1383,11 +1405,14 @@ public class ServerDB {
         }
     }
 
+
     public String generateReport(String reportType, LocalDate month, String cinema) {
-        try(Session session = sessionFactory.openSession())  {
+        try(Session session = sessionFactory.openSession()) {
             switch (reportType) {
                 case "Monthly Ticket Sales":
                     return generateMonthlyTicketSalesReport(session, month, cinema);
+                case "Monthly Ticket Sales Manager":
+                    return generateMonthlyTicketSalesReportForManager(session, month, cinema);
                 case "Ticket Tab Sales":
                     return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY);
                 case "Home Movie Link Sales":
@@ -1398,11 +1423,38 @@ public class ServerDB {
                     return "Invalid report type";
             }
         } catch (Exception e) {
-            System.out.println("Error in generateReport"+ e.getMessage());
+            System.out.println("Error in generateReport" + e.getMessage());
             e.printStackTrace();
             return "Error generating report: " + e.getMessage();
         }
     }
+    
+    private String generateMonthlyTicketSalesReportForManager(Session session, LocalDate month, String cinema) {
+        StringBuilder hql = new StringBuilder("SELECT DAY(t.purchaseTime) as day, COUNT(t) ");
+        hql.append("FROM Ticket t JOIN t.screening s JOIN s.cinema c ");
+        hql.append("WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month ");
+        hql.append("AND c.cinemaName = :cinema ");
+        hql.append("GROUP BY DAY(t.purchaseTime) ORDER BY 1");
+    
+        Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
+        query.setParameter("year", month.getYear());
+        query.setParameter("month", month.getMonthValue());
+        query.setParameter("cinema", cinema);
+    
+        List<Object[]> results = query.getResultList();
+        StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Daily Ticket Sales for ").append(cinema).append(" - ").append(month.getMonth()).append(" ").append(month.getYear()).append("\n\n");
+    
+        for (Object[] row : results) {
+            Integer day = (Integer) row[0];
+            Long ticketCount = (Long) row[1];
+            reportBuilder.append("Day ").append(day).append(": ").append(ticketCount).append("\n");
+        }
+    
+        return reportBuilder.toString();
+    }
+    
+    
 
     private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
         StringBuilder hql = new StringBuilder("SELECT ");
@@ -1454,6 +1506,7 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
+    
     
 
 

@@ -28,7 +28,7 @@ public class HomeMovieLink extends Product {
         super(clientId, price, isActive, purchaseTime);
         this.openTime = openTime;
         this.closeTime = closeTime;
-        this.isOpen = isOpen;
+        this.isOpen = false;
         this.watchLink = watchLink;
     }
 
