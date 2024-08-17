@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
@@ -90,6 +91,19 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         }
     }
 
+    @Subscribe
+    public void onCustomerComplaintListEvent(CustomerComplaintListEvent event) {
+        System.out.println("DEBUG: in onComplaintListEvent");
+        List<Complaint> complaints = event.getComplaints();
+        if (complaints == null) {
+            System.out.println("Complaints list is null. Initializing to an empty list.");
+            complaints = new ArrayList<>(); // Initialize to an empty list if null
+        }
+
+        System.out.println("Loaded complaints: " + complaints.size() + " items.");
+        complaintTableView.getItems().setAll(complaints);
+    }
+
     private void showComplaintDetails(Complaint complaint) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Complaint Details");
@@ -142,7 +156,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         dialog.showAndWait().ifPresent(complaint -> {
             try {
                 client.submitComplaint(complaint);
-                loadComplaints();
+//                loadComplaints();
             } catch (IOException e) {
                 showAlert("Error", "Failed to submit complaint.");
                 e.printStackTrace();
@@ -154,8 +168,15 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
         Platform.runLater(() -> {
             showAlert("Success", "Complaint submitted successfully!");
-            loadComplaints();
         });
+        try{
+            client.fetchCustomerComplaints();
+        }
+        catch(IOException e){
+            showAlert("Error", "Failed to fetch customer complaints.");
+            e.printStackTrace();
+        }
+
     }
 
     private void showAlert(String title, String content) {

@@ -1,9 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.RespondToComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
-import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;

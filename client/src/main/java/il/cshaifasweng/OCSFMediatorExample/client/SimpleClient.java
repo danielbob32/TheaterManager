@@ -128,6 +128,9 @@ public class SimpleClient extends AbstractClient {
                 case "fetchComplaintsResponse":
                     handleFetchComplaintsResponse(message);
                     break;
+                case "fetchCustomerComplaintsResponse":
+                    handleFetchCustomerComplaintsResponse(message);
+                    break;
                 case "respondToComplaintResponse":
                     handleRespondToComplaintResponse(message);
                     break;
@@ -452,6 +455,19 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
+    private void handleFetchCustomerComplaintsResponse(Message message)
+    {
+        try {
+//            System.out.println("got fetchComplaintsResponse");
+            List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
+            System.out.println("Got customer complaints, size: " + complaints.size());
+            EventBus.getDefault().post(new CustomerComplaintListEvent(complaints));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize complaints"));
+        }
+    }
+
     private void handleRespondToComplaintResponse(Message message)
     {
 //        System.out.println("got updateComplaintResponse");
@@ -722,11 +738,13 @@ private void handleReportData(String data) {
         Message message = new Message(0, "cancelPurchase", String.valueOf(purchaseId),String.valueOf(refund));
         sendToServer(message);
     }
+
     public void submitComplaint(Complaint data) throws IOException {
         String jsonData = objectMapper.writeValueAsString(data);
         Message message = new Message(0, "submitComplaint", jsonData);
         sendToServer(message);
     }
+
     public void respondToComplaint(Complaint complaint) {
         try {
             int complaintId = complaint.getComplaint_id();
@@ -737,10 +755,18 @@ private void handleReportData(String data) {
             e.printStackTrace();
         }
     }
+
     public void fetchAllComplaints() throws IOException {
         Message message = new Message(0, "fetchAllComplaints");
         sendToServer(message);
     }
+
+    public void fetchCustomerComplaints() throws IOException
+    {
+        Message message = new Message(0, "fetchCustomerComplaints", String.valueOf(this.connectedPerson.getPersonId()));
+        sendToServer(message);
+    }
+
     public void fetchComplaints(String status) throws IOException {
         Message message = new Message(0, "fetchComplaints", status);
         sendToServer(message);

@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
@@ -9,7 +10,7 @@ import java.util.List;
 
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,  property = "personId")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, scope=Customer.class, property = "personId")
 public class Customer extends Person{
 
     private String email;
@@ -22,6 +23,7 @@ public class Customer extends Person{
     private List<Product> products;
 
     @OneToMany(mappedBy = "customer")
+    @JsonIgnoreProperties({"customer"})
     private List<Complaint> complaints;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)

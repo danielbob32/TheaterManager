@@ -1,13 +1,14 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,  property = "complaint_id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, scope = Complaint.class ,property = "complaint_id")
 public class Complaint {
 
     @Id
@@ -21,6 +22,7 @@ public class Complaint {
     private String response;
 
     @ManyToOne
+    @JsonIgnoreProperties({"complaints"})
     private Customer customer;
 
     // Constructors
