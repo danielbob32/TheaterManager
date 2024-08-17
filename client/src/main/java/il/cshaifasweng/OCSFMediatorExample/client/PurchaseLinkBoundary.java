@@ -165,6 +165,7 @@ public class PurchaseLinkBoundary implements DataInitializable {
                 System.out.println("Purchase successful. Response data: " + event.getData());
                 showAlert("Payment successful! An email has been sent with the movie link details.");
                 try {
+                    cleanup(); 
                     App.setRoot("LinkDetails", event.getData());
                 } catch (IOException e) {
                     e.printStackTrace();
