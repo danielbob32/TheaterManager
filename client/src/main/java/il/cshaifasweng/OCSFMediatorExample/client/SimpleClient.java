@@ -374,13 +374,12 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             if (isSuccessful) {
                 System.out.println("Received successful purchase response: " + message.getData());
-                EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", message.getData()));
+                EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(true, "Purchase successful", message.getData()));
             } else {
-                EventBus.getDefault().post(new PurchaseResponseEvent(false, "Purchase failed"));
+                EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(false, "Purchase failed", null));
             }
         });
     }
-
 
 //    @Override
 //    protected void handleMessageFromServer(Object msg) {

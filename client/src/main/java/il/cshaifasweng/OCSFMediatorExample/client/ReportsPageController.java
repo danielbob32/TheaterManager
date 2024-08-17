@@ -182,6 +182,8 @@ public class ReportsPageController implements DataInitializable {
         cinemaComboBox.setManaged(showCinemaBox);
     }
 
+    
+
     @FXML
     private void generateReport() {
         String reportType = reportTypeComboBox.getValue();

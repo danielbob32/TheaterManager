@@ -52,6 +52,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
 
     public void initialize() {
         EventBus.getDefault().register(this);
+        dateSelector.setEditable(false);
     }
 
     public void cleanup() {
