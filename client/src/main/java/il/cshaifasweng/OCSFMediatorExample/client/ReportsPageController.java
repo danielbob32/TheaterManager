@@ -1,77 +1,53 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Cinema;
-import il.cshaifasweng.OCSFMediatorExample.entities.CinemaManager;
-import il.cshaifasweng.OCSFMediatorExample.entities.Person;
-import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
-import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.FailureEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.ReportDataEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
+import javafx.scene.chart.*;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-
-import java.util.Optional;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.YearMonth;
+import java.io.*;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class ReportsPageController implements DataInitializable {
 
-    @FXML
-    private ComboBox<String> reportTypeComboBox;
-    @FXML
-    private ComboBox<YearMonth> monthPicker;
-    @FXML
-    private ComboBox<String> cinemaComboBox;
-    @FXML
-    private VBox reportContainer;
-    @FXML
-    private Button exportButton;
-    @FXML
-    private Label totalTicketsLabel;
-    @FXML
-    private Label totalTicketTabsLabel;
-    @FXML
-    private Label totalLinksLabel;
-    @FXML
-    private Label totalComplaintsLabel;
+    @FXML private ComboBox<String> reportTypeComboBox;
+    @FXML private ComboBox<YearMonth> monthPicker;
+    @FXML private ComboBox<String> cinemaComboBox;
+    @FXML private VBox reportContainer;
+    @FXML private Button exportButton;
+    @FXML private Label totalTicketsLabel;
+    @FXML private Label totalTicketTabsLabel;
+    @FXML private Label totalLinksLabel;
+    @FXML private Label totalComplaintsLabel;
 
     private SimpleClient client;
     private String currentReportData;
+
+    // Define colors for each report type
+    private static final String MONTHLY_SALES_COLOR = "#33ffb5";
+    private static final String TICKET_TAB_COLOR = "#33e6cc";
+    private static final String HOME_MOVIE_COLOR = "#33ccff";
+    private static final String COMPLAINTS_COLOR = "#3399ff";
 
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
         setupComboBoxes();
-        hideAllLabels();  // Call this here to ensure all are hidden initially
+        hideAllLabels();
         exportButton.setDisable(true);
     }
 
     private void hideAllLabels() {
-        // Ensure labels are not only invisible but also not managed by the layout
         totalTicketsLabel.setVisible(false);
         totalTicketsLabel.setManaged(false);
         totalTicketTabsLabel.setVisible(false);
@@ -81,7 +57,6 @@ public class ReportsPageController implements DataInitializable {
         totalComplaintsLabel.setVisible(false);
         totalComplaintsLabel.setManaged(false);
     }
-
 
     @Override
     public void setClient(SimpleClient client) {
@@ -98,44 +73,28 @@ public class ReportsPageController implements DataInitializable {
     
     @Override
     public void initData(Object data) {
-        System.out.println("inside init data before if data");
         if (data instanceof Worker) {
             Worker user = (Worker) data;
-            System.out.println("inside init data before instance");
             boolean isCinemaManager = "CinemaManager".equalsIgnoreCase(user.getWorkerType());
             boolean isChainManager = "Chain manager".equalsIgnoreCase(user.getWorkerType());
     
-            System.out.println("Worker Type: " + user.getWorkerType());
-            System.out.println("Is Cinema Manager: " + isCinemaManager);
-            System.out.println("Is Chain Manager: " + isChainManager);
-    
             if (isCinemaManager && user instanceof CinemaManager) {
-                CinemaManager cinemaManager = (CinemaManager) user;
-                // Lock the cinema selection to the cinema managed by the CinemaManager
                 cinemaComboBox.setVisible(false);
                 cinemaComboBox.setManaged(false);
-        
-                // Lock the report type to "Monthly Ticket Sales"
                 reportTypeComboBox.setVisible(false);
                 reportTypeComboBox.setManaged(false);
-        
-                // Enable the export button since Cinema Managers should be able to export
                 exportButton.setDisable(false);
             } else if (isChainManager) {
-                // Chain manager can see all options
                 cinemaComboBox.setVisible(true);
                 reportTypeComboBox.setVisible(true);
                 exportButton.setDisable(false);
             } else {
-                // Other worker types: hide the report options
                 cinemaComboBox.setVisible(false);
                 reportTypeComboBox.setVisible(false);
                 exportButton.setDisable(true);
             }
         }
     }
-    
-    
 
     private void setupComboBoxes() {
         reportTypeComboBox.getItems().addAll(
@@ -145,7 +104,6 @@ public class ReportsPageController implements DataInitializable {
             "Customer Complaints Histogram"
         );
         reportTypeComboBox.setOnAction(event -> updateUIBasedOnReportType());
-
         reportTypeComboBox.setValue("Monthly Ticket Sales");
 
         YearMonth currentMonth = YearMonth.now();
@@ -154,35 +112,28 @@ public class ReportsPageController implements DataInitializable {
         }
         monthPicker.setValue(currentMonth);
         monthPicker.setConverter(new StringConverter<YearMonth>() {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
             @Override
             public String toString(YearMonth yearMonth) {
-                return yearMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+                return yearMonth.format(formatter);
             }
-
             @Override
             public YearMonth fromString(String string) {
-                return YearMonth.parse(string, DateTimeFormatter.ofPattern("MMMM yyyy"));
+                return YearMonth.parse(string, formatter);
             }
         });
 
         reportTypeComboBox.setEditable(false);
         monthPicker.setEditable(false);
         cinemaComboBox.setEditable(false);
-
-        reportTypeComboBox.setStyle("-fx-alignment: CENTER;");
-        monthPicker.setStyle("-fx-alignment: CENTER;");
-        cinemaComboBox.setStyle("-fx-alignment: CENTER;");
     }
 
     private void updateUIBasedOnReportType() {
-        // This method now only updates the visibility of the cinema combo box based on the report type
         boolean showCinemaBox = "Monthly Ticket Sales".equals(reportTypeComboBox.getValue()) || 
                                 "Customer Complaints Histogram".equals(reportTypeComboBox.getValue());
         cinemaComboBox.setVisible(showCinemaBox);
         cinemaComboBox.setManaged(showCinemaBox);
     }
-
-    
 
     @FXML
     private void generateReport() {
@@ -190,26 +141,15 @@ public class ReportsPageController implements DataInitializable {
         YearMonth month = monthPicker.getValue();
         String cinema = cinemaComboBox.getValue();
 
-        //set labels to invisible
         hideAllLabels();
     
         Person connectedPerson = client.getConnectedPerson();
-        System.out.println("Connected person instance: " + connectedPerson.getClass().getName());
     
         if (connectedPerson instanceof Worker) {
             Worker worker = (Worker) connectedPerson;
-            String workerType = worker.getWorkerType();
-            System.out.println("Worker detected. Worker Type: " + workerType);
-    
-            if ("CinemaManager".equals(workerType)) {
-                System.out.println("Connected person is a CinemaManager");
+            if ("CinemaManager".equals(worker.getWorkerType())) {
                 reportType = "Monthly Ticket Sales Manager";
-                System.out.println("CinemaManager detected. Cinema: " + cinema);
-            } else {
-                System.out.println("Connected person is not a CinemaManager");
             }
-        } else {
-            System.out.println("Connected person is not a Worker");
         }
     
         if (reportType == null || month == null || cinema == null) {
@@ -228,29 +168,21 @@ public class ReportsPageController implements DataInitializable {
     
     @Subscribe
     public void onReportDataReceived(ReportDataEvent event) {
-        System.out.println("Received report data event: type=" + event.getReportType() + ", data=" + event.getReportData());
         Platform.runLater(() -> {
             currentReportData = event.getReportData();
             reportContainer.getChildren().clear();
             switch (event.getReportType()) {
                 case "Monthly Ticket Sales":
-                    System.out.println("Displaying Monthly Ticket Sales report");
-                    displayTicketSalesReport(currentReportData);
-                    break;
-                case "Monthly Ticket Sales Manager":  // Add this case
-                    System.out.println("Displaying Monthly Ticket Sales Manager report");
-                    displayTicketSalesManagerReport(currentReportData);
+                case "Monthly Ticket Sales Manager":
+                    displayTicketSalesReport(currentReportData, event.getReportType());
                     break;
                 case "Ticket Tab Sales":
-                    System.out.println("Displaying Ticket Tab Sales report");
                     displayTabSalesReport(currentReportData);
                     break;
                 case "Home Movie Link Sales":
-                    System.out.println("Displaying Home Movie Link Sales report");
                     displayHomeMovieLinkSalesReport(currentReportData);
                     break;
                 case "Customer Complaints Histogram":
-                    System.out.println("Displaying Customer Complaints Histogram");
                     displayComplaintsHistogram(currentReportData);
                     break;
                 default:
@@ -260,50 +192,35 @@ public class ReportsPageController implements DataInitializable {
         });
     }
     
-    private void displayTicketSalesManagerReport(String reportData) {
+    private void displayTicketSalesReport(String reportData, String reportType) {
         try {
-            System.out.println("Report data received: " + reportData);
             String[] lines = reportData.split("\n");
-    
             if (lines.length < 2) {
                 showAlert("No valid data available in the report.");
                 return;
             }
     
-            // Skip the title line and any empty line right after it
-            String titleLine = lines[0];
-            String cinema = titleLine.split("for ")[1].split(" -")[0]; // Extract cinema name from title
-    
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-            //set colour to black
-            xAxis.setStyle("-fx-text-fill: black;");
-            //set colour to black
-            yAxis.setStyle("-fx-text-fill: black;");
-            
-            barChart.setTitle("Monthly Ticket Sales for " + cinema);
-            xAxis.setLabel("Day of Month");
-        
+          
+            barChart.setTitle("Monthly Ticket Sales - All Cinemas");
+            xAxis.setLabel("Cinema");
             yAxis.setLabel("Number of Tickets Sold");
         
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Ticket Sales");
             int totalTickets = 0;
     
-            for (int i = 2; i < lines.length; i++) { // Start from index 2 to skip the title and the empty line
-                System.out.println("Processing line: " + lines[i]);  // Debugging
-    
-                if (lines[i].trim().isEmpty()) {
-                    continue; // Skip any empty lines
-                }
-           
+            for (int i = 2; i < lines.length; i++) {
+                if (lines[i].trim().isEmpty()) continue;
                 
                 String[] parts = lines[i].split(": ");
                 if (parts.length == 2) {
                     try {
-                        int tickets = Integer.parseInt(parts[1]);
-                        series.getData().add(new XYChart.Data<>(parts[0], tickets));
+                        String cinemaName = parts[0].trim();
+                        int tickets = Integer.parseInt(parts[1].trim());
+                        series.getData().add(new XYChart.Data<>(cinemaName, tickets));
                         totalTickets += tickets;
                     } catch (NumberFormatException e) {
                         System.out.println("Skipping line due to number format issue: " + lines[i]);
@@ -312,6 +229,8 @@ public class ReportsPageController implements DataInitializable {
             }
     
             barChart.getData().add(series);
+            barChart.setLegendVisible(false);
+            setChartColor(barChart, MONTHLY_SALES_COLOR);
             reportContainer.getChildren().add(barChart);
             totalTicketsLabel.setText("Total Tickets: " + totalTickets);
             totalTicketsLabel.setVisible(true);
@@ -322,137 +241,104 @@ public class ReportsPageController implements DataInitializable {
         }
     }
     
-    
-private void displayTicketSalesReport(String reportData) {
-    try {
-        String[] lines = reportData.split("\n");
+    private void displayTabSalesReport(String reportData) {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
         BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        
-        barChart.setTitle("Daily Ticket Sales");
+        barChart.setTitle("Daily Ticket Tab Sales");
         xAxis.setLabel("Day of Month");
-        yAxis.setLabel("Number of Tickets Sold");
+        yAxis.setLabel("Number of Tabs Sold");
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Ticket Sales");
-        int totalTickets = 0;
+        series.setName("Tabs Sold");
+        int totalTabs = 0;
 
+        String[] lines = reportData.split("\n");
         for (String line : lines) {
             String[] parts = line.split(": ");
             if (parts.length == 2) {
-                int tickets = Integer.parseInt(parts[1]);
-                series.getData().add(new XYChart.Data<>(parts[0], tickets));
-                totalTickets += tickets;
+                int count = Integer.parseInt(parts[1]);
+                series.getData().add(new XYChart.Data<>(parts[0], count));
+                totalTabs += count;
             }
         }
 
         barChart.getData().add(series);
+        barChart.setLegendVisible(false);
+        setChartColor(barChart, TICKET_TAB_COLOR);
         reportContainer.getChildren().add(barChart);
-        totalTicketsLabel.setText("Total Tickets: " + totalTickets);
-        totalTicketsLabel.setVisible(true);
-        totalTicketsLabel.setManaged(true);
-    } catch (Exception e) {
-        e.printStackTrace();
-        showAlert("Error parsing ticket sales report data: " + e.getMessage());
-    }
-}
 
-private void displayTabSalesReport(String reportData) {
-    CategoryAxis xAxis = new CategoryAxis();
-    NumberAxis yAxis = new NumberAxis();
-    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-    barChart.setTitle("Daily Ticket Tab Sales");
-    xAxis.setLabel("Day of Month");
-    yAxis.setLabel("Number of Tabs Sold");
-
-    XYChart.Series<String, Number> series = new XYChart.Series<>();
-    series.setName("Tabs Sold");
-    int totalTabs = 0;  // This variable will be effectively final by the time it's used.
-
-    String[] lines = reportData.split("\n");
-    for (String line : lines) {
-        String[] parts = line.split(": ");
-        if (parts.length == 2) {
-            int count = Integer.parseInt(parts[1]);
-            series.getData().add(new XYChart.Data<>(parts[0], count));
-            totalTabs += count;  // Total is accumulated here
-        }
-    }
-
-    barChart.getData().add(series);
-    reportContainer.getChildren().add(barChart);
-
-    // Now we use totalTabs which is effectively final here
-    if (totalTicketTabsLabel != null) {
         totalTicketTabsLabel.setText("Total Ticket Tabs: " + totalTabs);
         totalTicketTabsLabel.setVisible(true);
         totalTicketTabsLabel.setManaged(true);
-    } else {
-        System.err.println("Label totalTicketTabsLabel is not initialized.");
     }
-}
 
+    private void displayHomeMovieLinkSalesReport(String reportData) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Daily Home Movie Link Sales");
+        xAxis.setLabel("Day of Month");
+        yAxis.setLabel("Number of Links Sold");
 
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Links Sold");
+        int totalLinks = 0;
 
+        String[] lines = reportData.split("\n");
+        for (String line : lines) {
+            String[] parts = line.split(": ");
+            if (parts.length == 2) {
+                series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+                totalLinks += Integer.parseInt(parts[1]);
+            }
+        }
 
-private void displayHomeMovieLinkSalesReport(String reportData) {
-    CategoryAxis xAxis = new CategoryAxis();
-    NumberAxis yAxis = new NumberAxis();
-    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-    barChart.setTitle("Daily Home Movie Link Sales");
-    xAxis.setLabel("Day of Month");
-    yAxis.setLabel("Number of Links Sold");
+        barChart.getData().add(series);
+        barChart.setLegendVisible(false);
+        setChartColor(barChart, HOME_MOVIE_COLOR);
+        reportContainer.getChildren().add(barChart);
+        totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); 
+        totalLinksLabel.setVisible(true);
+        totalLinksLabel.setManaged(true);
+    }
 
-    XYChart.Series<String, Number> series = new XYChart.Series<>();
-    series.setName("Links Sold");
-    int totalLinks = 0;
+    private void displayComplaintsHistogram(String reportData) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Customer Complaints Histogram");
+        xAxis.setLabel("Day of Month");
+        yAxis.setLabel("Number of Complaints");
 
-    String[] lines = reportData.split("\n");
-    for (String line : lines) {
-        String[] parts = line.split(": ");
-        if (parts.length == 2) {
-            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
-            totalLinks += Integer.parseInt(parts[1]);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Complaints");
+        int totalComplaints = 0;
+        String[] lines = reportData.split("\n");
+        for (String line : lines) {
+            String[] parts = line.split(": ");
+            if (parts.length == 2) {
+                series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
+                totalComplaints += Integer.parseInt(parts[1]);
+            }
+        }
+
+        barChart.getData().add(series);
+        barChart.setLegendVisible(false);
+        setChartColor(barChart, COMPLAINTS_COLOR);
+        reportContainer.getChildren().add(barChart);
+        totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); 
+        totalComplaintsLabel.setVisible(true);
+        totalComplaintsLabel.setManaged(true);
+    }
+
+    private void setChartColor(BarChart<String, Number> barChart, String color) {
+        for (XYChart.Series<String, Number> series : barChart.getData()) {
+            for (XYChart.Data<String, Number> data : series.getData()) {
+                data.getNode().setStyle("-fx-bar-fill: " + color + ";");
+            }
         }
     }
-
-    barChart.getData().add(series);
-    reportContainer.getChildren().add(barChart);
-    totalLinksLabel.setText("Total Home Movie Links: " + totalLinks); 
-    totalLinksLabel.setVisible(true);
-    totalLinksLabel.setManaged(true);
-}
-
-
-
-private void displayComplaintsHistogram(String reportData) {
-    CategoryAxis xAxis = new CategoryAxis();
-    NumberAxis yAxis = new NumberAxis();
-    BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-    barChart.setTitle("Customer Complaints Histogram");
-    xAxis.setLabel("Day of Month");
-    yAxis.setLabel("Number of Complaints");
-
-    XYChart.Series<String, Number> series = new XYChart.Series<>();
-    series.setName("Complaints");
-    int totalComplaints = 0;
-    String[] lines = reportData.split("\n");
-    for (String line : lines) {
-        String[] parts = line.split(": ");
-        if (parts.length == 2) {
-            series.getData().add(new XYChart.Data<>(parts[0], Integer.parseInt(parts[1])));
-            totalComplaints += Integer.parseInt(parts[1]);
-        }
-    }
-
-    barChart.getData().add(series);
-    reportContainer.getChildren().add(barChart);
-    totalComplaintsLabel.setText("Total Complaints: " + totalComplaints); 
-    totalComplaintsLabel.setVisible(true);
-    totalComplaintsLabel.setManaged(true);
-}
-
 
     @FXML
     private void exportToExcel() {
