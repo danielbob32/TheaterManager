@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListUpdatedEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
@@ -69,6 +70,8 @@ public class LoginPageController implements Initializable, DataInitializable {
 
     private List<Movie> allMovies;
 
+    private Timeline slideshowTimeline;
+
 
     @Override
     public void setClient(SimpleClient client) {
@@ -109,7 +112,22 @@ public class LoginPageController implements Initializable, DataInitializable {
         System.out.println("Received MovieListEvent");
         allMovies = event.getMovies();
         filterMovies(allMovies);
+        stopSlideshow();
         startMoviePosterSlideshow();
+    }
+
+    @Subscribe
+    public void onMovieListUpdatedEvent(MovieListUpdatedEvent event) {
+        allMovies = event.getUpdatedMovies();
+        filterMovies(allMovies);
+        stopSlideshow();
+        //startMoviePosterSlideshow();
+    }
+
+    private void stopSlideshow() {
+        if (slideshowTimeline != null) {
+            slideshowTimeline.stop();
+        }
     }
 
 
@@ -155,11 +173,13 @@ public class LoginPageController implements Initializable, DataInitializable {
         if ("Worker".equals(userType)) {
             Worker worker = new Worker("Yaren", password, id);
             cleanup();
+            stopSlideshow();
             client.tryWorkerLogin(worker);
     //                SimpleClient.getClient().sendToServer(worker);
         } else {
             Customer customer = new Customer("Yarden", "yarden@gmail.com", id);
             cleanup();
+            stopSlideshow();
             client.tryCustomerLogin(customer);
 //            SimpleClient.getClient().sendToServer(customer);
         }
@@ -168,6 +188,7 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private void viewFutureMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        stopSlideshow();
         cleanup();
         App.setRoot("FutureMoviesPage", null);
     }
@@ -175,14 +196,15 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     private void viewHomeMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        stopSlideshow();
         cleanup();
-
         App.setRoot("HomeMovieList", null);
     }
 
     @FXML
     private void viewMovieList() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        stopSlideshow();
         cleanup();
         App.setRoot("CinemaMovieList", null);
     }
@@ -191,6 +213,7 @@ public class LoginPageController implements Initializable, DataInitializable {
     @FXML
     void buyTicketTab(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        stopSlideshow();
         cleanup();
         App.setRoot("purchaseTicketTab", null);
     }
@@ -282,8 +305,8 @@ public class LoginPageController implements Initializable, DataInitializable {
             timeline.getKeyFrames().add(keyFrame);
         }
         timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
-    }
+        slideshowTimeline = timeline;
+        slideshowTimeline.play();    }
 
 
     public Image convertByteArrayToImage(byte[] imageData) {
