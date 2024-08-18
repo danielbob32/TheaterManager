@@ -14,19 +14,19 @@
         <Text text="Generate Reports" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
         
         <HBox alignment="CENTER" spacing="15">
-            <ComboBox fx:id="reportTypeComboBox" prefWidth="200" promptText="Report Type" style="-fx-background-radius: 5;"/>
-            <ComboBox fx:id="monthPicker" prefWidth="150" promptText="Month" style="-fx-background-radius: 5;"/>
-            <ComboBox fx:id="cinemaComboBox" prefWidth="180" promptText="Cinema" style="-fx-background-radius: 5;"/>
+            <ComboBox fx:id="reportTypeComboBox" prefWidth="200" promptText="Report Type"/>
+            <ComboBox fx:id="monthPicker" prefWidth="150" promptText="Month"/>
+            <ComboBox fx:id="cinemaComboBox" prefWidth="180" promptText="Cinema"/>
         </HBox>
         
         <Button fx:id="generateReportButton" onAction="#generateReport" text="Generate Report" 
-                style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;" prefWidth="200"/>
+                style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="200"/>
         
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
-            <VBox fx:id="reportContainer" alignment="TOP_CENTER" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 10; -fx-background-radius: 5;"/>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox fx:id="reportContainer" alignment="TOP_CENTER" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 10;"/>
         </ScrollPane>
         
-        <VBox spacing="5" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 10; -fx-background-radius: 5;">
+        <VBox spacing="5" alignment="CENTER_LEFT" style="-fx-background-color: #f0f0f0; -fx-padding: 10;">
             <Label fx:id="totalTicketsLabel" style="-fx-font-size: 14px; -fx-text-fill: #1e3c72;" text="Total Tickets: 0"/>
             <Label fx:id="totalTicketTabsLabel" style="-fx-font-size: 14px; -fx-text-fill: #1e3c72;" text="Total Ticket Tabs: 0"/>
             <Label fx:id="totalLinksLabel" style="-fx-font-size: 14px; -fx-text-fill: #1e3c72;" text="Total Links: 0"/>
@@ -35,9 +35,9 @@
         
         <HBox alignment="CENTER" spacing="15">
             <Button fx:id="exportButton" onAction="#exportToExcel" text="Export to Excel" 
-                    style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;" prefWidth="150"/>
+                    style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="150"/>
             <Button fx:id="backButton" onAction="#handleBackButton" text="Back" 
-                    style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;" prefWidth="150"/>
+                    style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="150"/>
         </HBox>
     </VBox>
 </AnchorPane>
