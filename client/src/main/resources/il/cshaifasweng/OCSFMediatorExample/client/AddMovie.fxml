@@ -5,6 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 
+<?import org.controlsfx.control.CheckComboBox?>
 <AnchorPane fx:id="mainContainer" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddMovieController" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
     <children>
         <VBox alignment="CENTER" spacing="20.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0" AnchorPane.bottomAnchor="50.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
@@ -20,7 +21,8 @@
                 <TextField fx:id="durationField" promptText="Duration" />
                 <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage" styleClass="menu-button"/>
                 <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
-                <TextField fx:id="genreField" promptText="Genre" />
+                <Label text="Select Genres" />
+                <CheckComboBox fx:id="genreCheckComboBox" styleClass="check-combo-box" />
                 <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
                 <CheckBox fx:id="isCinemaCheckBox" text="Is Cinema Movie" onAction="#toggleCinemaFields" />
                 <VBox fx:id="cinemaFields" visible="false" managed="false" spacing="10.0">

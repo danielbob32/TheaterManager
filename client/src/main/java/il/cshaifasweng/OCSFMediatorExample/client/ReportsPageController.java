@@ -534,6 +534,7 @@ private void displayComplaintsHistogram(String reportData) {
     @FXML
     private void handleBackButton() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("WorkerMenu", connectedPerson);
     }
 

@@ -88,7 +88,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         producerLabel.setText("Producer: " + currentMovie.getProducer());
         actorsLabel.setText("Actors: " + currentMovie.getActors());
         durationLabel.setText("Duration: " + currentMovie.getDuration() + " minutes");
-        genreLabel.setText("Genre: " + currentMovie.getGenre());
+        genreLabel.setText("Genres: " + String.join(", ", currentMovie.getGenres()));
         synopsisArea.getChildren().clear();
         synopsisArea.getChildren().add(new Label(currentMovie.getSynopsis()));
 
@@ -151,6 +151,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         String selectedDate = dateSelector.getValue() != null ? dateSelector.getValue().toString() : "";
 
         if (selectedTime != null && !selectedDate.isEmpty()) {
+            cleanup();
             App.setRoot("PurchaseLinkBoundary", new Object[]{currentMovie, selectedTime, selectedDate});
         } else {
             showAlert("Missing Information", "Please select a time and date before purchasing a link.");
@@ -160,6 +161,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("HomeMovieList", connectedPerson);
     }
 

@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -75,10 +76,15 @@ public class TicketTabDetailsBoundary implements DataInitializable{
 //        purchaseTime.setText(formattedTime);
     }
 
+    public void cleanup()
+    {
+        EventBus.getDefault().unregister(this);
+    }
+
     @FXML
     public void handleHomePageButton(javafx.event.ActionEvent actionEvent) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         if (connectedPerson != null) {
             App.setRoot("CustomerMenu", null);
         }

@@ -202,7 +202,26 @@ public class SimpleClient extends AbstractClient {
     // ----- FUNCTION TO HANDLE THE RESPONSES FROM THE SERVER --------
     private void handleMovieList(Message message) {
         try {
+            JsonNode rootNode = objectMapper.readTree(message.getData());
+
+            // Assuming the JSON is an array of movies, get the first movie's genres
+            if (rootNode.isArray() && rootNode.size() > 0) {
+                JsonNode firstMovieNode = rootNode.get(0);
+                JsonNode genresNode = firstMovieNode.get("genres");
+
+                System.out.println("Genres of the first movie: " + genresNode);
+            } else {
+                System.out.println("No movies available or empty list.");
+            }
+
+//            System.out.println("In handleMovieList Received JSON: " + message.getData());
             List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {});
+            // Debugging deserialized objects
+            for (Movie movie : movies) {
+                System.out.println("Movie Title: " + movie.getEnglishName());
+                System.out.println("Genres: " + movie.getGenres());
+            }
+
             String movieType = message.getAdditionalData();
             if (movieType != null) {
                 List<Movie> filteredMovies = movies.stream()
@@ -217,6 +236,7 @@ public class SimpleClient extends AbstractClient {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
         }
+
     }
 
     private void handleCustomerLogin(Message message, String status) {
@@ -351,7 +371,7 @@ public class SimpleClient extends AbstractClient {
     }
 
     private void handlePriceChangeRequests(Message message) {
-        System.out.println("Price change requests in simple client: " + message.getData());
+//        System.out.println("Price change requests in simple client: " + message.getData());
         EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
     }
 

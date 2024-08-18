@@ -137,6 +137,7 @@ public class AllMoviesListController implements DataInitializable {
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         if (connectedPerson instanceof Worker) {
             App.setRoot("UpdateContent", connectedPerson);
         } else if (connectedPerson instanceof Customer) {
