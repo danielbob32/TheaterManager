@@ -49,7 +49,7 @@
                     <Cursor fx:constant="HAND" />
                 </cursor>
             </ComboBox>
-            <DatePicker fx:id="dateSelector" promptText="Select Date" prefHeight="26.0" prefWidth="167.0">
+            <DatePicker fx:id="dateSelector" promptText="Select Date" prefHeight="26.0" prefWidth="167.0" onAction="#handleDateChange">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
