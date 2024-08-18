@@ -5,6 +5,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 
@@ -88,20 +89,26 @@ public class WorkerMenuController implements DataInitializable {
     @FXML
     private void updateContent() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("UpdateContent", workerType);
     }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
 
     @FXML
     private void handleComplaint() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("WorkerComplaintBoundary", connectedPerson);
     }
 
     @FXML
     private void viewReports() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("ReportsPage", connectedPerson);
     }
 
@@ -109,13 +116,14 @@ public class WorkerMenuController implements DataInitializable {
     private void handleLogout() throws IOException {
         workerType = null;
         client.logout();
+        cleanup();
         App.setRoot("Loginpage", null);
     }
 
     @FXML
     private void managePriceRequests() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("ManagePriceRequests", connectedPerson);
     }
 

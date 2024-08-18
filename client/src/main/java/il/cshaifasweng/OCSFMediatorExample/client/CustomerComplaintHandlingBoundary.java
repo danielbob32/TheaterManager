@@ -187,9 +187,15 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         alert.showAndWait();
     }
 
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
+
     @FXML
     void handleBackButton(ActionEvent event) {
         try {
+            cleanup();
             App.setRoot("CustomerMenu", null);
         } catch (IOException e) {
             e.printStackTrace();

@@ -136,6 +136,7 @@ public class CustomerMenuController implements DataInitializable {
     @FXML
     private void viewFutureMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("FutureMoviesPage", connectedPerson);
     }
 
@@ -143,12 +144,14 @@ public class CustomerMenuController implements DataInitializable {
     private void viewHomeMovies() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
         System.out.println("Going to HomeMovieList");
+        cleanup();
         App.setRoot("HomeMovieList", connectedPerson);
     }
 
     @FXML
     private void viewMovieList() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("CinemaMovieList", connectedPerson);
     }
 
@@ -168,24 +171,27 @@ public class CustomerMenuController implements DataInitializable {
     @FXML
     private void buyTicketTab() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("PurchaseTicketTab", connectedPerson);
     }
 
     @FXML
     private void refundTickets() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("BookingsBoundary", connectedPerson);
     }
 
     @FXML
     private void fileComplaint() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("CustomerComplaint", null);
     }
 
     @FXML
     private void handleLogout() throws IOException {
         client.logout();
+        cleanup();
         App.setRoot("LoginPage", null);
     }
 

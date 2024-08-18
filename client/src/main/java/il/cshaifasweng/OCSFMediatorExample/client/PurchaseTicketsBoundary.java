@@ -140,6 +140,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() {
         try {
+            cleanup();
             App.setRoot("CinemaMovieDetails", screening.getMovie());
         } catch (IOException e) {
             e.printStackTrace();
@@ -212,6 +213,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         // The purchase time is automatically set in the TicketPurchaseInfo constructor
 
         try {
+            cleanup();
             App.setRoot("ticketsPayment", purchaseInfo);
         } catch (IOException e) {
             e.printStackTrace();
