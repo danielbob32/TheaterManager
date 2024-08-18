@@ -26,7 +26,6 @@ public class Movie {
     @Lob
     private byte[] movieIcon;
     private String synopsis;
-    private String genre;
     private Date premier;
     private boolean isHome; // True if it's possible to buy links for this cinema
     private boolean isCinema;  // True if it's possible to buy tickets for this cinema
@@ -35,15 +34,11 @@ public class Movie {
     @Transient
     private String movieIconAsString;
 
-////    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-////    @JsonManagedReference(value = "movie-screenings")
-//    @JoinTable(
-//            name = "movie_screenings",
-//            joinColumns = @JoinColumn(name = "id"),
-//            inverseJoinColumns = @JoinColumn(name = "screening_id")
-//    )
-//    private List<Screening> screenings = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "movie_genres", joinColumns = @JoinColumn(name = "movie_id"))
+    @Column(name = "genre")
+    private List<String> genres = new ArrayList<>();
+
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "movie", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("movie")
@@ -53,27 +48,9 @@ public class Movie {
     public Movie() {
     }
 
-//    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, byte[] movieIcon,
-//                 String synopsis, String genre, Date premier, boolean isHome, boolean isCinema, int cinemaPrice, int homePrice) {
-//        this.englishName = englishName;
-//        this.hebrewName = hebrewName;
-//        this.producer = producer;
-//        this.actors = actors;
-//        this.duration = duration;
-//        this.movieIcon = movieIcon;
-//        this.synopsis = synopsis;
-//        this.genre = genre;
-//        this.premier = premier;
-//        this.isHome = isHome;
-//        this.isCinema = isCinema;
-//        this.cinemaPrice = cinemaPrice;
-//        this.homePrice = homePrice;
-//        this.screenings = new ArrayList<>();
-////        this.cinemas = new ArrayList<>();
-//    }
 
     public Movie(String englishName, String hebrewName, String producer, String actors, int duration, byte[] movieIcon,
-                 String synopsis, String genre, Date premier, boolean isHome, boolean isCinema) {
+                 String synopsis, List<String> genres, Date premier, boolean isHome, boolean isCinema) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;
@@ -81,7 +58,7 @@ public class Movie {
         this.duration = duration;
         this.movieIcon = movieIcon;
         this.synopsis = synopsis;
-        this.genre = genre;
+        this.genres = genres;
         this.premier = premier;
         this.isHome = isHome;
         this.isCinema = isCinema;
@@ -90,7 +67,7 @@ public class Movie {
         this.screenings = new ArrayList<>();
     }
 
-    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, byte[] movieIcon, String synopsis, String genre, Date premier, boolean isHome, boolean isCinema, int cinemaPrice, int homePrice) {
+    public Movie(String englishName, String hebrewName, String producer, String actors, int duration, byte[] movieIcon, String synopsis, List<String> genres, Date premier, boolean isHome, boolean isCinema, int cinemaPrice, int homePrice) {
         this.englishName = englishName;
         this.hebrewName = hebrewName;
         this.producer = producer;
@@ -98,7 +75,7 @@ public class Movie {
         this.duration = duration;
         this.movieIcon = movieIcon;
         this.synopsis = synopsis;
-        this.genre = genre;
+        this.genres = genres;
         this.premier = premier;
         this.isHome = isHome;
         this.isCinema = isCinema;
@@ -202,12 +179,12 @@ public class Movie {
         this.synopsis = synopsis;
     }
 
-    public String getGenre() {
-        return genre;
+    public List<String> getGenres() {
+        return genres;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
     }
 
     public Date getPremier() {

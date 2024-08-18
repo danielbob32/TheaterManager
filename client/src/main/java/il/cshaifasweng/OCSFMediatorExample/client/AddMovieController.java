@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.controlsfx.control.CheckComboBox;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,11 +17,14 @@ import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AddMovieController implements DataInitializable {
 
@@ -45,7 +51,7 @@ public class AddMovieController implements DataInitializable {
     @FXML private TextField durationField;
     @FXML private Button uploadImageButton;
     @FXML private TextArea synopsisArea;
-    @FXML private TextField genreField;
+    @FXML private CheckComboBox<String> genreCheckComboBox;
     @FXML private DatePicker premierDatePicker;
     @FXML private CheckBox isCinemaCheckBox;
     @FXML private VBox cinemaFields;
@@ -58,7 +64,11 @@ public class AddMovieController implements DataInitializable {
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
-
+        // Initialize the genre options
+        ObservableList<String> genres = FXCollections.observableArrayList(
+                "Action", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Horror", "Adventure", "Animation", "Documentary", "Family", "Children"
+        );
+        genreCheckComboBox.getItems().addAll(genres);
     }
 
     @FXML
@@ -107,7 +117,9 @@ public class AddMovieController implements DataInitializable {
                 }
             }
             String synopsis = validateField(synopsisArea, "Synopsis");
-            String genre = validateField(genreField, "Genre");
+            // Collect selected genres
+            List<String> selectedGenres = genreCheckComboBox.getCheckModel().getCheckedItems().stream().collect(Collectors.toList());
+
             LocalDate premierDate = validateDatePicker(premierDatePicker, "Premier Date");
             boolean isCinema = isCinemaCheckBox.isSelected();
             boolean isHome = isHomeCheckBox.isSelected();
@@ -124,7 +136,7 @@ public class AddMovieController implements DataInitializable {
 
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-            Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, genre, premier, isHome, isCinema, cinemaPrice, homePrice);
+            Movie movie = new Movie(englishName, hebrewName, producer, actors, duration, movieIcon, synopsis, selectedGenres, premier, isHome, isCinema, cinemaPrice, homePrice);
             String movieData = objectMapper.writeValueAsString(movie);
 
             Message msg = new Message(0, "add movie", movieData);
@@ -144,7 +156,12 @@ public class AddMovieController implements DataInitializable {
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("UpdateContent", connectedPerson);
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 
     @Subscribe
@@ -215,7 +232,7 @@ public class AddMovieController implements DataInitializable {
         actorsField.clear();
         durationField.clear();
         synopsisArea.clear();
-        genreField.clear();
+        genreCheckComboBox.getCheckModel().clearChecks();  // Clear selected genres
         premierDatePicker.setValue(null);
         isHomeCheckBox.setSelected(false);
         cinemaFields.setVisible(false);

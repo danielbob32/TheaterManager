@@ -157,6 +157,10 @@
     -fx-background-color: #FF8F00;
 }
 
+.check-combo-box {
+    -fx-prompt-text-fill: #a9a9a9; /* Gray color for prompt text */
+}
+
 /* Styles for the Submit New Complaint button */
 #submitNewComplaintButton {
     -fx-background-color: #4CAF50;

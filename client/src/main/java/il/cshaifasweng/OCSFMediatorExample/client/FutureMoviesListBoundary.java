@@ -143,21 +143,7 @@ public class FutureMoviesListBoundary implements DataInitializable {
         contentBox.getChildren().addAll(iv, textContent);
         // If Person is ContentManager, add an edit movie button.
         Person p = client.getConnectedPerson();
-        if (p instanceof Worker && ((Worker) p).getWorkerType().equals("Content")) {
-            VBox buttonBox = new VBox(5);
-            Button editButton = new Button("Edit Movie");
-            editButton.setOnAction(e -> {
-                try {
-                    editMoviePage(movie);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
 
-            buttonBox.getChildren().add(editButton);
-            HBox.setHgrow(buttonBox, Priority.NEVER);
-            contentBox.getChildren().add(buttonBox);
-        }
         movieBox.getChildren().add(contentBox);
 
         return movieBox;
@@ -179,7 +165,7 @@ public class FutureMoviesListBoundary implements DataInitializable {
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         if (connectedPerson instanceof Customer) {
             App.setRoot("customerMenu", connectedPerson);
         } else if (connectedPerson instanceof Worker) {
@@ -189,11 +175,6 @@ public class FutureMoviesListBoundary implements DataInitializable {
         }
     }
 
-
-    private void editMoviePage(Movie movie) throws IOException {
-        System.out.println("in editMoviePage");
-        App.setRoot("editMoviePage", movie);
-    }
 
     public void cleanup() {
         EventBus.getDefault().unregister(this);

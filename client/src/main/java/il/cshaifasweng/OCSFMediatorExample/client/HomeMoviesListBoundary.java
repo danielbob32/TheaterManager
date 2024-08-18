@@ -191,6 +191,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
     private void moviePage(Movie movie) throws IOException {
         System.out.println("in moviePage");
+        cleanup();
         App.setRoot("HomeMovieDetails", movie);
     }
 
@@ -206,6 +207,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
                 try {
                     client.sendToServer(new Message(0, "deleteMovie:home", String.valueOf(movie.getId())));
                     Person connectedPerson = client.getConnectedPerson();
+                    cleanup();
                     App.setRoot("HomeMovieList", connectedPerson);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -226,7 +228,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         if (connectedPerson instanceof Customer) {
             App.setRoot("customerMenu", connectedPerson);
         } else if (connectedPerson instanceof Worker) {

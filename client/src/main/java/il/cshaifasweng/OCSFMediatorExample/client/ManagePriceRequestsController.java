@@ -163,6 +163,7 @@ public class ManagePriceRequestsController implements DataInitializable {
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("WorkerMenu", connectedPerson);
     }
 

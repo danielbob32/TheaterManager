@@ -58,7 +58,8 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		cinemaComboBox.getItems().addAll("Any", "Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"); // Add your actual cinema names
 		cinemaComboBox.setValue("Any");
 
-		genreComboBox.getItems().addAll("Any", "Action", "Comedy", "Drama", "Fantasy", "Sci-Fi"); // Add more genres as needed
+		genreComboBox.getItems().addAll("Any", "Action", "Comedy", "Drama", "Fantasy", "Sci-Fi", "Family",
+				"Children", "Romance", "Horror", "Adventure", "Animation", "Documentary"); // Add more genres as needed
 		genreComboBox.setValue("Any");
 
 		// Initialize DatePickers
@@ -128,7 +129,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 					return passes;
 				})
 				.filter(movie -> {
-					boolean passes = selectedGenre.equals("Any") || movie.getGenre().equals(selectedGenre);
+					boolean passes = selectedGenre.equals("Any") || movie.getGenres().contains(selectedGenre);
 					System.out.println("Movie: " + movie.getEnglishName() + " - Passes Genre Filter: " + passes);
 					return passes;
 				})
@@ -226,19 +227,19 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		// If Person is ContentManager, add an edit movie button.
 		Person p = client.getConnectedPerson();
-		if(p instanceof Worker && ((Worker) p).getWorkerType().equals("Content"))
-		{
-			Button editButton = new Button("Edit Movie");
-			editButton.setOnAction(e-> {
-				try {
-					editMoviePage(movie);
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
-				}
-			});
-
-			buttons.getChildren().add(editButton);
-		}
+//		if(p instanceof Worker && ((Worker) p).getWorkerType().equals("Content Manager"))
+//		{
+//			Button editButton = new Button("Edit Movie");
+//			editButton.setOnAction(e-> {
+//				try {
+//					editMoviePage(movie);
+//				} catch (IOException ex) {
+//					throw new RuntimeException(ex);
+//				}
+//			});
+//
+//			buttons.getChildren().add(editButton);
+//		}
 		textContent.getChildren().addAll(englishTitleLabel, hebrewTitleLabel, producerLabel, actorsLabel, synopsisLabel);
 		HBox.setHgrow(textContent, Priority.ALWAYS);
 		HBox.setHgrow(buttons, Priority.NEVER);
@@ -269,18 +270,20 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	private void moviePage(Movie movie) throws IOException {
 		System.out.println("in moviePage");
 		Person connectedPerson = client.getConnectedPerson();
-
+		cleanup();
 		App.setRoot("CinemaMovieDetails", movie);
 	}
 
-	public void editMoviePage(Movie movie) throws IOException {
-		System.out.println("in editMoviePage");
-		App.setRoot("editMoviePage", movie);
-	}
+//	public void editMoviePage(Movie movie) throws IOException {
+//		System.out.println("in editMoviePage");
+//		cleanup();
+//		App.setRoot("editMoviePage", movie);
+//	}
 
 	@FXML
 	private void handleBackButton(ActionEvent event) throws IOException {
 		Person connectedPerson = client.getConnectedPerson();
+		cleanup();
 		if (connectedPerson instanceof Worker) {
 			App.setRoot("UpdateContent", connectedPerson);
 		} else if (connectedPerson instanceof Customer) {
@@ -290,11 +293,6 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		}
 	}
 
-
-	@FXML
-	private void switchToSecondary() throws IOException {
-		App.setRoot("secondary", false);
-	}
 
 	public void cleanup() {
 		EventBus.getDefault().unregister(this);

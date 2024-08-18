@@ -308,11 +308,11 @@ public class TicketsPaymentBoundary implements DataInitializable {
 
     @Subscribe
     public void onPaymentResponse(PurchaseResponseEvent event) {
-        cleanup();
         Platform.runLater(() -> {
             if (event.isSuccess()) {
                 showAlert("Payment successful! Your tickets have been booked.");
                 try {
+                    cleanup();
                     App.setRoot("TicketDetails", event.getData());
                 } catch (IOException e) {
                     e.printStackTrace();

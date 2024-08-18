@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.text.Text;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -122,8 +123,14 @@ public class TicketDetailsBoundary implements DataInitializable {
 
     @FXML
     private void handleBackButton() throws IOException {
+        cleanup();
         App.setRoot("CinemaMovieList", null);
     }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
 
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
