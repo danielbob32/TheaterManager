@@ -277,11 +277,16 @@ public class ReportsPageController implements DataInitializable {
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-    
+            //set colour to black
+            xAxis.setStyle("-fx-text-fill: black;");
+            //set colour to black
+            yAxis.setStyle("-fx-text-fill: black;");
+            
             barChart.setTitle("Monthly Ticket Sales for " + cinema);
             xAxis.setLabel("Day of Month");
+        
             yAxis.setLabel("Number of Tickets Sold");
-    
+        
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Ticket Sales");
             int totalTickets = 0;
@@ -292,7 +297,8 @@ public class ReportsPageController implements DataInitializable {
                 if (lines[i].trim().isEmpty()) {
                     continue; // Skip any empty lines
                 }
-    
+           
+                
                 String[] parts = lines[i].split(": ");
                 if (parts.length == 2) {
                     try {

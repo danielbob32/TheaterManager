@@ -22,7 +22,7 @@
         <Button fx:id="generateReportButton" onAction="#generateReport" text="Generate Report" 
                 style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;" prefWidth="200"/>
         
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" >
             <VBox fx:id="reportContainer" alignment="TOP_CENTER" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 10; -fx-background-radius: 5;"/>
         </ScrollPane>
         
