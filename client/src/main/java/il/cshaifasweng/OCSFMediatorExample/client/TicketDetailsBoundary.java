@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +10,6 @@ import javafx.scene.text.Text;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -67,6 +65,8 @@ public class TicketDetailsBoundary implements DataInitializable {
                 if (paymentMethod.equals("ticketTab")) {
                     amountLeft = bookingData.path("amountLeft").asInt(0);
                 }
+
+                System.out.println("in TicketDetailsBoundary initData with: " + name);
 
                 long screeningTimeMillis = bookingData.path("screeningTime").asLong(0);
                 long purchaseTimeMillis = bookingData.path("purchaseTime").asLong(0);

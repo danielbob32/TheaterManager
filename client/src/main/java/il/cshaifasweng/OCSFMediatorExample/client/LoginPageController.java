@@ -260,7 +260,7 @@ public class LoginPageController implements Initializable, DataInitializable {
                 FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), moviePoster);
                 fadeOut.setFromValue(1.0);
                 fadeOut.setToValue(0.0);
-                System.out.println("Fading out image: " + index + "movie title:" + movie.getEnglishName());
+                //System.out.println("Fading out image: " + index + "movie title:" + movie.getEnglishName());
                 // Set the image after fading out
                 Image finalImage = image2;
                 fadeOut.setOnFinished(e -> {
@@ -268,7 +268,7 @@ public class LoginPageController implements Initializable, DataInitializable {
                     if (finalImage == null) {
                         System.out.println("Final image is null");
                     } else {
-                        System.out.println("Setting image to ImageView");
+                        //System.out.println("Setting image to ImageView");
                     }
                     // Fade in the new image
                     FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), moviePoster);

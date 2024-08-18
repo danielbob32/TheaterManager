@@ -19,13 +19,13 @@
             <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
-         <ImageView fitHeight="240.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" />
+         <ImageView fx:id="movieImageView" fitHeight="240.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" />
             <Label fx:id="movieTitleLabel" style="-fx-font-size: 20; -fx-font-weight: bold;" />
             <Label fx:id="cinemaLabel" style="-fx-font-size: 15" />
             <Label fx:id="screeningTimeLabel" style="-fx-font-size: 15" />
             <Label fx:id="selectedSeatsLabel" style="-fx-font-size: 15" />
             <Label fx:id="totalPriceLabel" style="-fx-font-size: 15; -fx-font-weight: bold;" />
-             <Button fx:id="backButton" onAction="#handleBack" styleClass="menu-button" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" text="Back" textFill="WHITE">
+             <Button fx:id="backButton" onAction="#handleBack" style="-fx-background-color: gray; -fx-font-size: 15; -fx-font-weight: bold;" styleClass="menu-button" text="Back" textFill="WHITE">
             <cursor>
                <Cursor fx:constant="HAND" />
             </cursor>
