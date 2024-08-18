@@ -481,7 +481,7 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
         if (newBooking != null) {
             ObjectNode bookingNode = objectMapper.createObjectNode();
             bookingNode.put("bookingId", newBooking.getBookingId());
-            bookingNode.put("name", customer.getName());
+            bookingNode.put("name",name);
             bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
             bookingNode.put("movie", movie.getEnglishName());
             bookingNode.put("openTime", link.getOpenTime().getTime());
