@@ -1,35 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.GeneralMovieDetailsController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
-    <ImageView fx:id="movieImageView" fitHeight="200" fitWidth="150" preserveRatio="true"/>
+<AnchorPane minHeight="900.0" minWidth="1080.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.GeneralMovieDetailsController">
+    <VBox fx:id="mainVBox" alignment="CENTER" spacing="10" style="-fx-padding: 20; -fx-background-color: #d4d7de; -fx-background-radius: 20;" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
+        <ImageView fx:id="movieImageView" fitHeight="200" fitWidth="150" preserveRatio="true" />
 
-    <Label fx:id="englishNameLabel" style="-fx-font-weight: bold;"/>
-    <Label fx:id="hebrewNameLabel" style="-fx-font-weight: bold;"/>
-    <Label fx:id="producerLabel"/>
-    <Label fx:id="actorsLabel"/>
+        <Label fx:id="englishNameLabel" style="-fx-font-weight: bold;" />
+        <Label fx:id="hebrewNameLabel" style="-fx-font-weight: bold;" />
+        <Label fx:id="producerLabel" />
+        <Label fx:id="actorsLabel" />
 
-    <TextArea fx:id="synopsisTextArea" wrapText="true" editable="false" prefHeight="100"/>
+        <TextArea fx:id="synopsisTextArea" editable="false" prefHeight="100" wrapText="true" />
 
-    <HBox spacing="20" alignment="CENTER">
-        <CheckBox fx:id="cinemaCheckBox" text="Cinema"/>
-        <CheckBox fx:id="homeCheckBox" text="Home"/>
-    </HBox>
-
-    <VBox fx:id="priceChangeContainer" spacing="10" alignment="CENTER">
-        <HBox spacing="10" alignment="CENTER">
-            <Label fx:id="cinemaPriceLabel"/>
-            <TextField fx:id="cinemaPriceInput" promptText="New Cinema Price"/>
+        <HBox alignment="CENTER" spacing="20">
+            <CheckBox fx:id="cinemaCheckBox" text="Cinema" />
+            <CheckBox fx:id="homeCheckBox" text="Home" />
         </HBox>
-        <HBox spacing="10" alignment="CENTER">
-            <Label fx:id="homePriceLabel"/>
-            <TextField fx:id="homePriceInput" promptText="New Home Price"/>
-        </HBox>
+
+        <VBox fx:id="priceChangeContainer" alignment="CENTER" spacing="10">
+            <HBox alignment="CENTER" spacing="10">
+                <Label fx:id="cinemaPriceLabel" />
+                <TextField fx:id="cinemaPriceInput" promptText="New Cinema Price" />
+            </HBox>
+            <HBox alignment="CENTER" spacing="10">
+                <Label fx:id="homePriceLabel" />
+                <TextField fx:id="homePriceInput" promptText="New Home Price" />
+            </HBox>
+        </VBox>
+
+        <Button fx:id="saveChangesButton" onAction="#handleSaveChanges" styleClass="confirm-button" text="Save Changes" />
+        <Button onAction="#handleBackButton" styleClass="back-button" text="Back" />
     </VBox>
-
-    <Button fx:id="saveChangesButton" styleClass="menu-button" text="Save Changes" onAction="#handleSaveChanges"/>
-    <Button text="Back" styleClass="menu-button" onAction="#handleBackButton"/>
-</VBox>
+</AnchorPane>

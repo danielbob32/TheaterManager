@@ -30,7 +30,7 @@
 
         <StackPane>
             <Circle fx:id="clockBackground" radius="60" fill="#1e3c72" />
-            <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 20px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: white;">
+            <TextField fx:id="timeField" editable="false" style="-fx-alignment: CENTER; -fx-font-size: 20px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent">
                 <effect>
                     <DropShadow color="#00000040" />
                 </effect>

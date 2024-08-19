@@ -68,7 +68,7 @@ public class AllMoviesListController implements DataInitializable {
     private VBox createMovieBox(Movie movie) {
         VBox movieBox = new VBox(5);
         movieBox.setPadding(new Insets(10));
-        movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
+        movieBox.setStyle("-fx-border-color: #1e3c72; -fx-border-width: 1; -fx-border-radius: 10; -fx-fill: #FFFFFFF2");
 
         HBox contentBox = new HBox(10);
         contentBox.prefWidthProperty().bind(moviesContainer.widthProperty().multiply(0.80));
@@ -80,14 +80,14 @@ public class AllMoviesListController implements DataInitializable {
 
         VBox textContent = new VBox(5);
         Label titleLabel = new Label(movie.getEnglishName());
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17;");
         Label typeLabel = new Label(getMovieType(movie));
 
         textContent.getChildren().addAll(titleLabel, typeLabel);
         HBox.setHgrow(textContent, Priority.ALWAYS);
 
         Button moviePageButton = new Button("Movie Page");
-        moviePageButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
+        moviePageButton.setStyle("-fx-background-color: #004e92; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15; -fx-background-radius: 20");
         moviePageButton.setCursor(Cursor.HAND);
         moviePageButton.setOnAction(e -> {
             try {

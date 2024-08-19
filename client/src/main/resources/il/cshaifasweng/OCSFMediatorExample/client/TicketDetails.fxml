@@ -7,14 +7,11 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="640.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.TicketDetailsBoundary">
+<AnchorPane prefHeight="900.0" prefWidth="1080.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.TicketDetailsBoundary">
    <children>
-      <Pane layoutX="27.0" layoutY="119.0" prefHeight="493.0" prefWidth="746.0" style="-fx-background-color: #d9d9d9;">
+      <Pane layoutX="167.0" layoutY="221.0" prefHeight="571.0" prefWidth="746.0" style="-fx-background-color: #d4d7de; -fx-background-radius: 20;">
          <children>
-            <Button fx:id="homePageButton" layoutX="290.0" layoutY="418.0" mnemonicParsing="false" onAction="#handleBackButton" styleClass="menu-button" prefHeight="40.0" prefWidth="166.0" style="-fx-background-color: green;" text="Back to Movie List" textFill="WHITE">
-               <font>
-                  <Font name="System Bold" size="15.0" />
-               </font>
+            <Button fx:id="homePageButton" layoutX="290.0" layoutY="446.0" mnemonicParsing="false" onAction="#handleBackButton" styleClass="back-button" minHeight="40.0" minWidth="166.0" text="Back to Movie List" textFill="WHITE">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
@@ -34,12 +31,12 @@
                   <Font size="20.0" />
                </font>
             </Text>
-            <Text fx:id="movieHallText" layoutX="171.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="hall" wrappingWidth="438.9367370605469">
+            <Text fx:id="movieHallText" layoutX="160.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="hall" wrappingWidth="438.9367370605469">
                <font>
                   <Font size="20.0" />
                </font>
             </Text>
-            <Text fx:id="screeningTimeText" layoutX="212.0" layoutY="203.0" strokeType="OUTSIDE" strokeWidth="0.0" text="time" wrappingWidth="438.9367370605469">
+            <Text fx:id="screeningTimeText" layoutX="202.0" layoutY="202.0" strokeType="OUTSIDE" strokeWidth="0.0" text="time" wrappingWidth="438.9367370605469">
                <font>
                   <Font size="20.0" />
                </font>
@@ -101,22 +98,22 @@
             </Text>
          </children>
       </Pane>
-      <Text fx:id="bookingIdText" fill="WHITE" layoutX="171.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#########" wrappingWidth="246.73687744140625">
+      <Text fx:id="bookingIdText" fill="WHITE" layoutX="302.0" layoutY="162.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#########" wrappingWidth="246.73687744140625">
          <font>
             <Font size="20.0" />
          </font>
       </Text>
-      <Text fx:id="bookingIdText1" fill="WHITE" layoutX="36.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: " wrappingWidth="138.9366455078125">
+      <Text fx:id="bookingIdText1" fill="WHITE" layoutX="167.0" layoutY="162.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: " wrappingWidth="138.9366455078125">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Text fx:id="purchaseTimeText" fill="WHITE" layoutX="150.0" layoutY="93.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#######" wrappingWidth="268.3369140625">
+      <Text fx:id="purchaseTimeText" fill="#d4d7de" layoutX="281.0" layoutY="192.0" strokeType="OUTSIDE" strokeWidth="0.0" text="#######" wrappingWidth="268.3369140625">
          <font>
             <Font size="15.0" />
          </font>
       </Text>
-      <Text fx:id="purchaseTimeText1" fill="#c9c9c9" layoutX="37.0" layoutY="94.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time:" wrappingWidth="112.73672485351562">
+      <Text fx:id="purchaseTimeText1" fill="#d4d7de" layoutX="168.0" layoutY="193.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time:" wrappingWidth="112.73672485351562">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>

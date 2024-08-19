@@ -7,17 +7,23 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Label?>
 
 <VBox alignment="CENTER" prefHeight="640.0" prefWidth="800.0" spacing="10" style="-fx-padding: 20; -fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.HomeMoviesListBoundary">
+
     <HBox alignment="CENTER_LEFT" spacing="10">
-        <Button onAction="#handleBackButton" styleClass="menu-button" style="-fx-background-color: gray;" text="Back" textFill="WHITE">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></Button>
+        <Button onAction="#handleBackButton" styleClass="back-button" text="Back" textFill="WHITE">
+            <cursor>
+                <Cursor fx:constant="HAND" />
+            </cursor>
+        </Button>
     </HBox>
+
+    <!-- Centered Label -->
+    <HBox alignment="CENTER">
+        <Label text="Home Movies" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;" />
+    </HBox>
+
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
         <VBox fx:id="moviesContainer" spacing="10">
             <padding>

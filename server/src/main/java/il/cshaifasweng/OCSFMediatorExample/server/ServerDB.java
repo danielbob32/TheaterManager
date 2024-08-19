@@ -112,14 +112,6 @@ public class ServerDB {
                 
                 System.out.println("Test customers added successfully");
 
-                // Add test ticket tabs
-                TicketTab ticketTab1 = new TicketTab(customer1, new Date());
-                TicketTab ticketTab2 = new TicketTab(customer2, new Date());
-                session.save(ticketTab1);
-                session.save(ticketTab2);
-    
-                System.out.println("Test ticket tabs added successfully");
-
                 transaction.commit();
                 System.out.println("Test data added successfully");
             } catch (Exception e) {
@@ -1157,6 +1149,12 @@ public class ServerDB {
                     System.out.println("amount left: " + ticketTab.getAmount());
                     session.update(ticketTab);
                 }
+                if (ticketTab.getAmount() == 0)
+                {
+                    System.out.println("inactivating ticket tab");
+                    ticketTab.setActive(false);
+                }
+
                 customer.addBooking(newBooking);
 
                 session.update(customer);

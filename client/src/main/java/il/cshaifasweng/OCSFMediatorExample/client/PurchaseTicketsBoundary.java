@@ -7,6 +7,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.TicketPurchaseInfo;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -144,7 +145,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         // Add row numbers
         for (int row = 1; row <= rows; row++) {
             Label rowLabel = new Label(String.valueOf(row));
-            rowLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+            rowLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17;");
             seatGrid.add(rowLabel, 0, row);
         }
 
@@ -193,14 +194,14 @@ public class PurchaseTicketsBoundary implements DataInitializable {
     }
 
     private StackPane createScreenRectangle() {
-        Rectangle screen = new Rectangle(400, 30);
-        screen.setFill(Color.GRAY);
-        screen.setArcHeight(10);
-        screen.setArcWidth(10);
+        Rectangle screen = new Rectangle(450, 30);
+        screen.setFill(Color.web("#616161"));
+        screen.setArcHeight(5);
+        screen.setArcWidth(5);
 
         Label screenLabel = new Label("Screen");
         screenLabel.setTextFill(Color.BLACK);
-        screenLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
+        screenLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
         screenLabel.setTextFill(Color.WHITE);
 
         StackPane screenPane = new StackPane(screen, screenLabel);
@@ -208,15 +209,16 @@ public class PurchaseTicketsBoundary implements DataInitializable {
     }
 
     private StackPane createSeatPane(Seat seat) {
-        Rectangle rectangle = new Rectangle(30, 35);
+        Rectangle rectangle = new Rectangle(35, 40);
         rectangle.setFill(seat.isAvailable() ? Color.GREEN : Color.GRAY);
         //rectangle.setStroke(Color.BLACK);
-        rectangle.setArcHeight(5);
-        rectangle.setArcWidth(5);
+        rectangle.setArcHeight(10);
+        rectangle.setArcWidth(10);
+        rectangle.setCursor(Cursor.HAND);
 
         Label seatLabel = new Label(String.valueOf(seat.getSeatNumber()));
         seatLabel.setTextFill(Color.WHITE);
-        seatLabel.setStyle("-fx-font-size: 13;");
+        seatLabel.setStyle("-fx-font-size: 14;");
 
         StackPane stackPane = new StackPane(rectangle, seatLabel);
         if (seat.isAvailable()) {
