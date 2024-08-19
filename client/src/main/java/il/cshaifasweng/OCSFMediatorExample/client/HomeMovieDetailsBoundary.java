@@ -42,17 +42,30 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
-        populateTimeComboBox();
-        
+
+        // Set today's date as the initial date
         LocalDate today = LocalDate.now();
+        dateSelector.setValue(today);
+
+        // Initialize the time combo box based on the current date and time
+        populateTimeComboBox(today);
+
         dateSelector.setDayCellFactory(picker -> new DateCell() {
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                setDisable(empty || date.compareTo(today) < 0);
+                // Disable past dates
+                setDisable(empty || date.isBefore(today));
             }
         });
-        dateSelector.setValue(today);
+
+        // Add a listener to update available hours when the date is changed
+        dateSelector.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                populateTimeComboBox(newValue);
+            }
+        });
     }
+
 
     public void cleanup() {
         EventBus.getDefault().unregister(this);
@@ -68,7 +81,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         if (data instanceof Movie) {
             currentMovie = (Movie) data;
             displayMovieDetails();
-            populateTimeComboBox();
+//            populateTimeComboBox();
             checkUserPermissions();
         }
     }
@@ -105,30 +118,41 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         return null;
     }
 
-    private void populateTimeComboBox() {
-        LocalTime now = LocalTime.now();  // You can manually set this to LocalTime.of(23, 31) for testing.
-        LocalTime startTime = now.plusMinutes(30 - now.getMinute() % 30);
-    
-        // If time is later than 23:30, move to the next day.
-        if (startTime.isAfter(LocalTime.of(23, 30))) {
-            dateSelector.setValue(LocalDate.now().plusDays(1));
-            startTime = LocalTime.of(0, 0);  // Start from midnight next day
+    private void populateTimeComboBox(LocalDate selectedDate) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        LocalTime startTime;
+
+        if (selectedDate.isEqual(today)) {
+            // Start from the next round half-hour if today is selected
+            startTime = now.plusMinutes(30 - now.getMinute() % 30);
+            if (startTime.isAfter(LocalTime.of(23, 30))) {
+                startTime = LocalTime.of(23, 30);
+            }
+        } else {
+            // Start from midnight for future dates
+            startTime = LocalTime.of(0, 0);
         }
-    
+
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        
+
         timeComboBox.getItems().clear();
-        while (!startTime.isAfter(endTime)) {
-            timeComboBox.getItems().add(startTime.format(formatter));
-            startTime = startTime.plusMinutes(30);
+
+        // Use a for loop with an inclusive end condition
+        for (LocalTime time = startTime; !time.isAfter(endTime); time = time.plusMinutes(30)) {
+            timeComboBox.getItems().add(time.format(formatter));
+            if (time.equals(endTime)) {
+                break;
+            }
         }
-    
+
         if (!timeComboBox.getItems().isEmpty()) {
             timeComboBox.getSelectionModel().selectFirst();
         }
     }
-    
+
+
     private Image loadDefaultImage() {
         try {
             InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
