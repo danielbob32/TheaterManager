@@ -35,6 +35,7 @@ public class SimpleServer extends AbstractServer {
 			this.db = new ServerDB();
 			this.objectMapper.registerModule(new Hibernate5Module());
 			SchedulerService.initialize(this.db, this);
+			SchedulerService.initialize(this.db, this);
 		} catch (Exception e) {
 			System.err.println("Failed to initialize ServerDB: " + e.getMessage());
 			e.printStackTrace();
@@ -862,6 +863,7 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(openTime);
         calendar.add(Calendar.MINUTE, movie.getDuration());
+        calendar.add(Calendar.MINUTE, movie.getDuration());
         Date closeTime = calendar.getTime();
 
         HomeMovieLink link = new HomeMovieLink(openTime, closeTime, false, HomeMovieLink.generateRandomLink("www.Theater.link."),
@@ -878,9 +880,23 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		// HomeMovieLink testLink = new HomeMovieLink(openTime1, closeTime1, false, "test_link", id, 10, true, now);
 		// testLink.setMovie(movie);
 		// Customer customertest = null;
+		// // Simulating a purchase for a movie starting in 30 seconds and ending 60 seconds later
+		// Calendar calendar1 = Calendar.getInstance();
+		// Date now = calendar1.getTime();
+		// calendar1.add(Calendar.SECOND, 30);
+		// Date openTime1 = calendar1.getTime();
+		// calendar1.add(Calendar.SECOND, 30);
+		// Date closeTime1 = calendar1.getTime();
+
+		// HomeMovieLink testLink = new HomeMovieLink(openTime1, closeTime1, false, "test_link", id, 10, true, now);
+		// testLink.setMovie(movie);
+		// Customer customertest = null;
         Customer customer = null;
 
+
         try {
+			// customertest = new Customer("test", "test", 1);
+			// db.addPerson(customertest);
 			// customertest = new Customer("test", "test", 1);
 			// db.addPerson(customertest);
             customer = (Customer) db.getPersonById(id);
@@ -896,8 +912,13 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
         }
 
 		
+		
         Booking newBooking = db.purchaseHomeMovieLink(name, id, email, creditCard, link);
         System.out.println("DEBUG: New booking created: " + (newBooking != null));
+		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
+		SchedulerService.scheduleHomeLinkAvailability(link);
+		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
+
 		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
 		SchedulerService.scheduleHomeLinkAvailability(link);
 		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
@@ -914,12 +935,33 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
             bookingNode.put("watchLink", link.getWatchLink());
             bookingNode.put("totalPrice", link.getPrice());
 			System.out.println("DEBUG: Purchase link successful");
+			System.out.println("DEBUG: Purchase link successful");
 
             String jsonBooking = objectMapper.writeValueAsString(bookingNode);
             client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
         } else {
             client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
         }
+		// if (testBooking != null) {
+		// 	ObjectNode bookingNode = objectMapper.createObjectNode();
+		// 	bookingNode.put("bookingId", testBooking.getBookingId());
+		// 	bookingNode.put("name", "test");
+		// 	bookingNode.put("purchaseTime", testBooking.getPurchaseTime().getTime());
+		// 	bookingNode.put("movie", movie.getEnglishName());
+		// 	bookingNode.put("openTime", testLink.getOpenTime().getTime());
+		// 	bookingNode.put("closeTime", testLink.getCloseTime().getTime());
+		// 	bookingNode.put("watchLink", testLink.getWatchLink());
+		// 	bookingNode.put("totalPrice", testLink.getPrice());
+		// 	System.out.println("DEBUG: Purchase link successful");
+		// 	// Schedule availability and notifications
+		// 	SchedulerService.scheduleHomeLinkAvailability(testLink);
+		// 	System.out.println("DEBUG: Scheduled link availability");
+		// 	String jsonBooking = objectMapper.writeValueAsString(bookingNode);
+		// 	client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
+		// } else {
+		// 	client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
+		// }
+
 		// if (testBooking != null) {
 		// 	ObjectNode bookingNode = objectMapper.createObjectNode();
 		// 	bookingNode.put("bookingId", testBooking.getBookingId());
@@ -1067,11 +1109,15 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
       //  System.out.println("In SimpleServer, Handling getMovies.");
+      //  System.out.println("In SimpleServer, Handling getMovies.");
 		List<Movie> movies = db.getAllMovies();
 		for (Movie movie : movies) {
 			//System.out.println("Movie Title: " + movie.getEnglishName());
+			//System.out.println("Movie Title: " + movie.getEnglishName());
 		}
 		String movieType = message.getData();
+		//System.out.println("got the movies from serverDB");
+		//System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
 		//System.out.println("got the movies from serverDB");
 		//System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
 		String jsonMovies = objectMapper.writeValueAsString(movies);
@@ -1195,17 +1241,23 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 	protected void handleFetchUserBookings(Message message, ConnectionToClient client) {
 		try {
 			//System.out.println("In SimpleServer, handleFetchUserBookings function");
+			//System.out.println("In SimpleServer, handleFetchUserBookings function");
 			int userId = Integer.parseInt(message.getData());
 			//System.out.println("1");
+			//System.out.println("1");
 			List<Booking> bookings = db.fetchUserBookings(userId);
+			//System.out.println("2");
 			//System.out.println("2");
 			for (Booking booking : bookings) {
 				System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
 			}
 			//System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
+			//System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
 			Message response = new Message(0, "fetchUserBookingsResponse", objectMapper.writeValueAsString(bookings));
 			//System.out.println("3");
+			//System.out.println("3");
 			response.setAdditionalData(String.valueOf(userId));
+			//System.out.println("4");
 			//System.out.println("4");
 			client.sendToClient(response);
 		} catch (Exception e) {
@@ -1311,6 +1363,14 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		}
 	}
 
+	// Add this method to SimpleServer class fixed using coplit
+	public void sendToAllClients(Message message) throws Exception {
+		for (Object clientObj : getClientConnections()) {
+			ConnectionToClient client = (ConnectionToClient) clientObj;
+			client.sendToClient(message);
+			System.out.println("Message sent to client, inside simpleserver sendtoallclients: " + message.getMessage());
+		}
+	}
 	// Add this method to SimpleServer class fixed using coplit
 	public void sendToAllClients(Message message) throws Exception {
 		for (Object clientObj : getClientConnections()) {
