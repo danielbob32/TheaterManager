@@ -1,7 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListUpdatedEvent;
+//import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListUpdatedEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
@@ -116,13 +116,13 @@ public class LoginPageController implements Initializable, DataInitializable {
         startMoviePosterSlideshow();
     }
 
-    @Subscribe
-    public void onMovieListUpdatedEvent(MovieListUpdatedEvent event) {
-        allMovies = event.getUpdatedMovies();
-        filterMovies(allMovies);
-        stopSlideshow();
-        //startMoviePosterSlideshow();
-    }
+    // @Subscribe
+    // public void onMovieListUpdatedEvent(MovieListUpdatedEvent event) {
+    //     allMovies = event.getUpdatedMovies();
+    //     filterMovies(allMovies);
+    //     stopSlideshow();
+    //     //startMoviePosterSlideshow();
+    // }
 
     private void stopSlideshow() {
         if (slideshowTimeline != null) {
