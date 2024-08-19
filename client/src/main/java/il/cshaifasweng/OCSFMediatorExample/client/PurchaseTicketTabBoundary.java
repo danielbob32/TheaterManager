@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class PurchaseTicketTabBoundary implements DataInitializable{
 
     private SimpleClient client;
@@ -75,14 +76,9 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
         }
     }
 
-    public void cleanup() {
-        EventBus.getDefault().unregister(this);
-    }
-
 
     @FXML
     void handleBackButton(ActionEvent event) throws IOException {
-        cleanup();
         if (isConnected) App.setRoot("CustomerMenu", customer);
         else App.setRoot("Loginpage", null);
     }
