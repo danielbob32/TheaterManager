@@ -106,18 +106,32 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     }
 
     private void populateTimeComboBox() {
-        LocalTime now = LocalTime.now();  // You can manually set this to LocalTime.of(23, 31) for testing.
-        LocalTime startTime = now.plusMinutes(30 - now.getMinute() % 30);
+        // Ensure the date selector has a value, default to today if none set
+        LocalDate selectedDate = dateSelector.getValue();
+        if (selectedDate == null) {
+            selectedDate = LocalDate.now();
+            dateSelector.setValue(selectedDate);  // Set it in the date selector for consistency
+        }
     
-        // If time is later than 23:30, move to the next day.
-        if (startTime.isAfter(LocalTime.of(23, 30))) {
-            dateSelector.setValue(LocalDate.now().plusDays(1));
-            startTime = LocalTime.of(0, 0);  // Start from midnight next day
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();  // Use current time for reference
+        LocalTime startTime;
+    
+        // Check if the current selected date is today and it's late
+        if (selectedDate.isEqual(today)) {
+            startTime = now.plusMinutes(30 - now.getMinute() % 30);
+            if (startTime.isAfter(LocalTime.of(23, 30))) {
+                dateSelector.setValue(today.plusDays(1));  // Automatically advance to the next day
+                startTime = LocalTime.of(0, 0);  // Start from midnight next day
+            }
+        } else {
+            // Normal population from 00:00 to 23:30 if it's not today
+            startTime = LocalTime.of(0, 0);
         }
     
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        
+    
         timeComboBox.getItems().clear();
         while (!startTime.isAfter(endTime)) {
             timeComboBox.getItems().add(startTime.format(formatter));
@@ -128,6 +142,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
             timeComboBox.getSelectionModel().selectFirst();
         }
     }
+    
     
     private Image loadDefaultImage() {
         try {
