@@ -20,7 +20,9 @@ import javafx.scene.shape.Rectangle;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,48 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         cinemaLabel.setText(screening.getCinema().getCinemaName());
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         screeningTimeLabel.setText(dateFormat.format(screening.getTime()));
+
+        // initialize image
+        byte[] image2 = screening.getMovie().getMovieIcon();
+        if (image2 != null) {
+            System.out.println("Image byte array length: " + image2.length);
+        } else {
+            System.out.println("Image byte array is null");
+        }
+        Image image3 = convertByteArrayToImage(image2);
+        if (image3 == null) {
+            System.out.println("Image is null");
+        } else {
+            System.out.println("Image created successfully");
+        }
+        if (image3 == null || image3.isError()) {
+            System.out.println("Using default image");
+            try {
+                InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+                if (defaultImageStream != null) {
+                    image3 = new Image(defaultImageStream);
+                    System.out.println("Default image loaded successfully");
+                } else {
+                    System.out.println("Default image not found");
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading default image: " + e.getMessage());
+            }
+        }
+        movieImageView.setImage(image3);
+    }
+
+    public Image convertByteArrayToImage(byte[] imageData) {
+        if (imageData != null && imageData.length > 0) {
+            // Convert byte[] to InputStream
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+
+            // Create Image from InputStream
+            return new Image(inputStream);
+        } else {
+            System.out.println("No image data available");
+            return null;  // Or handle as needed, e.g., return a default image
+        }
     }
 
     private void requestSeatAvailability() {
@@ -140,6 +184,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() {
         try {
+            cleanup();
             App.setRoot("CinemaMovieDetails", screening.getMovie());
         } catch (IOException e) {
             e.printStackTrace();
@@ -212,6 +257,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         // The purchase time is automatically set in the TicketPurchaseInfo constructor
 
         try {
+            cleanup();
             App.setRoot("ticketsPayment", purchaseInfo);
         } catch (IOException e) {
             e.printStackTrace();

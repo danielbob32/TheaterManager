@@ -1,9 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.RespondToComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
-import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -42,6 +42,10 @@ public class WorkerComplaintBoundary implements DataInitializable {
     @FXML
     private TextField responseField;
     @FXML
+    private TextField refundField;  // New field for refund amount
+    @FXML
+    private Label responseLabel;    // New label for response field
+    @FXML
     private Button selectComplaintButton;
     @FXML
     private Button submitReplyButton;
@@ -59,6 +63,9 @@ public class WorkerComplaintBoundary implements DataInitializable {
     @FXML
     public void initialize() throws IOException {
         EventBus.getDefault().register(this);
+
+        complaintTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         complaintIdColumn.setCellValueFactory(new PropertyValueFactory<>("complaint_id"));
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -142,15 +149,32 @@ public class WorkerComplaintBoundary implements DataInitializable {
                 showAlert("Error", "Response field cannot be empty.");
                 return;
             }
-            selectedComplaint.setResponse(response);
-            selectedComplaint.setActive(false);
-            client.respondToComplaint(selectedComplaint);
-            responseField.clear();
-            selectedComplaint = null;
+
+            // Check if the complaint already has a reply
+            if (!selectedComplaint.isActive()) {
+                showAlert("Error", "A reply has already been submitted for this complaint.");
+                return;
+            }
+
+            // Check for refund value if applicable
+            String refundText = refundField.getText();
+            try {
+                int refundAmount = Integer.parseInt(refundText);
+                selectedComplaint.setResponse(response);
+                selectedComplaint.setRefund(refundAmount);
+                selectedComplaint.setActive(false);
+                client.respondToComplaint(selectedComplaint);
+                responseField.clear();
+                refundField.clear();
+                selectedComplaint = null;
+            } catch (NumberFormatException e) {
+                showAlert("Error", "Please enter a numeric value for the refund amount.");
+            }
         } else {
             showAlert("Error", "Please select a complaint first.");
         }
     }
+
 
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -162,6 +186,7 @@ public class WorkerComplaintBoundary implements DataInitializable {
 
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
+        cleanup();
         App.setRoot("WorkerMenu", null);
     }
 

@@ -12,10 +12,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.text.TextFlow;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
+import javafx.scene.control.DateCell;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -50,8 +51,19 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     private Movie currentMovie;
     private boolean isContentManager = false;
 
+    @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
+        populateTimeComboBox();
+        
+        LocalDate today = LocalDate.now();
+        dateSelector.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.compareTo(today) < 0);
+            }
+        });
+        dateSelector.setValue(today);
     }
 
     public void cleanup() {
@@ -87,7 +99,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         producerLabel.setText("Producer: " + currentMovie.getProducer());
         actorsLabel.setText("Actors: " + currentMovie.getActors());
         durationLabel.setText("Duration: " + currentMovie.getDuration() + " minutes");
-        genreLabel.setText("Genre: " + currentMovie.getGenre());
+        genreLabel.setText("Genres: " + String.join(", ", currentMovie.getGenres()));
         synopsisArea.getChildren().clear();
         synopsisArea.getChildren().add(new Label(currentMovie.getSynopsis()));
 
@@ -134,11 +146,12 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     }
 
     private void populateTimeComboBox() {
-        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime now = LocalTime.now();
+        LocalTime startTime = now.plusMinutes(30 - now.getMinute() % 30);
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-
-        while (startTime.isBefore(endTime)) {
+    
+        while (startTime.isBefore(endTime) || startTime.equals(endTime)) {
             timeComboBox.getItems().add(startTime.format(formatter));
             startTime = startTime.plusMinutes(30);
         }
@@ -150,6 +163,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         String selectedDate = dateSelector.getValue() != null ? dateSelector.getValue().toString() : "";
 
         if (selectedTime != null && !selectedDate.isEmpty()) {
+            cleanup();
             App.setRoot("PurchaseLinkBoundary", new Object[]{currentMovie, selectedTime, selectedDate});
         } else {
             showAlert("Missing Information", "Please select a time and date before purchasing a link.");
@@ -159,6 +173,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("HomeMovieList", connectedPerson);
     }
 

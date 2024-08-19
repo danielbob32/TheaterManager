@@ -19,8 +19,7 @@ import java.util.*;
 
 public class ServerDB {
     private SessionFactory sessionFactory;
-    private Session session;
-    private ObjectMapper mapper = new ObjectMapper();
+//    private ObjectMapper mapper = new ObjectMapper();
 
     public ServerDB() {
         try {
@@ -54,7 +53,7 @@ public class ServerDB {
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties()).build();
             sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-            session = sessionFactory.openSession();
+//            session = sessionFactory.openSession();
             System.out.println("Connected to database");
 
         } catch (HibernateException e) {
@@ -289,7 +288,7 @@ public class ServerDB {
         return properties;
     }
 
-    public List<Movie> getAllMovies() throws Exception {
+    public List<Movie> getAllMovies(){
         try(Session session = sessionFactory.openSession()) 
         {
             CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -297,10 +296,12 @@ public class ServerDB {
             query.from(Movie.class);
             List<Movie> data = session.createQuery(query).getResultList();
             for (Movie movie : data) {
-                if (movie.getEnglishName().equals("Deadpool")) {
-                    System.out.println("Movie: " + movie.getEnglishName());
-                    System.out.println("in serverDB price is:" + movie.getCinemaPrice());
-                }
+//                if (movie.getEnglishName().equals("Deadpool")) {
+//                    System.out.println("Movie: " + movie.getEnglishName());
+//                    System.out.println("in serverDB price is:" + movie.getCinemaPrice());
+//                    System.out.println("Deadpool genres are:"+movie.getGenres());
+//                }
+                Hibernate.initialize(movie.getGenres());
             }
             return data;
         }catch (Exception e) {
@@ -317,17 +318,27 @@ public class ServerDB {
             Query<Worker> query = session.createQuery(hql, Worker.class);
             query.setParameter("id", id);
             Worker worker = query.uniqueResult();
-
+    
             System.out.println("Checking worker credentials for ID: " + id);
             System.out.println("Found worker: " + (worker != null));
-            boolean passcode = false;
-            if (worker != null) {
-                passcode = worker.getPassword().equals(password);
-                System.out.println("Password match: " + worker.getPassword().equals(password));
-                if (passcode) {
-                    return worker;
+            System.out.println("in checkworkercredentials before if");
+    
+            if (worker != null && worker.getPassword().equals(password)) {
+                System.out.println("in checkworkercredentials after if");
+    
+                if (worker instanceof CinemaManager) {
+                    System.out.println("in checkworkercredentials after if instance of");
+                    System.out.println("worker is cinema manager");
+                    CinemaManager manager = session.get(CinemaManager.class, id);
+                    // Cast the worker to CinemaManager instead of re-fetching it
+                    return manager;
                 }
+    
+                System.out.println("in checkworkercredentials after if not instance of");
+                return worker;  // Return the worker as is for other types
             }
+    
+            System.out.println("in checkworkercredentials after if not found");
             return null;
         } catch (Exception e) {
             System.err.println("Error checking worker credentials: " + e.getMessage());
@@ -335,7 +346,9 @@ public class ServerDB {
             return null;
         }
     }
-
+    
+    
+    
     public Customer checkCustomerCredentials(int id) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Customer C WHERE C.id = :id";
@@ -358,6 +371,7 @@ public class ServerDB {
     }
 
     public String getWorkerType(int id) {
+        System.out.println("in getWorkerType");
         try (Session session = sessionFactory.openSession()) {
             String hql = "SELECT W.workerType FROM Worker W WHERE W.id = :id";
             Query<String> query = session.createQuery(hql, String.class);
@@ -384,11 +398,15 @@ public class ServerDB {
                 session.save(movie);
 
                 List<Customer> allCustomers = getAllCustomers();
-                for (Customer customer : allCustomers) {
-                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
-                    notification.setCustomer(customer);
-                    session.save(notification);
+                if(movie.getIsCinema())
+                {
+                    for (Customer customer : allCustomers) {
+                        Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+                        notification.setCustomer(customer);
+                        session.save(notification);
+                    }
                 }
+
 
                 session.getTransaction().commit();
                 return true;
@@ -440,7 +458,7 @@ public class ServerDB {
     }
     public void generateData() {
         try {
-            session.beginTransaction();
+//            session.beginTransaction();
             System.out.println("Generating data...");
             List<Cinema> cinemas = generateCinemas();
             System.out.println("1. Cinemas generated: " + cinemas.size());
@@ -457,11 +475,11 @@ public class ServerDB {
             generateTicketTabs();
             System.out.println("7. Ticket tabs generated");
 
-            session.getTransaction().commit();
+//            session.getTransaction().commit();
             System.out.println("Data generated successfully");
     
         } catch (HibernateException e) {
-            session.getTransaction().rollback();
+//            session.getTransaction().rollback();
             System.err.println("Error generating data: " + e.getMessage());
             e.printStackTrace();
         }
@@ -518,7 +536,7 @@ public class ServerDB {
             String[] producers = {"Simon Kinberg", "Raja Gosnell", "Margot Robbie", "Jonah Hill", "Gary Ross", "James Cameron", "James Cameron", "George Lucas", "Peter Jackson", "David Heyman"};
             String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
             String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
-            String[] genres = {"Action, Fantasy", "Family", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
+            String[] genresArray = {"Action, Fantasy", "Family, Children", "Drama, Comedy", "Comedy, Drama", "Fantasy, Action", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
             String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hungergames.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
             int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
             boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
@@ -535,10 +553,22 @@ public class ServerDB {
                 } else {
                     premierDate = new Date(); // For other movies, use current date
                 }
+                List<String> genres = Arrays.asList(genresArray[i].split(",\\s*"));
 
-                Movie movie = new Movie(titles_english[i], titles_hebrew[i], producers[i], movie_actors[i],
-                        durations[i], null, movie_descriptions[i], genres[i], premierDate,
-                        isHome[i], true, i, i);
+                Movie movie = new Movie(
+                        titles_english[i],
+                        titles_hebrew[i],
+                        producers[i],
+                        movie_actors[i],
+                        durations[i],
+                        null,
+                        movie_descriptions[i],
+                        genres,
+                        premierDate,
+                        isHome[i],
+                        true,
+                        i,
+                        i);
 
                 String imagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + movie_icons[i];
 //            try (InputStream inputStream = new FileInputStream(imagePath)) {
@@ -598,20 +628,28 @@ public class ServerDB {
             return null;
         }
     }
-
+    // added here the cinema manager foir each cinema
     private List<Cinema> generateCinemas() {
-        try(Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
             String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
-
+    
             List<Cinema> cinemas = new ArrayList<>();
             Random random = new Random();
-
+    
             for (int i = 0; i < 4; i++) {
                 Cinema cinema = new Cinema(cinemaNames[i], locations[i], new ArrayList<>(), null);
+                // print cinema created
+                System.out.println("Cinema created: " + cinemaNames[i]);
+                // Create a CinemaManager for each cinema
+                Worker w = new CinemaManager("Cinema Manager " + (i+1), "" + (i+1), 1004 + i, cinema);
+                cinema.setManager((CinemaManager) w);
+
+                session.save(w);
                 session.save(cinema);
 
+    
                 // Generate 5 halls for each cinema
                 for (int j = 0; j < 5; j++) {
                     MovieHall hall = new MovieHall(j + 1, new ArrayList<>(), cinema);
@@ -630,6 +668,7 @@ public class ServerDB {
             return null;
         }
     }
+    
 
     
     private void generateScreenings(List<Movie> movies, List<Cinema> cinemas) {
@@ -696,119 +735,6 @@ public class ServerDB {
 
     }
 
-//    public boolean deleteMovie(int movieId, String movieType) {
-//        Transaction transaction = null;
-//        try {
-//            transaction = session.beginTransaction();
-//            Movie movie = session.get(Movie.class, movieId);
-//            if (movie == null) {
-//                System.out.println("Movie not found");
-//                return false; // Movie not found
-//            }
-//            if (movie != null) {
-//                if(movieType.equals("cinema") && movie.getIsHome())
-//                {
-//                    movie.setIsCinema(false);
-//                    session.update(movie);
-//                    transaction.commit();
-//                    return true;
-//                }
-//                else if(movieType.equals("home") && movie.getIsCinema()) {
-//                    movie.setIsHome(false);
-//                    session.update(movie);
-//                    transaction.commit();
-//                    return true;
-//                }
-//
-//                // Delete all PriceChangeRequests associated with this movie
-//                Query<?> priceChangeRequestQuery = session.createQuery("delete from PriceChangeRequest pcr where pcr.movie.id = :movieId");
-//                priceChangeRequestQuery.setParameter("movieId", movieId);
-//                priceChangeRequestQuery.executeUpdate();
-//
-//                // Fetch and delete screenings one by one
-//                Query<Screening> fetchScreeningsQuery = session.createQuery("from Screening s where s.movie.id = :movieId", Screening.class);
-//                fetchScreeningsQuery.setParameter("movieId", movieId);
-//                List<Screening> screenings = fetchScreeningsQuery.getResultList();
-//
-//                for (Screening screening : screenings) {
-//                    session.delete(screening);
-//                }
-//
-//                // Clear the movie's screenings collection
-//                movie.getScreenings().clear();
-//
-//                // Now delete the movie
-//                session.delete(movie);
-//
-//                transaction.commit();
-//                return true;
-//            }
-//            return false;
-//        } catch (Exception e) {
-//            if (transaction != null) {
-//                transaction.rollback();
-//            }
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
-
-
-
-//    public boolean deleteMovie(int movieId, String movieType) {
-//        Transaction transaction = null;
-//        try (Session session = sessionFactory.openSession()) {
-//            transaction = session.beginTransaction();
-//            Movie movie = session.get(Movie.class, movieId);
-//            if (movie != null) {
-//                if (movieType.equals("cinema") && movie.getIsHome()) {
-//                    movie.setIsCinema(false);
-//                    session.update(movie);
-//                    transaction.commit();
-//                    return true;
-//                } else if (movieType.equals("home") && movie.getIsCinema()) {
-//                    movie.setIsHome(false);
-//                    session.update(movie);
-//                    transaction.commit();
-//                    return true;
-//                }
-//            }
-//
-//            // Delete related PriceChangeRequests
-//            Query<?> priceChangeRequestQuery = session.createQuery("DELETE FROM PriceChangeRequest pcr WHERE pcr.movie.id = :movieId");
-//            priceChangeRequestQuery.setParameter("movieId", movieId);
-//            priceChangeRequestQuery.executeUpdate();
-//
-//            // Delete related Seats
-//            Query<?> seatQuery = session.createQuery("DELETE FROM Seat s WHERE s.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
-//            seatQuery.setParameter("movieId", movieId);
-//            seatQuery.executeUpdate();
-//
-//            // Delete related Tickets
-//            Query<?> ticketQuery = session.createQuery("DELETE FROM Ticket t WHERE t.screening.id IN (SELECT s.id FROM Screening s WHERE s.movie.id = :movieId)");
-//            ticketQuery.setParameter("movieId", movieId);
-//            ticketQuery.executeUpdate();
-//
-//            // Delete related Screenings
-//            Query<?> screeningQuery = session.createQuery("DELETE FROM Screening s WHERE s.movie.id = :movieId");
-//            screeningQuery.setParameter("movieId", movieId);
-//            screeningQuery.executeUpdate();
-//
-//            // Delete the movie
-//            Query<?> movieQuery = session.createQuery("DELETE FROM Movie m WHERE m.id = :movieId");
-//            movieQuery.setParameter("movieId", movieId);
-//            int result = movieQuery.executeUpdate();
-//
-//            transaction.commit();
-//            return result > 0;
-//        } catch (Exception e) {
-//            if (transaction != null) {
-//                transaction.rollback();
-//            }
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
 
     public boolean deleteMovie(int movieId, String movieType) {
         Transaction transaction = null;
@@ -850,6 +776,22 @@ public class ServerDB {
             if (m == null) // If the movie not found, return false.
                 return false;
 
+            List<Customer> allCustomers = getAllCustomers();
+            for (Customer customer : allCustomers) {
+                if(!m.getIsCinema() && movie.getIsCinema())
+                {
+                    Notification notification = new Notification("The movie: " + movie.getEnglishName() + " is now in theaters!", movie);
+                    notification.setCustomer(customer);
+                    session.save(notification);
+                }
+                if(!m.getIsHome() && movie.getIsHome())
+                {
+                    Notification notification = new Notification("The movie: " + movie.getEnglishName() + " is now in home movies!", movie);
+                    notification.setCustomer(customer);
+                    session.save(notification);
+                }
+
+            }
             m.setIsHome(movie.getIsHome());
             m.setIsCinema(movie.getIsCinema());
             session.update(m);
@@ -1383,11 +1325,14 @@ public class ServerDB {
         }
     }
 
+
     public String generateReport(String reportType, LocalDate month, String cinema) {
-        try(Session session = sessionFactory.openSession())  {
+        try(Session session = sessionFactory.openSession()) {
             switch (reportType) {
                 case "Monthly Ticket Sales":
                     return generateMonthlyTicketSalesReport(session, month, cinema);
+                case "Monthly Ticket Sales Manager":
+                    return generateMonthlyTicketSalesReportForManager(session, month, cinema);
                 case "Ticket Tab Sales":
                     return generateTicketTabSalesReport(session, month, TimeFrame.MONTHLY);
                 case "Home Movie Link Sales":
@@ -1398,11 +1343,38 @@ public class ServerDB {
                     return "Invalid report type";
             }
         } catch (Exception e) {
-            System.out.println("Error in generateReport"+ e.getMessage());
+            System.out.println("Error in generateReport" + e.getMessage());
             e.printStackTrace();
             return "Error generating report: " + e.getMessage();
         }
     }
+    
+    private String generateMonthlyTicketSalesReportForManager(Session session, LocalDate month, String cinema) {
+        StringBuilder hql = new StringBuilder("SELECT DAY(t.purchaseTime) as day, COUNT(t) ");
+        hql.append("FROM Ticket t JOIN t.screening s JOIN s.cinema c ");
+        hql.append("WHERE YEAR(t.purchaseTime) = :year AND MONTH(t.purchaseTime) = :month ");
+        hql.append("AND c.cinemaName = :cinema ");
+        hql.append("GROUP BY DAY(t.purchaseTime) ORDER BY 1");
+    
+        Query<Object[]> query = session.createQuery(hql.toString(), Object[].class);
+        query.setParameter("year", month.getYear());
+        query.setParameter("month", month.getMonthValue());
+        query.setParameter("cinema", cinema);
+    
+        List<Object[]> results = query.getResultList();
+        StringBuilder reportBuilder = new StringBuilder();
+        reportBuilder.append("Daily Ticket Sales for ").append(cinema).append(" - ").append(month.getMonth()).append(" ").append(month.getYear()).append("\n\n");
+    
+        for (Object[] row : results) {
+            Integer day = (Integer) row[0];
+            Long ticketCount = (Long) row[1];
+            reportBuilder.append("Day ").append(day).append(": ").append(ticketCount).append("\n");
+        }
+    
+        return reportBuilder.toString();
+    }
+    
+    
 
     private String generateMonthlyTicketSalesReport(Session session, LocalDate month, String cinema) {
         StringBuilder hql = new StringBuilder("SELECT ");
@@ -1454,6 +1426,7 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
+    
     
 
 
@@ -1636,63 +1609,9 @@ public class ServerDB {
         }
     }
 
-//    public List<Booking> fetchUserBookings(int userId) throws Exception {
-//        try {
-//            System.out.println("DB1");
-//            CriteriaBuilder builder = session.getCriteriaBuilder();
-//            System.out.println("DB1.1");
-//            CriteriaQuery<Booking> query = builder.createQuery(Booking.class);
-//            System.out.println("DB1.2");
-//            Root<Booking> root = query.from(Booking.class);
-//            System.out.println("DB2");
-//            // Filter bookings by userId
-//            query.select(root).where(builder.equal(root.get("customer").get("personId"), userId));
-//            System.out.println("DB3");
-//            List<Booking> bookings = session.createQuery(query).getResultList();
-//            System.out.println("DB4");
-//            for (Booking booking : bookings) {
-//                // Load products
-//                Hibernate.initialize(booking.getProducts());
-//                System.out.println("DB5");
-//
-//                for (Product product : booking.getProducts()) {
-//                    System.out.println("DB6");
-//                    if (product instanceof Ticket) {
-//                        System.out.println("DB7");
-//                        Ticket ticket = (Ticket) product;
-//                        Movie movie = ticket.getMovie();
-//                        Screening screening = ticket.getScreening();
-////                        Cinema cinema = ticket.getCinema();
-//                        System.out.println("DB7.5");
-//                        System.out.println("movie.getScreenings:" + movie.getScreenings());
-//                        System.out.println("screening.getSeats():" + screening.getSeats());
-//                        System.out.println("screening.getHall():" + screening.getHall());
-//                        Hibernate.initialize(movie.getScreenings()); // Load movie screenings
-//                        Hibernate.initialize(screening.getSeats()); // Load screening seats
-//                        Hibernate.initialize(screening.getHall()); // Load screening hall
-////                        Hibernate.initialize(cinema.getMovieHalls()); // Load cinema movie halls
-//
-////                        for (MovieHall hall : cinema.getMovieHalls()) {
-////                            Hibernate.initialize(hall.getSeats()); // Load hall seats
-////                        }
-//                        System.out.println("DB8");
-//
-//                    } else if (product instanceof HomeMovieLink) {
-//                        System.out.println("DB9");
-//                        HomeMovieLink homeMovieLink = (HomeMovieLink) product;
-//                        Hibernate.initialize(homeMovieLink.getMovie()); // Load home movie link movie
-//                    }
-//                }
-//            }
-//            System.out.println("DB5");
-//            return bookings;
-//        } catch (Exception e) {
-//            throw new Exception("Error fetching bookings: " + e.getMessage(), e);
-//        }
-//    }
 
     public List<Booking> fetchUserBookings(int userId) throws Exception {
-        try {
+        try (Session session = sessionFactory.openSession()){
 //            System.out.println("DB1");
             CriteriaBuilder builder = session.getCriteriaBuilder();
 //            System.out.println("DB1.1");
@@ -1758,15 +1677,23 @@ public class ServerDB {
     }
 
     public void addComplaint(Complaint c) {
-        session.beginTransaction();
-        session.save(c);
-        session.getTransaction().commit();
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.save(c);
+            session.getTransaction().commit();
+            System.out.println("Complaint added successfully. (In serverDB)");
 
-        System.out.println("Complaint added successfully. (In serverDB)");
+        }
+        catch (Exception e)
+        {
+            System.out.println("Error in ServerDB addComplaint" + e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
     public List<Complaint> fetchAllComplaints() throws Exception {
-        try {
+        try (Session session = sessionFactory.openSession()){
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<Complaint> query = builder.createQuery(Complaint.class);
             Root<Complaint> root = query.from(Complaint.class);
@@ -1777,12 +1704,31 @@ public class ServerDB {
 
             return complaints;
         } catch (Exception e) {
+            System.out.println("Error in ServerDB fetchAllComplaints" + e.getMessage());
+            e.printStackTrace();
+            throw new Exception("Error fetching complaints: " + e.getMessage(), e);
+        }
+    }
+
+    public List<Complaint> fetchCustomerComplaints(String customerId) throws Exception {
+        try (Session session = sessionFactory.openSession()) {
+
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Complaint> query = builder.createQuery(Complaint.class);
+            Root<Complaint> root = query.from(Complaint.class);
+            query.select(root).where(builder.equal(root.get("customer").get("personId"), customerId));
+            List<Complaint> complaints = session.createQuery(query).getResultList();
+
+            return complaints;
+        } catch (Exception e) {
+            System.out.println("Error in ServerDB fetchCustomerComplaints" + e.getMessage());
+            e.printStackTrace();
             throw new Exception("Error fetching complaints: " + e.getMessage(), e);
         }
     }
 
     public List<Complaint> fetchComplaints(String status) {
-        try {
+        try (Session session = sessionFactory.openSession()){
             String hql = "FROM Complaint C WHERE C.isActive = :status";
             Query<Complaint> query = session.createQuery(hql, Complaint.class);
             query.setParameter("status", status);
@@ -1800,7 +1746,7 @@ public class ServerDB {
     }
 
     public void respondToComplaint(int complaintId, String responseText,int refund) {
-        try {
+        try (Session session = sessionFactory.openSession()){
             Transaction transaction = session.beginTransaction();
             String hql = "FROM Complaint C WHERE C.id = :complaintId";
             Query<Complaint> query = session.createQuery(hql, Complaint.class);
@@ -1825,7 +1771,7 @@ public class ServerDB {
     }
 
     public void updateComplaint(Complaint complaint) {
-        try {
+        try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.update(complaint);
@@ -1837,7 +1783,7 @@ public class ServerDB {
     }
 
     public void cancelBooking(int bookingId) {
-        try {
+        try (Session session = sessionFactory.openSession()){
             Transaction transaction = session.beginTransaction();
             String hql = "FROM Booking B WHERE B.id = :bookingId";
             Query<Booking> query = session.createQuery(hql, Booking.class);
@@ -1866,7 +1812,7 @@ public class ServerDB {
     }
 
     public Person fetchRandomCustomer() {
-        try {
+        try (Session session = sessionFactory.openSession()){
             String hql = "FROM Customer ORDER BY RAND()";
             Query<Customer> query = session.createQuery(hql, Customer.class);
             query.setMaxResults(1);

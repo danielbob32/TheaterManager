@@ -5,11 +5,15 @@ import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
     @FXML private RadioButton ticketTabRadio;
     @FXML private VBox creditCardForm;
     @FXML private VBox ticketTabForm;
+    @FXML private ImageView movieImageView;
 
     @FXML private TextField nameField;
     @FXML private TextField idField;
@@ -107,6 +112,48 @@ public class TicketsPaymentBoundary implements DataInitializable {
             idField.setText(String.valueOf(connectedPerson.getPersonId()));
             emailField.setText(((Customer) connectedPerson).getEmail());
         }
+
+        // image
+        byte[] image2 = screening.getMovie().getMovieIcon();
+        if (image2 != null) {
+            System.out.println("Image byte array length: " + image2.length);
+        } else {
+            System.out.println("Image byte array is null");
+        }
+        Image image3 = convertByteArrayToImage(image2);
+        if (image3 == null) {
+            System.out.println("Image is null");
+        } else {
+            System.out.println("Image created successfully");
+        }
+        if (image3 == null || image3.isError()) {
+            System.out.println("Using default image");
+            try {
+                InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+                if (defaultImageStream != null) {
+                    image3 = new Image(defaultImageStream);
+                    System.out.println("Default image loaded successfully");
+                } else {
+                    System.out.println("Default image not found");
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading default image: " + e.getMessage());
+            }
+        }
+        movieImageView.setImage(image3);
+    }
+
+    public Image convertByteArrayToImage(byte[] imageData) {
+        if (imageData != null && imageData.length > 0) {
+            // Convert byte[] to InputStream
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
+
+            // Create Image from InputStream
+            return new Image(inputStream);
+        } else {
+            System.out.println("No image data available");
+            return null;  // Or handle as needed, e.g., return a default image
+        }
     }
 
     private void updatePaymentForm() {
@@ -124,6 +171,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
         updatePurchaseInfoWithPaymentDetails();
 
         try {
+            System.out.println("in Tickets payment boundary, sending name: " + name);
             client.purchaseTickets(name, id, email, paymentMethod, paymentNum,
                     screening.getMovie().getCinemaPrice(), screening.getScreening_id(), chosenSeatsId);
 
@@ -202,6 +250,8 @@ public class TicketsPaymentBoundary implements DataInitializable {
         id = idField.getText().trim();
         email = emailField.getText().trim();
 
+        System.out.println("updating info with name: " + name);
+
         if (creditCardRadio.isSelected()) {
             paymentMethod = "creditCard";
             paymentNum = creditCardNumberField.getText().trim();
@@ -223,6 +273,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
                 // Proceed with payment
                 updatePurchaseInfoWithPaymentDetails();
                 try {
+                    System.out.println("in Tickets payment boundary, sending name: " + name);
                     client.purchaseTickets(name, id, email, paymentMethod, paymentNum,
                             screening.getMovie().getCinemaPrice(), screening.getScreening_id(), chosenSeatsId);
 
@@ -257,11 +308,11 @@ public class TicketsPaymentBoundary implements DataInitializable {
 
     @Subscribe
     public void onPaymentResponse(PurchaseResponseEvent event) {
-        cleanup();
         Platform.runLater(() -> {
             if (event.isSuccess()) {
                 showAlert("Payment successful! Your tickets have been booked.");
                 try {
+                    cleanup();
                     App.setRoot("TicketDetails", event.getData());
                 } catch (IOException e) {
                     e.printStackTrace();

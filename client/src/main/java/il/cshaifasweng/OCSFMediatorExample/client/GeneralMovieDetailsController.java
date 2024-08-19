@@ -184,6 +184,7 @@ public class GeneralMovieDetailsController implements DataInitializable {
 
     @FXML
     private void handleBackButton() throws IOException {
+        cleanup();
         App.setRoot("AllMoviesListView", null);
     }
 }

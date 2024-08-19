@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,9 +7,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.text.Text;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -67,6 +66,8 @@ public class TicketDetailsBoundary implements DataInitializable {
                     amountLeft = bookingData.path("amountLeft").asInt(0);
                 }
 
+                System.out.println("in TicketDetailsBoundary initData with: " + name);
+
                 long screeningTimeMillis = bookingData.path("screeningTime").asLong(0);
                 long purchaseTimeMillis = bookingData.path("purchaseTime").asLong(0);
 
@@ -122,8 +123,14 @@ public class TicketDetailsBoundary implements DataInitializable {
 
     @FXML
     private void handleBackButton() throws IOException {
+        cleanup();
         App.setRoot("CinemaMovieList", null);
     }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
 
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

@@ -8,6 +8,8 @@ import javafx.scene.text.Text;
 import java.io.IOException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.greenrobot.eventbus.EventBus;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,10 +62,16 @@ public class LinkDetailsBoundary implements DataInitializable {
     @FXML
     private void handleBackHome() {
         try {
+            cleanup();
             App.setRoot("HomeMovieList", null);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error navigating back to home: " + e.getMessage());
         }
     }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
 }

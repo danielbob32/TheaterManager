@@ -5,6 +5,7 @@ import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 
@@ -21,6 +22,9 @@ public class WorkerMenuController implements DataInitializable {
     @FXML
     private Label welcomeLabel;
 
+    @FXML
+    private Button reportsButton; 
+
     public static String workerType;
 
     public void initialize() {
@@ -33,16 +37,29 @@ public class WorkerMenuController implements DataInitializable {
     }
 
     private void updateButtonVisibility() {
+        System.out.println("Checking button visibility for worker type: " + workerType); // Debug print
+    
+        // Make sure the string comparisons match the worker types as returned from the server.
         if (updateContentButton != null) {
-            updateContentButton.setVisible("Content manager".equals(workerType) || "Chain manager".equals(workerType));
-            updateContentButton.setManaged("Content manager".equals(workerType) || "Chain manager".equals(workerType));
+            boolean showUpdateContent = "Content manager".equalsIgnoreCase(workerType) || "Chain manager".equalsIgnoreCase(workerType) || "CinemaManager".equalsIgnoreCase(workerType);
+            updateContentButton.setVisible(showUpdateContent);
+            updateContentButton.setManaged(showUpdateContent);
         }
         if (managePriceRequestsButton != null) {
-            managePriceRequestsButton.setVisible("Chain manager".equals(workerType));
-            managePriceRequestsButton.setManaged("Chain manager".equals(workerType));
+            boolean showManagePrice = "Chain manager".equalsIgnoreCase(workerType);
+            managePriceRequestsButton.setVisible(showManagePrice);
+            managePriceRequestsButton.setManaged(showManagePrice);
+        }
+        if (reportsButton != null) {
+            boolean showReports = "CinemaManager".equalsIgnoreCase(workerType) || "Chain manager".equalsIgnoreCase(workerType);
+            reportsButton.setVisible(showReports);
+            reportsButton.setManaged(showReports);
         }
     }
-
+    
+    
+    
+    
     @Override
     public void setClient(SimpleClient client) {
         this.client = client;
@@ -53,12 +70,13 @@ public class WorkerMenuController implements DataInitializable {
         if (data instanceof Worker) {
             Worker connectedWorker = (Worker) data;
             workerType = connectedWorker.getWorkerType();
-            System.out.println("1111Setting worker type to " + data);
+            System.out.println("Worker type after login: " + workerType); // Debug print
         }
         updateButtonVisibility();
         updateWelcomeMessage();
         System.out.println("CustomerMenuController initialized");
     }
+    
 
     private void updateWelcomeMessage() {
         Person connectedPerson = client.getConnectedPerson();
@@ -71,20 +89,26 @@ public class WorkerMenuController implements DataInitializable {
     @FXML
     private void updateContent() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("UpdateContent", workerType);
     }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
 
     @FXML
     private void handleComplaint() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("WorkerComplaintBoundary", connectedPerson);
     }
 
     @FXML
     private void viewReports() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("ReportsPage", connectedPerson);
     }
 
@@ -92,13 +116,14 @@ public class WorkerMenuController implements DataInitializable {
     private void handleLogout() throws IOException {
         workerType = null;
         client.logout();
+        cleanup();
         App.setRoot("Loginpage", null);
     }
 
     @FXML
     private void managePriceRequests() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-
+        cleanup();
         App.setRoot("ManagePriceRequests", connectedPerson);
     }
 

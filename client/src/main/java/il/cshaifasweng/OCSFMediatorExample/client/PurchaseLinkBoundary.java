@@ -44,15 +44,19 @@ public class PurchaseLinkBoundary implements DataInitializable {
             currentMovie = (Movie) params[0];
             selectedTime = (String) params[1];
             selectedDate = (String) params[2];
+            totalPrice = currentMovie.getHomePrice(); // Set the price from the movie
+            // print total price
+            System.out.println("Total price: " + totalPrice);
             initializePaymentDetails();
         }
     }
-
     private void initializePaymentDetails() {
         movieTitleLabel.setText(currentMovie.getEnglishName());
         selectedDateLabel.setText("Date: " + selectedDate);
         selectedTimeLabel.setText("Time: " + selectedTime);
         totalPriceLabel.setText("Price: ₪" + totalPrice);
+        // show total price
+        System.out.println("Total price: " + totalPrice);
 
         Person connectedPerson = client.getConnectedPerson();
         if (connectedPerson instanceof Customer) {
@@ -83,7 +87,7 @@ public class PurchaseLinkBoundary implements DataInitializable {
                 currentMovie.getId(),
                 selectedDate,
                 selectedTime,
-                totalPrice=50,
+                totalPrice,
                 email,
                 name,
                 id,
@@ -154,23 +158,23 @@ public class PurchaseLinkBoundary implements DataInitializable {
             showAlert("Error returning to movie details.");
         }
     }
-
     @Subscribe
-    public void onPurchaseResponse(PurchaseResponseEvent event) {
-            Platform.runLater(() -> {
-                if (event.isSuccess()) {
-                    System.out.println("Purchase successful. Response data: " + event.getData());
-                    showAlert("Payment successful! An email has been sent with the movie link details.");
-                    try {
-                        App.setRoot("LinkDetails", event.getData());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        showAlert("Error navigating to link details.");
-                    }
-                } else {
-                    showAlert("Purchase failed: " + event.getMessage());
+    public void onHomeLinkPurchaseResponse(HomeLinkPurchaseResponseEvent event) {
+        Platform.runLater(() -> {
+            if (event.isSuccess()) {
+                System.out.println("Purchase successful. Response data: " + event.getData());
+                showAlert("Payment successful! An email has been sent with the movie link details.");
+                try {
+                    cleanup(); 
+                    App.setRoot("LinkDetails", event.getData());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    showAlert("Error navigating to link details.");
                 }
-            });
+            } else {
+                showAlert("Purchase failed: " + event.getMessage());
+            }
+        });
     }
 
     public void cleanup() {

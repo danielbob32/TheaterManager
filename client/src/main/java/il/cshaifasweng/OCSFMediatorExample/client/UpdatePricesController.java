@@ -140,7 +140,7 @@ public class UpdatePricesController implements DataInitializable {
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        //cleanup();
+        cleanup();
         App.setRoot("UpdateContent", connectedPerson);
     }
 

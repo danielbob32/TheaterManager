@@ -97,7 +97,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         producerLabel.setText("Producer: " + currentMovie.getProducer());
         actorsLabel.setText("Actors: " + currentMovie.getActors());
         durationLabel.setText("Duration: " + currentMovie.getDuration() + " minutes");
-        genreLabel.setText("Genre: " + currentMovie.getGenre());
+        genreLabel.setText("Genres: " + String.join(", ", currentMovie.getGenres()));
         synopsisArea.setText(currentMovie.getSynopsis());
 
         byte[] image2 = currentMovie.getMovieIcon();
@@ -197,6 +197,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
+        cleanup();
         App.setRoot("CinemaMovieList", connectedPerson);
     }
 
@@ -205,6 +206,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         Screening selectedScreening = screeningListView.getSelectionModel().getSelectedItem();
         if (selectedScreening != null) {
             selectedScreening.setMovie(currentMovie);
+            cleanup();
             App.setRoot("purchaseTickets", selectedScreening);
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -227,6 +229,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
                 try {
                     client.sendToServer(new Message(0, "deleteMovie:cinema", String.valueOf(currentMovie.getId())));
                     Person connectedPerson = client.getConnectedPerson();
+                    cleanup();
                     App.setRoot("CinemaMovieList", connectedPerson);
                 } catch (IOException e) {
                     e.printStackTrace();

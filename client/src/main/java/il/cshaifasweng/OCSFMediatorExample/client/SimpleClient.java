@@ -57,6 +57,9 @@ public class SimpleClient extends AbstractClient {
                 case "Worker login":
                     handleWorkerLogin(message, messageStatus);
                     break;
+                case "Cinema manager login":
+                    handleCinemaManagerLogin(message, messageStatus);
+                    break;
                 case "Screening add":
                     handleScreeningAdd(message, messageStatus);
                     break;
@@ -109,6 +112,7 @@ public class SimpleClient extends AbstractClient {
                     handleCinemaList(message.getData());
                     break;
                 case "reportData":
+                    System.out.println("Received report data: " + message.getData());
                     handleReportData(message.getData());
                     break;
                 //YONI`S CASES:
@@ -123,6 +127,9 @@ public class SimpleClient extends AbstractClient {
                     break;
                 case "fetchComplaintsResponse":
                     handleFetchComplaintsResponse(message);
+                    break;
+                case "fetchCustomerComplaintsResponse":
+                    handleFetchCustomerComplaintsResponse(message);
                     break;
                 case "respondToComplaintResponse":
                     handleRespondToComplaintResponse(message);
@@ -195,7 +202,26 @@ public class SimpleClient extends AbstractClient {
     // ----- FUNCTION TO HANDLE THE RESPONSES FROM THE SERVER --------
     private void handleMovieList(Message message) {
         try {
+            JsonNode rootNode = objectMapper.readTree(message.getData());
+
+            // Assuming the JSON is an array of movies, get the first movie's genres
+            if (rootNode.isArray() && rootNode.size() > 0) {
+                JsonNode firstMovieNode = rootNode.get(0);
+                JsonNode genresNode = firstMovieNode.get("genres");
+
+                System.out.println("Genres of the first movie: " + genresNode);
+            } else {
+                System.out.println("No movies available or empty list.");
+            }
+
+//            System.out.println("In handleMovieList Received JSON: " + message.getData());
             List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {});
+            // Debugging deserialized objects
+            for (Movie movie : movies) {
+                System.out.println("Movie Title: " + movie.getEnglishName());
+                System.out.println("Genres: " + movie.getGenres());
+            }
+
             String movieType = message.getAdditionalData();
             if (movieType != null) {
                 List<Movie> filteredMovies = movies.stream()
@@ -210,6 +236,7 @@ public class SimpleClient extends AbstractClient {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to deserialize movies"));
         }
+
     }
 
     private void handleCustomerLogin(Message message, String status) {
@@ -248,9 +275,36 @@ public class SimpleClient extends AbstractClient {
             System.out.println("Worker login successful");
             Platform.runLater(() -> {
                 try {
+                    // Deserialize the JSON to a Worker object
                     Worker current = objectMapper.readValue(message.getData(), Worker.class);
-                    String workerType = current.getWorkerType();
-                    System.out.println("Worker type: " + workerType);
+                    System.out.println("Deserialized object type: " + current.getClass().getName());
+    
+                    // Check if the deserialized object is a CinemaManager
+                    if (current instanceof CinemaManager) {
+                        CinemaManager cinemaManager = (CinemaManager) current;
+                        System.out.println("Cinema Manager detected: " + cinemaManager.getName());
+                        login(cinemaManager);
+                        App.setRoot("WorkerMenu", cinemaManager);
+                    } else {
+                        System.out.println("Regular Worker detected: " + current.getName());
+                        login(current);
+                        App.setRoot("WorkerMenu", current);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            showErrorAlert("One of the fields is incorrect. Please check credentials and try again");
+        }
+    }
+
+    private void handleCinemaManagerLogin(Message message, String status) {
+        if (status.equals("successful")) {
+            System.out.println("Cinema Manager login successful");
+            Platform.runLater(() -> {
+                try {
+                    CinemaManager current = objectMapper.readValue(message.getData(), CinemaManager.class);
                     login(current);
                     App.setRoot("WorkerMenu", current);
                 } catch (IOException e) {
@@ -260,7 +314,9 @@ public class SimpleClient extends AbstractClient {
         } else {
             showErrorAlert("One of the fields is incorrect. Please check credentials and try again");
         }
+
     }
+    
 
     private void handleScreeningAdd(Message message, String status) {
         System.out.println("screening add message received");
@@ -315,7 +371,7 @@ public class SimpleClient extends AbstractClient {
     }
 
     private void handlePriceChangeRequests(Message message) {
-        System.out.println("Price change requests in simple client: " + message.getData());
+//        System.out.println("Price change requests in simple client: " + message.getData());
         EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
     }
 
@@ -366,9 +422,9 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             if (isSuccessful) {
                 System.out.println("Received successful purchase response: " + message.getData());
-                EventBus.getDefault().post(new PurchaseResponseEvent(true, "Purchase successful", message.getData()));
+                EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(true, "Purchase successful", message.getData()));
             } else {
-                EventBus.getDefault().post(new PurchaseResponseEvent(false, "Purchase failed"));
+                EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(false, "Purchase failed", null));
             }
         });
     }
@@ -413,6 +469,19 @@ public class SimpleClient extends AbstractClient {
             List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
             System.out.println("Got all the complaints, size: " + complaints.size());
             EventBus.getDefault().post(new ComplaintListEvent(complaints));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize complaints"));
+        }
+    }
+
+    private void handleFetchCustomerComplaintsResponse(Message message)
+    {
+        try {
+//            System.out.println("got fetchComplaintsResponse");
+            List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
+            System.out.println("Got customer complaints, size: " + complaints.size());
+            EventBus.getDefault().post(new CustomerComplaintListEvent(complaints));
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to deserialize complaints"));
@@ -605,30 +674,53 @@ public class SimpleClient extends AbstractClient {
     }
 }
 
-    private void handleReportData(String data) {
-        try {
-            JsonNode reportNode = objectMapper.readTree(data);
-            String reportType = reportNode.get("reportType").asText();
-            String reportData = reportNode.get("reportData").asText();
-            EventBus.getDefault().post(new ReportDataEvent(reportType, reportData));
-        } catch (IOException e) {
-            e.printStackTrace();
-            EventBus.getDefault().post(new FailureEvent("Failed to parse report data"));
-        }
+private void handleReportData(String data) {
+    try {
+        System.out.println("Processing report data: " + data);
+        JsonNode reportNode = objectMapper.readTree(data);
+        String reportType = reportNode.get("reportType").asText();
+        String reportData = reportNode.get("reportData").asText();
+        System.out.println("Posting report event: type=" + reportType + ", data=" + reportData);
+        EventBus.getDefault().post(new ReportDataEvent(reportType, reportData));
+    } catch (IOException e) {
+        System.out.println("Error parsing report data: " + e.getMessage());
+        e.printStackTrace();
+        EventBus.getDefault().post(new FailureEvent("Failed to parse report data"));
     }
+}
 
     public void requestCinemaList() throws IOException {
         sendToServer(new Message(0, "getCinemaList"));
     }
 
     public void requestReport(String reportType, LocalDate month, String cinema) throws IOException {
+        Person connectedPerson = getConnectedPerson();
+        System.out.println("Connected person class inside simple client: " + connectedPerson.getClass().getName());
+        System.out.println("Requesting report for connected person: " + connectedPerson.getName() + ", type: " + connectedPerson.getClass().getSimpleName());
+    
+        // Adjust the report type if the connected person is a CinemaManager
+        if (connectedPerson instanceof CinemaManager) {
+            CinemaManager manager = (CinemaManager) connectedPerson;
+            cinema = manager.getCinema().getCinemaName();
+            reportType = "Monthly Ticket Sales Manager";  // Correct the report type for CinemaManager
+            System.out.println("CinemaManager detected. Requesting report: " + reportType + " for cinema: " + cinema);
+        } else {
+            System.out.println("Connected person is not a CinemaManager");
+        }
+    
+        // Prepare the report request data
         ObjectNode dataNode = objectMapper.createObjectNode();
         dataNode.put("reportType", reportType);
         dataNode.put("month", month.toString());
         dataNode.put("cinema", cinema);
+    
+        // Send the report request to the server
         String jsonData = objectMapper.writeValueAsString(dataNode);
+        System.out.println("Sending report request: " + jsonData);
         sendToServer(new Message(0, "generateReport", jsonData));
     }
+    
+    
 
     public void updateMovie(Movie movie)
     {
@@ -666,11 +758,13 @@ public class SimpleClient extends AbstractClient {
         Message message = new Message(0, "cancelPurchase", String.valueOf(purchaseId),String.valueOf(refund));
         sendToServer(message);
     }
+
     public void submitComplaint(Complaint data) throws IOException {
         String jsonData = objectMapper.writeValueAsString(data);
         Message message = new Message(0, "submitComplaint", jsonData);
         sendToServer(message);
     }
+
     public void respondToComplaint(Complaint complaint) {
         try {
             int complaintId = complaint.getComplaint_id();
@@ -681,10 +775,18 @@ public class SimpleClient extends AbstractClient {
             e.printStackTrace();
         }
     }
+
     public void fetchAllComplaints() throws IOException {
         Message message = new Message(0, "fetchAllComplaints");
         sendToServer(message);
     }
+
+    public void fetchCustomerComplaints() throws IOException
+    {
+        Message message = new Message(0, "fetchCustomerComplaints", String.valueOf(this.connectedPerson.getPersonId()));
+        sendToServer(message);
+    }
+
     public void fetchComplaints(String status) throws IOException {
         Message message = new Message(0, "fetchComplaints", status);
         sendToServer(message);

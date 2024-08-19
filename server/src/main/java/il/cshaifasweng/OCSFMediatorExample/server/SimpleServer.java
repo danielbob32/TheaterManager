@@ -31,7 +31,7 @@ public class SimpleServer extends AbstractServer {
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
 		Message message = (Message) msg;
-		System.out.println("Received message from client: " + msg);
+//		System.out.println("Received message from client: " + msg);
 		String request = message.getMessage();
 		try {
 			String action = request.split(":")[0];
@@ -130,7 +130,7 @@ public class SimpleServer extends AbstractServer {
 
 				case "addScreening":
 					Screening newScreening = objectMapper.readValue(message.getData(), Screening.class);
-					System.out.println("Received screening to add: " + newScreening);
+//					System.out.println("Received screening to add: " + newScreening);
 					boolean addSuccess = db.addScreening(newScreening);
 					if (addSuccess) {
 						client.sendToClient(new Message(0, "Screening add:success"));
@@ -165,7 +165,7 @@ public class SimpleServer extends AbstractServer {
 
 				case "approvePriceChangeRequest":
 					int requestId = Integer.parseInt(message.getData());
-					System.out.println("Approving price change request: " + requestId);
+//					System.out.println("Approving price change request: " + requestId);
 					boolean price_success = db.updatePriceChangeRequestStatus(requestId, true);
 					if (price_success) {
 						PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
@@ -222,6 +222,7 @@ public class SimpleServer extends AbstractServer {
 					break;
 	
 				case "generateReport":
+					System.out.println("Handling generate report request");
 					handleGenerateReport(message.getData(), client);
 					break;
 
@@ -249,6 +250,10 @@ public class SimpleServer extends AbstractServer {
 				case "fetchAllComplaints":
 					System.out.println("In SimpleServer fetchAllComplaints request");
 					handleFetchAllComplaints(message, client);
+					break;
+				case "fetchCustomerComplaints":
+					System.out.println("In SimpleServer fetchCustomerComplaints request");
+					handleFetchCustomerComplaints(message, client);
 					break;
 				case "fetchComplaints":
 					System.out.println("In SimpleServer fetchComplaints request");
@@ -318,7 +323,6 @@ public class SimpleServer extends AbstractServer {
 				newBooking = db.purchaseTicketWithCreditCard(name, id, email, paymentNum, cinemaPrice, screeningId, seatIds);
 			} else if (paymentMethod.equals("ticketTab")) {
 				newBooking = db.purchaseTicketWithTicketTab(name, id, email, paymentNum, screeningId, seatIds);
-				System.out.println("0");
 				ticketTab = db.getTicketTabById(Integer.parseInt(paymentNum));
 			}
 
@@ -341,7 +345,7 @@ public class SimpleServer extends AbstractServer {
 
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
-				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("name", name);
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketNum", ticketNum);
 				bookingNode.put("seats", seats);
@@ -353,15 +357,11 @@ public class SimpleServer extends AbstractServer {
 
 				if (paymentMethod.equals("ticketTab")) {
 					if (ticketTab != null) {
-						System.out.println("1");
 						bookingNode.put("amountLeft", ticketTab.getAmount());
 					} else {
-						System.out.println("2");
 						bookingNode.put("amountLeft", 0);
 					}
 				}
-
-				System.out.println("3");
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
 				client.sendToClient(new Message(0,"addedTicketsSuccessfully", jsonBooking));
 
@@ -407,7 +407,7 @@ public class SimpleServer extends AbstractServer {
 			if (newBooking != null) {
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
-				bookingNode.put("name", newBooking.getCustomer().getName());
+				bookingNode.put("name", name);
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketTabId", newBooking.getTicketTabId());
 
@@ -476,7 +476,7 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
         if (newBooking != null) {
             ObjectNode bookingNode = objectMapper.createObjectNode();
             bookingNode.put("bookingId", newBooking.getBookingId());
-            bookingNode.put("name", customer.getName());
+            bookingNode.put("name",name);
             bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
             bookingNode.put("movie", movie.getEnglishName());
             bookingNode.put("openTime", link.getOpenTime().getTime());
@@ -502,19 +502,33 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 
 
 	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
+		System.out.println("Handling login request");
 		Person p = (Person) loginRequest;
 		boolean loginSuccess = false;
 		String message = "";
 		try {
 			if (loginRequest instanceof Worker) {
+				System.out.println("Worker login request");
 				Worker worker = (Worker) loginRequest;
 				worker = db.checkWorkerCredentials(worker.getPersonId(), worker.getPassword());
+				System.out.println("Worker login: " + (worker != null));
+				System.out.println("Worker: " + worker);
 				if (worker != null) {
-					p = worker;
-					message = "Worker login:successful";
+					if (worker instanceof CinemaManager) {
+						CinemaManager manager = (CinemaManager) worker;
+						p = manager;
+						message = "Cinema manager login:successful";
+						System.out.println("Inside if: Cinema manager login successful");
+					} else {
+						p = worker;
+						message = "Worker login:successful";
+						System.out.println("Inside if: Worker login successful");
+					}
 				} else {
 					message = "Worker login:failed";
+					System.out.println("Inside else: Worker login failed");
 				}
+				
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
 				customer = db.checkCustomerCredentials(customer.getPersonId());
@@ -531,40 +545,19 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		}
 
 		try {
-			Message message1 = new Message(0, message, objectMapper.writeValueAsString(p));
+			System.out.println("About to serialize the worker/customer object: " + p);
+			String jsonString = objectMapper.writeValueAsString(p);
+			System.out.println("Serialization successful, JSON: " + jsonString);
+			Message message1 = new Message(0, message, jsonString);
 			client.sendToClient(message1);
-		} catch (IOException e) {
+			System.out.println("Message sent to client successfully");
+		} catch (Exception e) {
+			System.err.println("Error during serialization or sending: " + e.getMessage());
 			e.printStackTrace();
 		}
+		
 	}
 
-//MESSAGE FOR THE NEW MOVIE ADD
-//	private void notifyTicketTabOwners(Movie newMovie) {
-//		try {
-//			List<Customer> ticketTabOwners = db.getTicketTabOwners();
-//			String notificationMessage = "New movie added: " + newMovie.getEnglishName();
-//			for (Customer owner : ticketTabOwners) {
-//				sendNotificationToClient(owner, notificationMessage);
-//			}
-//		} catch (IOException e) {
-//			System.err.println("Error notifying ticket tab owners: " + e.getMessage());
-//		}
-//	}
-//
-//	private void sendNotificationToClient(Customer customer, String notificationMessage) throws IOException {
-//		Message notification = new Message(0, "newMovieNotification", notificationMessage);
-//		Thread[] clientThreads = getClientConnections();
-//		for (Thread clientThread : clientThreads) {
-//			if (clientThread instanceof ConnectionToClient) {
-//				ConnectionToClient connection = (ConnectionToClient) clientThread;
-//				Object userInfo = connection.getInfo("user");
-//				if (userInfo != null && userInfo.equals(customer.getPersonId())) {
-//					connection.sendToClient(notification);
-//					break;
-//				}
-//			}
-//		}
-//	}
 
 	@Override
 	protected void serverStarted() {
@@ -589,6 +582,9 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
         System.out.println("In SimpleServer, Handling getMovies.");
 		List<Movie> movies = db.getAllMovies();
+		for (Movie movie : movies) {
+			System.out.println("Movie Title: " + movie.getEnglishName());
+		}
 		String movieType = message.getData();
 		System.out.println("got the movies from serverDB");
 		System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
@@ -596,7 +592,7 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
 		message.setData(jsonMovies);
 		message.setAdditionalData(movieType);
 		message.setMessage("movieList");
-		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
+//		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
 	}
@@ -606,98 +602,151 @@ protected void handlePurchaseLink(String data, ConnectionToClient client) {
     client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
 }
 
-	private void handleGenerateReport(String data, ConnectionToClient client) throws IOException {
-		JsonNode dataNode = objectMapper.readTree(data);
-		String reportType = dataNode.get("reportType").asText();
-		LocalDate month = LocalDate.parse(dataNode.get("month").asText());
-		String cinema = dataNode.get("cinema").asText();
+private void handleGenerateReport(String data, ConnectionToClient client) throws IOException {
+    JsonNode dataNode = objectMapper.readTree(data);
+    String reportType = dataNode.get("reportType").asText();
+    LocalDate month = LocalDate.parse(dataNode.get("month").asText());
+    String cinema = dataNode.get("cinema").asText();
 
-		String reportData = db.generateReport(reportType, month, cinema);
+    String reportData = db.generateReport(reportType, month, cinema);
 
-		ObjectNode responseNode = objectMapper.createObjectNode();
-		responseNode.put("reportType", reportType);
-		responseNode.put("reportData", reportData);
+    ObjectNode responseNode = objectMapper.createObjectNode();
+    responseNode.put("reportType", reportType);
+    responseNode.put("reportData", reportData);
 
 		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
 	}
 
 	// YONATHAN`S PARTS:
-	protected void handleFetchRandomCustomer(Message message, ConnectionToClient client) throws Exception {
-		Person randomCustomer = db.fetchRandomCustomer();
-		Message response = new Message(0, "fetchRandomCustomerResponse", objectMapper.writeValueAsString(randomCustomer));
-		client.sendToClient(response);
-	}
-
-	protected void handleFetchUserBookings(Message message, ConnectionToClient client) throws Exception {
-		System.out.println("In SimpleServer, handleFetchUserBookings function");
-		int userId = Integer.parseInt(message.getData());
-		System.out.println("1");
-		List<Booking> bookings = db.fetchUserBookings(userId);
-		System.out.println("2");
-		for (Booking booking : bookings) {
-			System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+	protected void handleFetchRandomCustomer(Message message, ConnectionToClient client) {
+		try {
+			Person randomCustomer = db.fetchRandomCustomer();
+			Message response = new Message(0, "fetchRandomCustomerResponse", objectMapper.writeValueAsString(randomCustomer));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchRandomCustomer: " + e.getMessage());
+			e.printStackTrace();
 		}
-		System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
-		Message response = new Message(0, "fetchUserBookingsResponse", objectMapper.writeValueAsString(bookings));
-		System.out.println("3");
-		response.setAdditionalData(String.valueOf(userId));
-		System.out.println("4");
-		client.sendToClient(response);
 	}
 
-	protected void handleCancelBooking(Message message, ConnectionToClient client) throws Exception {
-		int bookingId = Integer.parseInt(message.getData());
-		double refund = Double.parseDouble(message.getAdditionalData());
-		db.cancelBooking(bookingId);
-		System.out.println("Refund is "+refund);
-
-		Message response = new Message(0, "cancelBookingResponse", "Booking cancelled",bookingId+":"+String.valueOf(refund));
-		client.sendToClient(response);
+	protected void handleFetchUserBookings(Message message, ConnectionToClient client) {
+		try {
+			System.out.println("In SimpleServer, handleFetchUserBookings function");
+			int userId = Integer.parseInt(message.getData());
+			System.out.println("1");
+			List<Booking> bookings = db.fetchUserBookings(userId);
+			System.out.println("2");
+			for (Booking booking : bookings) {
+				System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+			}
+			System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
+			Message response = new Message(0, "fetchUserBookingsResponse", objectMapper.writeValueAsString(bookings));
+			System.out.println("3");
+			response.setAdditionalData(String.valueOf(userId));
+			System.out.println("4");
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchUserBookings: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
-	protected void handleSubmitComplaint(Message message, ConnectionToClient client) throws Exception {
-		System.out.println("In SimpleServer, handleSubmitComplaint");
-		System.out.println("Received message data: " + message.getData());
-		Complaint c = objectMapper.readValue(message.getData(), Complaint.class);
+	protected void handleCancelBooking(Message message, ConnectionToClient client) {
+		try {
+			int bookingId = Integer.parseInt(message.getData());
+			double refund = Double.parseDouble(message.getAdditionalData());
+			db.cancelBooking(bookingId);
+			System.out.println("Refund is " + refund);
 
-		db.addComplaint(c);
-		System.out.println("Complaint submitted, got back from serverDB");
-
-		Message response = new Message(0, "submitComplaintResponse", "Complaint submitted");
-		client.sendToClient(response);
+			Message response = new Message(0, "cancelBookingResponse", "Booking cancelled", bookingId + ":" + String.valueOf(refund));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleCancelBooking: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
-	protected void handleFetchAllComplaints(Message message, ConnectionToClient client) throws Exception {
-		List<Complaint> complaints = db.fetchAllComplaints();
-		Message response = new Message(0, "fetchComplaintsResponse", objectMapper.writeValueAsString(complaints));
-		client.sendToClient(response);
+	protected void handleSubmitComplaint(Message message, ConnectionToClient client) {
+		try {
+			System.out.println("In SimpleServer, handleSubmitComplaint");
+			System.out.println("Received message data: " + message.getData());
+			Complaint c = objectMapper.readValue(message.getData(), Complaint.class);
+
+			db.addComplaint(c);
+			System.out.println("Complaint submitted, got back from serverDB");
+
+			Message response = new Message(0, "submitComplaintResponse", "Complaint submitted");
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleSubmitComplaint: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
-	protected void handleFetchComplaints(Message message, ConnectionToClient client) throws Exception {
-		String status = message.getData();
-		List<Complaint> complaints = db.fetchComplaints(status);
-
-		Message response = new Message(0, "fetchComplaintsResponse", objectMapper.writeValueAsString(complaints));
-		response.setAdditionalData(status);
-		client.sendToClient(response);
+	protected void handleFetchAllComplaints(Message message, ConnectionToClient client) {
+		try {
+			List<Complaint> complaints = db.fetchAllComplaints();
+			Message response = new Message(0, "fetchComplaintsResponse", objectMapper.writeValueAsString(complaints));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchAllComplaints: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
-	protected void handleRespondToComplaint(Message message, ConnectionToClient client) throws Exception {
-		String[] data = message.getData().split(";");
-		int complaintId = Integer.parseInt(data[0]);
-		String responseText = data[1];
-		int refund = Integer.parseInt(data[2]);
-		db.respondToComplaint(complaintId, responseText,refund);
-
-		Message response = new Message(0, "respondToComplaintResponse", "Response submitted");
-		client.sendToClient(response);
+	protected void handleFetchCustomerComplaints(Message message, ConnectionToClient client) {
+		try {
+			String customerId = message.getData();
+			List<Complaint> complaints = db.fetchCustomerComplaints(customerId);
+			Message response = new Message(0, "fetchCustomerComplaintsResponse", objectMapper.writeValueAsString(complaints));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchCustomerComplaints: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
-	protected void handleUpdateComplaint(Message message, ConnectionToClient client) throws Exception {
-		Complaint complaint = objectMapper.readValue(message.getData(), Complaint.class);
-		db.updateComplaint(complaint);
-		Message response = new Message(0, "respondToComplaintResponse", "Complaint updated successfully");
-		client.sendToClient(response);
+	protected void handleFetchComplaints(Message message, ConnectionToClient client) {
+		try {
+			String status = message.getData();
+			List<Complaint> complaints = db.fetchComplaints(status);
+
+			Message response = new Message(0, "fetchComplaintsResponse", objectMapper.writeValueAsString(complaints));
+			response.setAdditionalData(status);
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchComplaints: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
+
+	protected void handleRespondToComplaint(Message message, ConnectionToClient client) {
+		try {
+			String[] data = message.getData().split(";");
+			int complaintId = Integer.parseInt(data[0]);
+			String responseText = data[1];
+			int refund = Integer.parseInt(data[2]);
+			db.respondToComplaint(complaintId, responseText, refund);
+
+			Message response = new Message(0, "respondToComplaintResponse", "Response submitted");
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleRespondToComplaint: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	protected void handleUpdateComplaint(Message message, ConnectionToClient client) {
+		try {
+			Complaint complaint = objectMapper.readValue(message.getData(), Complaint.class);
+			db.updateComplaint(complaint);
+			Message response = new Message(0, "respondToComplaintResponse", "Complaint updated successfully");
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleUpdateComplaint: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
 
 }

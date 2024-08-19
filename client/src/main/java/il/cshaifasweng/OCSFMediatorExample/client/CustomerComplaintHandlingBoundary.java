@@ -1,9 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -18,7 +20,16 @@ import java.util.List;
 public class CustomerComplaintHandlingBoundary implements DataInitializable {
 
     @FXML
-    private ListView<Complaint> complaintListView;
+    private TableView<Complaint> complaintTableView;
+
+    @FXML
+    private TableColumn<Complaint, String> titleColumn;
+
+    @FXML
+    private TableColumn<Complaint, String> dateColumn;
+
+    @FXML
+    private TableColumn<Complaint, String> statusColumn;
 
     @FXML
     private Button viewComplaintButton;
@@ -32,19 +43,14 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     public void initialize() {
         EventBus.getDefault().register(this);
 
-        complaintListView.setCellFactory(lv -> new ListCell<Complaint>() {
-            @Override
-            protected void updateItem(Complaint complaint, boolean empty) {
-                super.updateItem(complaint, empty);
-                if (empty || complaint == null) {
-                    setText(null);
-                } else {
-                    setText(complaint.getTitle() + " | " + complaint.getDate() + " | " +
-                            (complaint.isActive() ? "Active" : "Resolved"));
-                }
-            }
-        });
+        complaintTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+        // Set up the table columns
+        titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+        dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate().toString()));
+        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
+
+        // Handle button actions
         viewComplaintButton.setOnAction(this::handleViewComplaint);
         submitNewComplaintButton.setOnAction(this::handleSubmitNewComplaint);
     }
@@ -73,16 +79,29 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         }
 
         System.out.println("Loaded complaints: " + complaints.size() + " items.");
-        complaintListView.getItems().setAll(complaints);
+        complaintTableView.getItems().setAll(complaints);
     }
 
     private void handleViewComplaint(ActionEvent event) {
-        Complaint selectedComplaint = complaintListView.getSelectionModel().getSelectedItem();
+        Complaint selectedComplaint = complaintTableView.getSelectionModel().getSelectedItem();
         if (selectedComplaint != null) {
             showComplaintDetails(selectedComplaint);
         } else {
             showAlert("Error", "Please select a complaint to view.");
         }
+    }
+
+    @Subscribe
+    public void onCustomerComplaintListEvent(CustomerComplaintListEvent event) {
+        System.out.println("DEBUG: in onComplaintListEvent");
+        List<Complaint> complaints = event.getComplaints();
+        if (complaints == null) {
+            System.out.println("Complaints list is null. Initializing to an empty list.");
+            complaints = new ArrayList<>(); // Initialize to an empty list if null
+        }
+
+        System.out.println("Loaded complaints: " + complaints.size() + " items.");
+        complaintTableView.getItems().setAll(complaints);
     }
 
     private void showComplaintDetails(Complaint complaint) {
@@ -137,7 +156,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         dialog.showAndWait().ifPresent(complaint -> {
             try {
                 client.submitComplaint(complaint);
-                loadComplaints();
+//                loadComplaints();
             } catch (IOException e) {
                 showAlert("Error", "Failed to submit complaint.");
                 e.printStackTrace();
@@ -149,8 +168,15 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
         Platform.runLater(() -> {
             showAlert("Success", "Complaint submitted successfully!");
-            loadComplaints();
         });
+        try{
+            client.fetchCustomerComplaints();
+        }
+        catch(IOException e){
+            showAlert("Error", "Failed to fetch customer complaints.");
+            e.printStackTrace();
+        }
+
     }
 
     private void showAlert(String title, String content) {
@@ -161,9 +187,15 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         alert.showAndWait();
     }
 
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
+    }
+
+
     @FXML
     void handleBackButton(ActionEvent event) {
         try {
+            cleanup();
             App.setRoot("CustomerMenu", null);
         } catch (IOException e) {
             e.printStackTrace();
