@@ -53,6 +53,7 @@ public class SimpleClient extends AbstractClient {
                     break;
                 case "Person login":
                     handlePersonLoginFail();
+                    break;
                 case "Price":
                     handlePriceUpdate(message, messageStatus);
                     break;
