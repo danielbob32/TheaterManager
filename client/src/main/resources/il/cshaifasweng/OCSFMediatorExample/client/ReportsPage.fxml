@@ -11,7 +11,7 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
         
-        <Text text="Generate Reports" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+        <Text text="Generate Reports" styleClass="menu-button" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
         
         <HBox alignment="CENTER" spacing="15">
             <ComboBox fx:id="reportTypeComboBox" prefWidth="200" promptText="Report Type"/>
@@ -19,7 +19,7 @@
             <ComboBox fx:id="cinemaComboBox" prefWidth="180" promptText="Cinema"/>
         </HBox>
         
-        <Button fx:id="generateReportButton" onAction="#generateReport" text="Generate Report" 
+        <Button fx:id="generateReportButton" onAction="#generateReport" styleClass="menu-button" text="Generate Report"
                 style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="200"/>
         
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
@@ -34,9 +34,9 @@
         </VBox>
         
         <HBox alignment="CENTER" spacing="15">
-            <Button fx:id="exportButton" onAction="#exportToExcel" text="Export to Excel" 
+            <Button fx:id="exportButton" onAction="#exportToExcel" styleClass="menu-button" text="Export to Excel"
                     style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="150"/>
-            <Button fx:id="backButton" onAction="#handleBackButton" text="Back" 
+            <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" text="Back"
                     style="-fx-background-color: #33ffb5; -fx-text-fill: #1e3c72; -fx-font-weight: bold;" prefWidth="150"/>
         </HBox>
     </VBox>
