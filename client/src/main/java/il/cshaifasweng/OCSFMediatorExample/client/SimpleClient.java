@@ -148,7 +148,7 @@ public class SimpleClient extends AbstractClient {
                     }
                     break;
                 default:
-                    System.out.println("Received unknown message: " + message.getMessage());
+                    System.out.println("Received unknown message in case notifications: " + message.getMessage());
                     break;
             }
         } else if (msg instanceof Warning) {
@@ -209,17 +209,17 @@ public class SimpleClient extends AbstractClient {
                 JsonNode firstMovieNode = rootNode.get(0);
                 JsonNode genresNode = firstMovieNode.get("genres");
 
-                System.out.println("Genres of the first movie: " + genresNode);
+                //System.out.println("Genres of the first movie: " + genresNode);
             } else {
-                System.out.println("No movies available or empty list.");
+                //System.out.println("No movies available or empty list.");
             }
 
 //            System.out.println("In handleMovieList Received JSON: " + message.getData());
             List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {});
             // Debugging deserialized objects
             for (Movie movie : movies) {
-                System.out.println("Movie Title: " + movie.getEnglishName());
-                System.out.println("Genres: " + movie.getGenres());
+                //System.out.println("Movie Title: " + movie.getEnglishName());
+               // System.out.println("Genres: " + movie.getGenres());
             }
 
             String movieType = message.getAdditionalData();

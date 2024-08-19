@@ -92,28 +92,28 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         byte[] image2 = movie.getMovieIcon();
         if (image2 != null) {
-            System.out.println("Image byte array length: " + image2.length);
+            //System.out.println("Image byte array length: " + image2.length);
         } else {
-            System.out.println("Image byte array is null");
+            //System.out.println("Image byte array is null");
         }
         Image image3 = convertByteArrayToImage(image2);
         if (image3 == null) {
-            System.out.println("Image is null");
+            //System.out.println("Image is null");
         } else {
-            System.out.println("Image created successfully");
+           // System.out.println("Image created successfully");
         }
         if (image3 == null || image3.isError()) {
-            System.out.println("Using default image");
+            //System.out.println("Using default image");
             try {
                 InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
                 if (defaultImageStream != null) {
                     image3 = new Image(defaultImageStream);
-                    System.out.println("Default image loaded successfully");
+                   // System.out.println("Default image loaded successfully");
                 } else {
-                    System.out.println("Default image not found");
+                  //  System.out.println("Default image not found");
                 }
             } catch (Exception e) {
-                System.out.println("Error loading default image: " + e.getMessage());
+              //  System.out.println("Error loading default image: " + e.getMessage());
             }
         }
         ImageView iv = new ImageView(image3);
@@ -187,7 +187,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
             // Create Image from InputStream
             return new Image(inputStream);
         } else {
-            System.out.println("No image data available");
+           // System.out.println("No image data available");
             return null;  // Or handle as needed, e.g., return a default image
         }
     }
