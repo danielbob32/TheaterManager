@@ -126,9 +126,13 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         if (selectedDate.isEqual(today)) {
             // Start from the next round half-hour if today is selected
             startTime = now.plusMinutes(30 - now.getMinute() % 30);
-            if (startTime.isAfter(LocalTime.of(23, 30))) {
-                startTime = LocalTime.of(23, 30);
-            }
+            System.out.println("Start time: " + startTime);
+        // Check if the next round time crosses midnight
+        if (startTime.isAfter(LocalTime.of(00, 00))) {
+            selectedDate = selectedDate.plusDays(1);  // Move to the next day
+            dateSelector.setValue(selectedDate);      // Update the date picker
+            startTime = LocalTime.of(0, 0);           // Start from midnight of the next day
+        }
         } else {
             // Start from midnight for future dates
             startTime = LocalTime.of(0, 0);

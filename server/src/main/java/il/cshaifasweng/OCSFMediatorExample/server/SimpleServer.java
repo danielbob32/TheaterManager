@@ -1364,20 +1364,13 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 	}
 
 	// Add this method to SimpleServer class fixed using coplit
-	public void sendToAllClients(Message message) throws Exception {
-		for (Object clientObj : getClientConnections()) {
-			ConnectionToClient client = (ConnectionToClient) clientObj;
-			client.sendToClient(message);
-			System.out.println("Message sent to client, inside simpleserver sendtoallclients: " + message.getMessage());
-		}
-	}
-	// Add this method to SimpleServer class fixed using coplit
-	public void sendToAllClients(Message message) throws Exception {
-		for (Object clientObj : getClientConnections()) {
-			ConnectionToClient client = (ConnectionToClient) clientObj;
-			client.sendToClient(message);
-			System.out.println("Message sent to client, inside simpleserver sendtoallclients: " + message.getMessage());
-		}
-	}
+	// public void sendToAllClients(Message message) throws Exception {
+	// 	for (Object clientObj : getClientConnections()) {
+	// 		ConnectionToClient client = (ConnectionToClient) clientObj;
+	// 		client.sendToClient(message);
+	// 		System.out.println("Message sent to client, inside simpleserver sendtoallclients: " + message.getMessage());
+	// 	}
+	// }
+
 
 }
