@@ -230,7 +230,6 @@ public class ServerDB {
             Transaction transaction = session.beginTransaction();
 
             try {
-                // Get some movies to associate with the requests
                 List<Movie> movies = getAllMovies();
                 if (movies.isEmpty()) {
                     System.out.println("No movies found to create test price change requests");
@@ -304,6 +303,24 @@ public class ServerDB {
 
     }
 
+    public void updatePersonLoginStatus(int id, boolean status)
+    {
+        try(Session session = sessionFactory.openSession())
+        {
+            Transaction t = session.beginTransaction();
+            Person p = session.get(Person.class, id);
+            if(p!=null)
+            {
+                p.setLoggedIn(status);
+                session.update(p);
+            }
+            t.commit();
+        }catch (Exception e) {
+            System.err.println("Error updating persn login status: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public Worker checkWorkerCredentials(int id, String password) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Worker W WHERE W.id = :id";
@@ -311,13 +328,13 @@ public class ServerDB {
             query.setParameter("id", id);
             Worker worker = query.uniqueResult();
     
-            System.out.println("Checking worker credentials for ID: " + id);
-            System.out.println("Found worker: " + (worker != null));
-            System.out.println("in checkworkercredentials before if");
+//            System.out.println("Checking worker credentials for ID: " + id);
+//            System.out.println("Found worker: " + (worker != null));
+//            System.out.println("in checkworkercredentials before if");
     
             if (worker != null && worker.getPassword().equals(password)) {
-                System.out.println("in checkworkercredentials after if");
-    
+//                System.out.println("in checkworkercredentials after if");
+                updatePersonLoginStatus(worker.getPersonId(), true);
                 if (worker instanceof CinemaManager) {
                     System.out.println("in checkworkercredentials after if instance of");
                     System.out.println("worker is cinema manager");
@@ -350,10 +367,14 @@ public class ServerDB {
 
             System.out.println("Checking customer credentials for ID: " + id);
             System.out.println("Found customer: " + (customer != null));
-            for(Complaint c : customer.getComplaints()) {
-                System.out.println("Complaint title: " + c.getTitle());
+            if(customer != null)
+            {
+                updatePersonLoginStatus(customer.getPersonId(), true);
+                for(Complaint c : customer.getComplaints()) {
+//                    System.out.println("Complaint title: " + c.getTitle());
+                    Hibernate.initialize(c);
+                }
             }
-
             return customer;
         } catch (Exception e) {
             System.err.println("Error checking customer credentials: " + e.getMessage());
@@ -562,21 +583,14 @@ public class ServerDB {
                         i,
                         i);
 
-                String imagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + movie_icons[i];
-//            try (InputStream inputStream = new FileInputStream(imagePath)) {
                 try (InputStream inputStream = getClass().getResourceAsStream("/Images/" + movie_icons[i])) {
-//                System.out.println("found image" + inputStream);
                     if (inputStream != null) {
                         byte[] imageData = inputStream.readAllBytes();
                         movie.setMovieIcon(imageData);
                     } else {
-                        // Set default image or take appropriate action
-                        String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
-//                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
                         try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
                             byte[] defaultImageData = defaultInputStream.readAllBytes();
                             movie.setMovieIcon(defaultImageData);
-//                        System.out.println("loaded image number:" + i);
                         } catch (IOException ex) {
                             System.out.println("Error loading default image");
                             ex.printStackTrace();
@@ -586,10 +600,7 @@ public class ServerDB {
                 } catch (FileNotFoundException e) {
                     System.out.println("Image file not found: " + movie_icons[i]);
 
-                    // Set default image or take appropriate action
-                    String defaultImagePath = "/Users/yarden_itzhaky/Desktop/Assigments/labs/FINAL PROJECT/client/src/main/resources/Images/" + "default.jpg";
-//                try (InputStream defaultInputStream = new FileInputStream(defaultImagePath)) {
-                    try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
+                   try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
                         byte[] defaultImageData = defaultInputStream.readAllBytes();
                         movie.setMovieIcon(defaultImageData);
                         System.out.println("loaded image number:" + i);
@@ -1100,7 +1111,6 @@ public class ServerDB {
 
         System.out.println("handling purchase ticket with ticket tab");
 
-        //Session session = sessionFactory.openSession();
         try(Session session = sessionFactory.openSession())
         {
             Transaction transaction = null;
@@ -1424,9 +1434,6 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
-    
-    
-
 
     public enum TimeFrame {
         YEARLY, QUARTERLY, MONTHLY
@@ -1468,8 +1475,6 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
-    
-
 
     private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
         String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
@@ -1507,18 +1512,6 @@ public class ServerDB {
             return false;
         }
     }
-//MESSAGE FOR THE NEW MOVIE ADD
-//    public List<Customer> getTicketTabOwners() {
-//        try (Session session = sessionFactory.openSession()) {
-//            String hql = "SELECT DISTINCT c FROM Customer c JOIN c.products p WHERE TYPE(p) = TicketTab";
-//            Query<Customer> query = session.createQuery(hql, Customer.class);
-//            return query.getResultList();
-//        } catch (Exception e) {
-//            System.err.println("Error getting ticket tab owners: " + e.getMessage());
-//            e.printStackTrace();
-//            return new ArrayList<>();
-//        }
-//    }
 
 
     private String generateComplaintsHistogramReport(Session session, LocalDate month, String cinema) {
@@ -1551,111 +1544,33 @@ public class ServerDB {
         return reportBuilder.toString();
     }
 
-    // -----------------------------------------
-    // YONATHAN FUNCTIONS:
-    // -----------------------------------------
-
-    public Seat getSeatByIds(int seatId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.get(Seat.class, seatId);
-        }
-    }
-
-    public Customer getCustomerById(int id) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.get(Customer.class, id);
-        }
-    }
-
-    public void saveCustomer(Customer customer) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.save(customer);
-            tx.commit();
-        }
-    }
-
-    public void updateSeat(Seat seat) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.update(seat);
-            tx.commit();
-        }
-    }
-
-    public void saveTicket(Ticket ticket) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.save(ticket);
-            tx.commit();
-        }
-    }
-
-    public void updateTicketTab(TicketTab ticketTab) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.update(ticketTab);
-            tx.commit();
-        }
-    }
-
-    public void saveBooking(Booking booking) {
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.save(booking);
-            tx.commit();
-        }
-    }
-
-
     public List<Booking> fetchUserBookings(int userId) throws Exception {
         try (Session session = sessionFactory.openSession()){
-//            System.out.println("DB1");
             CriteriaBuilder builder = session.getCriteriaBuilder();
-//            System.out.println("DB1.1");
             CriteriaQuery<Booking> query = builder.createQuery(Booking.class);
-//            System.out.println("DB1.2");
             Root<Booking> root = query.from(Booking.class);
-//            System.out.println("DB2");
             query.select(root).where(builder.equal(root.get("customer").get("personId"), userId));
-//            System.out.println("DB3");
             List<Booking> bookings = session.createQuery(query).getResultList();
-//            System.out.println("DB4");
-            for (Booking booking : bookings) {
 
-                System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
+            for (Booking booking : bookings) {
                 try {
                     Hibernate.initialize(booking.getProducts());
-//                    System.out.println("DB5");
-
                     for (Product product : booking.getProducts()) {
-//                        System.out.println("DB6");
                         if (product instanceof Ticket) {
-//                            System.out.println("DB7");
                             Ticket ticket = (Ticket) product;
                             Movie movie = ticket.getMovie();
                             Screening screening = ticket.getScreening();
-//                            System.out.println("DB7.5");
 
-                            if (movie == null) {
-//                                System.out.println("Movie is null for ticket: " + ticket.getProduct_id());
-                            } else {
-//                                System.out.println("movie.getScreenings:" + movie.getScreenings());
+                            if (movie != null) {
                                 Hibernate.initialize(movie.getScreenings());
                             }
 
-                            if (screening == null) {
-                                System.out.println("Screening is null for ticket: " + ticket.getProduct_id());
-                            } else {
-//                                System.out.println("screening.getSeats():" + screening.getSeats());
-//                                System.out.println("screening.getHall():" + screening.getHall());
+                            if (screening != null) {
                                 Hibernate.initialize(screening.getSeats());
                                 Hibernate.initialize(screening.getHall());
                             }
 
-//                            System.out.println("DB8");
                         } else if (product instanceof HomeMovieLink) {
-//                            System.out.println("DB9");
                             HomeMovieLink homeMovieLink = (HomeMovieLink) product;
                             Hibernate.initialize(homeMovieLink.getMovie());
                         }
@@ -1665,7 +1580,6 @@ public class ServerDB {
                     e.printStackTrace();
                 }
             }
-//            System.out.println("DB5");
             return bookings;
         } catch (Exception e) {
             System.out.println("Error fetching bookings: " + e.getMessage());
@@ -1679,15 +1593,12 @@ public class ServerDB {
             session.beginTransaction();
             session.save(c);
             session.getTransaction().commit();
-            System.out.println("Complaint added successfully. (In serverDB)");
-
         }
         catch (Exception e)
         {
             System.out.println("Error in ServerDB addComplaint" + e.getMessage());
             e.printStackTrace();
         }
-
     }
 
     public List<Complaint> fetchAllComplaints() throws Exception {
@@ -1832,6 +1743,7 @@ public class ServerDB {
             e.printStackTrace();
         }
     }
+
     public List<Notification> getUnreadNotificationsForCustomer(int customerId) {
         try (Session session = sessionFactory.openSession()) {
             CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -1864,11 +1776,5 @@ public class ServerDB {
         }
     }
 
-
-
 }
-
-
-
-
 

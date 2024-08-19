@@ -12,7 +12,7 @@ import javax.xml.bind.ValidationException;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.greenrobot.eventbus.EventBus;
+
 
 public class PurchaseTicketTabBoundary implements DataInitializable{
 
@@ -75,6 +75,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
             showAlert(Alert.AlertType.ERROR, "Validation Error", e.getMessage());
         }
     }
+
 
     @FXML
     void handleBackButton(ActionEvent event) throws IOException {

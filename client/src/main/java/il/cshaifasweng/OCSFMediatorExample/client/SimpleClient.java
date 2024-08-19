@@ -51,6 +51,9 @@ public class SimpleClient extends AbstractClient {
                 case "Customer login":
                     handleCustomerLogin(message, messageStatus);
                     break;
+                case "Person login":
+                    handlePersonLoginFail();
+                    break;
                 case "Price":
                     handlePriceUpdate(message, messageStatus);
                     break;
@@ -253,6 +256,11 @@ public class SimpleClient extends AbstractClient {
         } else {
             showErrorAlert("ID was not found. Please check credentials and try again");
         }
+    }
+
+    public void handlePersonLoginFail()
+    {
+        showErrorAlert("This user is already logged in. Log out from the other device first.");
     }
 
     private void handlePriceUpdate(Message message, String status) {
@@ -741,6 +749,18 @@ private void handleReportData(String data) {
     }
 
     public void logout() {
+        if(this.connectedPerson!=null)
+        {
+            try{
+                Message logout_message = new Message(0, "personLogout", String.valueOf(this.connectedPerson.getPersonId()));
+                sendToServer(logout_message);
+            }catch (IOException e)
+            {
+                System.out.println("Error sending the server logout request");
+                e.printStackTrace();
+            }
+        }
+
         this.connectedPerson = null;
     }
 
