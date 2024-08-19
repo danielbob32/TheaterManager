@@ -14,7 +14,7 @@
 
 /* Welcome label styles */
 .welcome-label {
-    -fx-font-size: 32px;
+    -fx-font-size: 24;
     -fx-font-weight: bold;
     -fx-text-fill: #004e92;
 }
@@ -26,14 +26,30 @@
     -fx-font-weight: bold;
     -fx-cursor: hand;
     -fx-padding: 10 20;
-    -fx-background-radius: 5;
+    -fx-background-radius: 20;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
     -fx-transition: all 0.3s;
-    -fx-min-width: 150px;
+    -fx-min-width: 100px;
+    -fx-min-height: 35;
 }
 
 .menu-button:hover {
     -fx-background-color: #0056b3;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);
+}
+
+.back-button {
+    -fx-background-color: #616161;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-pref-height: 30;
+    -fx-min-height: 30;
+    -fx-pref-width: 70;
+}
+
+.back-button:hover {
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);
 }
 
@@ -43,16 +59,87 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-cursor: hand;
-    -fx-padding: 10 20;
-    -fx-background-radius: 5;
+    -fx-background-radius: 20;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
     -fx-transition: all 0.3s;
-    -fx-min-width: 150px;
+    -fx-pref-width: 90;
+    -fx-pref-height: 30;
+    -fx-min-height: 30;
+    -fx-min-width: 90;
 }
 
 .logout-button:hover {
     -fx-background-color: #b71c1c;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);
+}
+
+.confirm-button {
+    -fx-background-color: #38a138;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+    -fx-min-height: 35;
+    -fx-min-width: 90;
+}
+
+.confirm-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);
+}
+
+.deny-button {
+    -fx-background-color: #d32f2f;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+    -fx-min-height: 35;
+    -fx-min-width: 90;
+}
+
+.deny-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);
+}
+
+.text-field {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #1e3c72;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+    -fx-padding: 5;
+}
+
+.text-area {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #1e3c72;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+    -fx-padding: 5;
+}
+
+.date-picker {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #1e3c72;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+}
+
+.date-picker .text-field {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.combo-box {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #1e3c72;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-fill: #1e3c72;
 }
 
 /* Section header styles */
@@ -69,7 +156,7 @@
     -fx-font-weight: bold;
     -fx-cursor: hand;
     -fx-padding: 5 10;
-    -fx-background-radius: 3;
+    -fx-background-radius: 10;
 }
 
 /* Notification container styles */
@@ -114,7 +201,7 @@
     -fx-text-fill: white;
     -fx-font-size: 12px;
     -fx-padding: 5 10;
-    -fx-background-radius: 3;
+    -fx-background-radius: 10;
     -fx-cursor: hand;
 }
 
@@ -145,34 +232,13 @@
 }
 
 /* Styles for the View Complaint button */
-#viewComplaintButton {
-    -fx-background-color: #FFA000;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8 16;
-    -fx-background-radius: 4;
-}
-
-#viewComplaintButton:hover {
-    -fx-background-color: #FF8F00;
-}
 
 .check-combo-box {
     -fx-prompt-text-fill: #a9a9a9; /* Gray color for prompt text */
 }
 
 /* Styles for the Submit New Complaint button */
-#submitNewComplaintButton {
-    -fx-background-color: #4CAF50;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8 16;
-    -fx-background-radius: 4;
-}
 
-#submitNewComplaintButton:hover {
-    -fx-background-color: #45A049;
-}
 
 /* Submit new complaint button (green) */
 .complaints-submit-button {
@@ -193,9 +259,18 @@
     -fx-padding: 10px;
 }
 
+/* TableView styles */
+.table-view {
+    -fx-background-color: #ffffff; /* Lighter background for readability */
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-padding: 10px;
+}
+
 /* TableColumn headers */
 .table-column-header {
-    -fx-background-color: #2196F3; /* Header background color */
+    -fx-background-color: #1e3c72; /* Header background color */
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-alignment: CENTER;
@@ -209,7 +284,7 @@
 
 /* Selected row styling */
 .table-row-cell:selected {
-    -fx-background-color: #00bcd4; /* Cyan color for selected rows */
+    -fx-background-color: #004e92; /* Darker blue for selected rows */
     -fx-text-fill: #ffffff; /* White text for selected rows */
 }
 
@@ -221,7 +296,7 @@
 
 /* Hover effect for selected rows */
 .table-row-cell:selected:hover {
-    -fx-background-color: #00acc1; /* Slightly darker cyan when hovering over selected rows */
+    -fx-background-color: #004e92; /* Slightly darker blue when hovering over selected rows */
     -fx-text-fill: #ffffff; /* White text for selected rows */
 }
 

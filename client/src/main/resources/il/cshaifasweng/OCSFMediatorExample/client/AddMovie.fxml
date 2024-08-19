@@ -6,34 +6,79 @@
 <?import javafx.scene.text.Text?>
 
 <?import org.controlsfx.control.CheckComboBox?>
-<AnchorPane fx:id="mainContainer" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddMovieController" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
+
+<AnchorPane fx:id="mainContainer" prefHeight="900.0" prefWidth="1080.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddMovieController"
+            style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
     <children>
-        <VBox alignment="CENTER" spacing="20.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0" AnchorPane.bottomAnchor="50.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+        <VBox alignment="CENTER" spacing="20.0"
+              style="-fx-background-color: white; -fx-background-radius: 20;
+                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);"
+              AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0"
+              AnchorPane.topAnchor="40.0" AnchorPane.bottomAnchor="40.0">
             <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
             </padding>
             <children>
-                <Text text="Add Movie" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;" />
-                <TextField fx:id="englishNameField" promptText="English Name" />
-                <TextField fx:id="hebrewNameField" promptText="Hebrew Name" />
-                <TextField fx:id="producerField" promptText="Producer" />
-                <TextField fx:id="actorsField" promptText="Actors" />
-                <TextField fx:id="durationField" promptText="Duration" />
-                <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage" styleClass="menu-button"/>
-                <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis" />
-                <Label text="Select Genres" />
-                <CheckComboBox fx:id="genreCheckComboBox" styleClass="check-combo-box" />
-                <DatePicker fx:id="premierDatePicker" promptText="Premier Date" />
-                <CheckBox fx:id="isCinemaCheckBox" text="Is Cinema Movie" onAction="#toggleCinemaFields" />
-                <VBox fx:id="cinemaFields" visible="false" managed="false" spacing="10.0">
-                    <TextField fx:id="cinemaPriceField" promptText="Cinema Price" />
-                </VBox>
-                <CheckBox fx:id="isHomeCheckBox" text="Is Home Movie" onAction="#toggleHomeMovieFields" />
-                <VBox fx:id="homeMovieFields" visible="false" managed="false" spacing="10.0">
-                    <TextField fx:id="homePriceField" promptText="Home Movie Price" />
-                </VBox>
-                <Button mnemonicParsing="false" onAction="#submitMovie" styleClass="menu-button" text="Submit" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
-                <Button mnemonicParsing="false" onAction="#goBack" styleClass="menu-button" text="Go Back" style="-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Text text="Add Movie"
+                      style="-fx-font-size: 28px; -fx-font-weight: bold;
+                             -fx-fill: #1e3c72;" />
+
+                <GridPane hgap="20" vgap="15">
+                    <children>
+                        <Label text="English Name:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;" />
+                        <TextField fx:id="englishNameField" promptText="English Name"
+                                   GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                        <Label text="Hebrew Name:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="hebrewNameField" promptText="Hebrew Name"
+                                   GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                        <Label text="Producer:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="producerField" promptText="Producer"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+                        <Label text="Actors:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="actorsField" promptText="Actors"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1" />
+
+                        <Label text="Duration:" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="durationField" promptText="Duration"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="1" />
+
+                        <Label text="Synopsis:" GridPane.rowIndex="5" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis"
+                                  GridPane.rowIndex="5" GridPane.columnIndex="1" />
+
+                        <Label text="Select Genres:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <CheckComboBox fx:id="genreCheckComboBox"
+                                       GridPane.rowIndex="6" GridPane.columnIndex="1" />
+
+                        <Label text="Premier Date:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <DatePicker fx:id="premierDatePicker" promptText="Premier Date"
+                                    GridPane.rowIndex="7" GridPane.columnIndex="1" />
+
+                        <CheckBox fx:id="isCinemaCheckBox" GridPane.rowIndex="8" GridPane.columnIndex="0" text="Is Cinema Movie" onAction="#toggleCinemaFields" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="cinemaPriceField" promptText="Cinema Price"
+                                   GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+
+                        <CheckBox fx:id="isHomeCheckBox" GridPane.rowIndex="9" GridPane.columnIndex="0" text="Is Home Movie" onAction="#toggleHomeMovieFields" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="homePriceField" promptText="Home Movie Price"
+                                   GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+                    </children>
+                </GridPane>
+
+                <HBox alignment="CENTER" spacing="20.0">
+                    <Button mnemonicParsing="false" onAction="#goBack"
+                            styleClass="back-button"
+                            text="Back"
+                            prefWidth="100" prefHeight="35" />
+                    <Button mnemonicParsing="false" onAction="#submitMovie"
+                            text="Submit"
+                            styleClass="confirm-button"
+                            prefWidth="100" prefHeight="35" />
+                </HBox>
+
             </children>
         </VBox>
     </children>

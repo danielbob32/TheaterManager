@@ -84,19 +84,18 @@ public class AddMovieController implements DataInitializable {
         }
     }
 
-
     @FXML
     private void toggleHomeMovieFields() {
         boolean isHomeMovie = isHomeCheckBox.isSelected();
-        homeMovieFields.setVisible(isHomeMovie);
-        homeMovieFields.setManaged(isHomeMovie);
+        //homeMovieFields.setVisible(isHomeMovie);
+        //homeMovieFields.setManaged(isHomeMovie);
     }
 
     @FXML
     private void toggleCinemaFields() {
         boolean isCinemaMovie = isCinemaCheckBox.isSelected();
-        cinemaFields.setVisible(isCinemaMovie);
-        cinemaFields.setManaged(isCinemaMovie);
+        //cinemaFields.setVisible(isCinemaMovie);
+        //cinemaFields.setManaged(isCinemaMovie);
     }
 
     @FXML
@@ -125,14 +124,10 @@ public class AddMovieController implements DataInitializable {
             boolean isHome = isHomeCheckBox.isSelected();
 
             int cinemaPrice = 0;
-            if (isCinema) {
-                cinemaPrice = Integer.parseInt(validateField(cinemaPriceField, "Cinema Price"));
-            }
+            cinemaPrice = Integer.parseInt(validateField(cinemaPriceField, "Cinema Price"));
 
             int homePrice = 0;
-            if (isHome) {
-                homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
-            }
+            homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
 
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -235,11 +230,11 @@ public class AddMovieController implements DataInitializable {
         genreCheckComboBox.getCheckModel().clearChecks();  // Clear selected genres
         premierDatePicker.setValue(null);
         isHomeCheckBox.setSelected(false);
-        cinemaFields.setVisible(false);
-        cinemaFields.setManaged(false);
+        cinemaFields.setVisible(true);
+        cinemaFields.setManaged(true);
         isCinemaCheckBox.setSelected(false);
-        homeMovieFields.setVisible(false);
-        homeMovieFields.setManaged(false);
+        homeMovieFields.setVisible(true);
+        homeMovieFields.setManaged(true);
         cinemaPriceField.clear();
         homePriceField.clear();
         uploadImageButton.setText("Upload Image");

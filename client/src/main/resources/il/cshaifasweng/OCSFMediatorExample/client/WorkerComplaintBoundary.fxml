@@ -8,11 +8,17 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.WorkerComplaintBoundary">
-    <children>
+<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.WorkerComplaintBoundary"
+            style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
+    <VBox alignment="CENTER" spacing="20" AnchorPane.leftAnchor="30" AnchorPane.rightAnchor="30" AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30"
+          style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
         <HBox spacing="10" alignment="CENTER_LEFT">
             <Label text="Hide non-active:" />
             <CheckBox fx:id="hideNonActiveCheckBox" text="Hide non-active" />
@@ -35,13 +41,13 @@
         <TextField fx:id="responseField" />
         <Label text="Refund amount:" />
         <TextField fx:id="refundField" />
-        <HBox spacing="10" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+        <HBox spacing="10" alignment="CENTER" HBox.hgrow="ALWAYS">
             <Button fx:id="selectComplaintButton" text="Select Complaint" onAction="#handleSelectComplaint" styleClass="menu-button" />
-            <Button fx:id="submitReplyButton" text="Submit Reply" onAction="#handleSubmitReply" styleClass="menu-button" />
+            <Button fx:id="submitReplyButton" text="Submit Reply" onAction="#handleSubmitReply" styleClass="confirm-button" />
         </HBox>
-        <Button fx:id="backButton" text="Back" onAction="#handleBackButton" styleClass="menu-button" />
-    </children>
+        <Button fx:id="backButton" text="Back" onAction="#handleBackButton" styleClass="back-button" />
+    </VBox>
     <padding>
         <Insets top="10" right="10" bottom="10" left="10" />
     </padding>
-</VBox>
+</AnchorPane>

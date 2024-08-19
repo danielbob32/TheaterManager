@@ -167,7 +167,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		VBox movieBox = new VBox(5);
 
 		movieBox.setPadding(new Insets(10));
-		movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5; -fx-fill: gray");
+		movieBox.setStyle("-fx-border-color: #1e3c72; -fx-border-width: 1; -fx-border-radius: 10; -fx-fill: #FFFFFFF2");
 
 		HBox contentBox = new HBox(10);
 		contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
@@ -189,9 +189,9 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 				InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
 				if (defaultImageStream != null) {
 					image3 = new Image(defaultImageStream);
-//					System.out.println("Default image loaded successfully");
+					System.out.println("Default image loaded successfully");
 				} else {
-//					System.out.println("Default image not found");
+					System.out.println("Default image not found");
 				}
 			} catch (Exception e) {
 				System.out.println("Error loading default image: " + e.getMessage());
@@ -204,7 +204,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		VBox textContent = new VBox(5);
 		Label englishTitleLabel = new Label(movie.getEnglishName());
-		englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+		englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17");
 		Label hebrewTitleLabel = new Label(movie.getHebrewName());
 		Label producerLabel = new Label("Producer: " + movie.getProducer());
 		Label actorsLabel = new Label("Main Actors: " + movie.getActors());
@@ -213,7 +213,7 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 
 		VBox buttons = new VBox(5);
 		Button detailsButton = new Button("Movie Page");
-		detailsButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
+		detailsButton.setStyle("-fx-background-color: #004e92; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 20");
 		detailsButton.setCursor(Cursor.HAND);
 		detailsButton.setOnAction(e-> {
             try {

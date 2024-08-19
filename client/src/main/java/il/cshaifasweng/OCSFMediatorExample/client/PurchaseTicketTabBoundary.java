@@ -76,14 +76,8 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
         }
     }
 
-    public void cleanup() {
-        EventBus.getDefault().unregister(this);
-    }
-
-
     @FXML
     void handleBackButton(ActionEvent event) throws IOException {
-        cleanup();
         if (isConnected) App.setRoot("CustomerMenu", customer);
         else App.setRoot("Loginpage", null);
     }

@@ -34,10 +34,10 @@ public class ReportsPageController implements DataInitializable {
     private String currentReportData;
 
     // Define colors for each report type
-    private static final String MONTHLY_SALES_COLOR = "#33ffb5";
-    private static final String TICKET_TAB_COLOR = "#33e6cc";
-    private static final String HOME_MOVIE_COLOR = "#33ccff";
-    private static final String COMPLAINTS_COLOR = "#3399ff";
+    private static final String MONTHLY_SALES_COLOR = " #4CAF50";
+    private static final String TICKET_TAB_COLOR = " #e156c3";
+    private static final String HOME_MOVIE_COLOR = " #FFC107";
+    private static final String COMPLAINTS_COLOR = " #FF5722";
 
     @FXML
     public void initialize() {
