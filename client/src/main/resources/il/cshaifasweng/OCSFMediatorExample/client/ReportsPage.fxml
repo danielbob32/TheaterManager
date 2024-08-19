@@ -11,7 +11,7 @@
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
         
-        <Text text="Generate Reports" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
+        <Text text="Generate Reports" styleClass="menu-button" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72;"/>
         
         <HBox alignment="CENTER" spacing="15">
             <ComboBox fx:id="reportTypeComboBox" prefWidth="200" promptText="Report Type"/>
@@ -21,6 +21,7 @@
         
         <Button fx:id="generateReportButton" onAction="#generateReport" text="Generate Report" 
                 styleClass="menu-button"/>
+
         
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
             <VBox fx:id="reportContainer" alignment="TOP_CENTER" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 10;"/>
@@ -34,10 +35,12 @@
         </VBox>
         
         <HBox alignment="CENTER" spacing="15">
+
             <Button fx:id="backButton" onAction="#handleBackButton" text="Back"
                     styleClass="back-button" prefWidth="150"/>
             <Button fx:id="exportButton" onAction="#exportToExcel" text="Export to Excel" 
                     styleClass="confirm-button" prefWidth="150"/>
            </HBox>
+
     </VBox>
 </AnchorPane>
