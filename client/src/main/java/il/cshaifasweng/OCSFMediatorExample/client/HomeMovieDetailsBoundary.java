@@ -12,7 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.text.TextFlow;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import javafx.scene.control.DateCell;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,30 +22,18 @@ import java.time.format.DateTimeFormatter;
 
 public class HomeMovieDetailsBoundary implements DataInitializable {
 
-    @FXML
-    private Label englishTitleLabel;
-    @FXML
-    private Label hebrewTitleLabel;
-    @FXML
-    private Label producerLabel;
-    @FXML
-    private Label actorsLabel;
-    @FXML
-    private Label durationLabel;
-    @FXML
-    private Label genreLabel;
-    @FXML
-    private TextFlow synopsisArea;
-    @FXML
-    private ImageView movieImage;
-    @FXML
-    private ComboBox<String> timeComboBox;
-    @FXML
-    private DatePicker dateSelector;
-    @FXML
-    private Button buyLinkButton;
-    @FXML
-    private Button backButton;
+    @FXML private Label englishTitleLabel;
+    @FXML private Label hebrewTitleLabel;
+    @FXML private Label producerLabel;
+    @FXML private Label actorsLabel;
+    @FXML private Label durationLabel;
+    @FXML private Label genreLabel;
+    @FXML private TextFlow synopsisArea;
+    @FXML private ImageView movieImage;
+    @FXML private ComboBox<String> timeComboBox;
+    @FXML private DatePicker dateSelector;
+    @FXML private Button buyLinkButton;
+    @FXML private Button backButton;
 
     private SimpleClient client;
     private Movie currentMovie;
@@ -54,16 +42,19 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
-        populateTimeComboBox();
         
         LocalDate today = LocalDate.now();
         dateSelector.setDayCellFactory(picker -> new DateCell() {
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                setDisable(empty || date.compareTo(today) < 0);
+                setDisable(empty || date.isBefore(today));
             }
         });
         dateSelector.setValue(today);
+        
+        populateTimeComboBox();
+        
+        dateSelector.valueProperty().addListener((observable, oldValue, newValue) -> handleDateChange());
     }
 
     public void cleanup() {
@@ -103,57 +94,100 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         synopsisArea.getChildren().clear();
         synopsisArea.getChildren().add(new Label(currentMovie.getSynopsis()));
 
-        byte[] image2 = currentMovie.getMovieIcon();
-        if (image2 != null) {
-            System.out.println("Image byte array length: " + image2.length);
-        } else {
-            System.out.println("Image byte array is null");
+        byte[] imageData = currentMovie.getMovieIcon();
+        Image image = convertByteArrayToImage(imageData);
+        if (image == null || image.isError()) {
+            image = loadDefaultImage();
         }
-        Image image3 = convertByteArrayToImage(image2);
-        if (image3 == null) {
-            System.out.println("Image is null");
-        } else {
-            System.out.println("Image created successfully");
-        }
-        if (image3 == null || image3.isError()) {
-            System.out.println("Using default image");
-            try {
-                InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
-                if (defaultImageStream != null) {
-                    image3 = new Image(defaultImageStream);
-                    System.out.println("Default image loaded successfully");
-                } else {
-                    System.out.println("Default image not found");
-                }
-            } catch (Exception e) {
-                System.out.println("Error loading default image: " + e.getMessage());
-            }
-        }
-        movieImage.setImage(image3);
+        movieImage.setImage(image);
     }
 
-    public Image convertByteArrayToImage(byte[] imageData) {
+    private Image convertByteArrayToImage(byte[] imageData) {
         if (imageData != null && imageData.length > 0) {
-            // Convert byte[] to InputStream
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
-            // Create Image from InputStream
-            return new Image(inputStream);
-        } else {
-            System.out.println("No image data available");
-            return null;  // Or handle as needed, e.g., return a default image
+            return new Image(new ByteArrayInputStream(imageData));
         }
+        return null;
+    }
+
+    private Image loadDefaultImage() {
+        try {
+            InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
+            if (defaultImageStream != null) {
+                return new Image(defaultImageStream);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading default image: " + e.getMessage());
+        }
+        return null;
     }
 
     private void populateTimeComboBox() {
         LocalTime now = LocalTime.now();
         LocalTime startTime = now.plusMinutes(30 - now.getMinute() % 30);
+        
+        // Ensure the start time is at least 09:00
+        if (startTime.isBefore(LocalTime.of(9, 0))) {
+            startTime = LocalTime.of(9, 0);
+        }
+        
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-    
+
+        timeComboBox.getItems().clear();
         while (startTime.isBefore(endTime) || startTime.equals(endTime)) {
             timeComboBox.getItems().add(startTime.format(formatter));
             startTime = startTime.plusMinutes(30);
+        }
+
+        if (!timeComboBox.getItems().isEmpty()) {
+            timeComboBox.getSelectionModel().selectFirst();
+        }
+    }
+
+    @FXML
+    private void handleDateChange() {
+        LocalDate selectedDate = dateSelector.getValue();
+        LocalDate today = LocalDate.now();
+    
+        // Clear the time combo box before repopulating
+        timeComboBox.getItems().clear();
+    
+        if (selectedDate == null) {
+            return;
+        }
+    
+        Platform.runLater(() -> {
+            try {
+                if (selectedDate.isEqual(today)) {
+                    populateTimeComboBox();
+                } else if (selectedDate.isAfter(today)) {
+                    populateFullTimeComboBox();
+                } else {
+                    showAlert("Invalid Date", "Please select today or a future date.");
+                    dateSelector.setValue(today);
+                    populateTimeComboBox();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert("Error", "An unexpected error occurred. Please try again.");
+            }
+        });
+    }
+    
+    
+    
+    private void populateFullTimeComboBox() {
+        LocalTime startTime = LocalTime.of(0, 0);
+        LocalTime endTime = LocalTime.of(23, 30);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        while (startTime.isBefore(endTime) || startTime.equals(endTime)) {
+            timeComboBox.getItems().add(startTime.format(formatter));
+            startTime = startTime.plusMinutes(30);
+        }
+
+        if (!timeComboBox.getItems().isEmpty()) {
+            timeComboBox.getSelectionModel().selectFirst();
         }
     }
 
