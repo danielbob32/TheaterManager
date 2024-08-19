@@ -33,11 +33,14 @@ public class App extends Application {
         Object controller = loader.getController();
         ((DataInitializable)controller).setClient(client);
         ((DataInitializable)controller).initData(null);
-        scene = new Scene(root, 800, 750);
+        scene = new Scene(root, 1080, 900);
         scene.getStylesheets().add(getClass().getResource("App.css").toExternalForm());
         primaryStage = stage;
         stage.setScene(scene);
         stage.show();
+        stage.setMaxWidth(1080);
+        stage.setMaxHeight(900);
+        stage.setResizable(false);
     }
 
     public static void setRoot(String fxml) throws IOException {

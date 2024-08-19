@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.UpdatePricesController" spacing="10" alignment="CENTER" style="-fx-padding: 20;">
-    <ComboBox fx:id="movieTypeComboBox" promptText="Select Movie Type"/>
-    <ComboBox fx:id="movieComboBox" promptText="Select Movie"/>
-    <Label fx:id="currentPriceLabel" text="Current Price: "/>
-    <TextField fx:id="newPriceField" promptText="Enter New Price"/>
-    <Button text="Update Price" onAction="#updatePrice" styleClass="menu-button"/>
-    <Button text="Back" onAction="#goBack" styleClass="menu-button"/>
-</VBox>
+<AnchorPane fx:id="mainContainer" prefHeight="900.0" prefWidth="1080.0" xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.UpdatePricesController"
+            style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
+    <children>
+        <VBox alignment="CENTER" spacing="20.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0"
+              AnchorPane.topAnchor="50.0" AnchorPane.bottomAnchor="50.0"
+              style="-fx-background-color: white; -fx-background-radius: 20;
+                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
+            <padding>
+                <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
+            </padding>
+            <children>
+                <Text text="Update Prices"
+                      style="-fx-font-size: 28px; -fx-font-weight: bold;
+                             -fx-fill: #1e3c72;" />
+
+                <ComboBox fx:id="movieTypeComboBox" promptText="Select Movie Type" styleClass="combo-box" />
+                <ComboBox fx:id="movieComboBox" promptText="Select Movie" styleClass="combo-box" />
+                <Label fx:id="currentPriceLabel" text="Current Price: " styleClass="label" />
+
+                <HBox spacing="10" alignment="CENTER">
+                    <Text text="New Price:" styleClass="label" />
+                    <TextField fx:id="newPriceField" promptText="Enter New Price" styleClass="text-field" />
+                </HBox>
+
+                <HBox spacing="20.0" alignment="CENTER">
+                    <Button text="Back" onAction="#goBack" styleClass="back-button" />
+                    <Button text="Update Price" onAction="#updatePrice" styleClass="confirm-button" />
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

@@ -7,39 +7,36 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="640.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LinkDetailsBoundary">
+<AnchorPane minHeight="900.0" minWidth="1080.0" prefHeight="640.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.LinkDetailsBoundary">
     <children>
-        <Text fx:id="bookingIdText" fill="WHITE" layoutX="171.0" layoutY="63.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: 2" wrappingWidth="246.73687744140625">
+        <Text fx:id="bookingIdText" fill="WHITE" layoutX="165.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order number: 2" wrappingWidth="246.73687744140625">
             <font>
                 <Font size="20.0" />
             </font>
         </Text>
-        <Text fx:id="purchaseTimeText" fill="WHITE" layoutX="150.0" layoutY="93.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time: 2024-08-08 12:17:23" wrappingWidth="268.3369140625">
+        <Text fx:id="purchaseTimeText" fill="WHITE" layoutX="165.0" layoutY="188.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Purchase time: 2024-08-08 12:17:23" wrappingWidth="268.3369140625">
             <font>
                 <Font size="15.0" />
             </font>
         </Text>
-        <Pane layoutX="27.0" layoutY="119.0" prefHeight="493.0" prefWidth="746.0" style="-fx-background-color: #d9d9d9;">
+        <Pane layoutX="27.0" layoutY="119.0" prefHeight="493.0" prefWidth="746.0" style="-fx-background-color: #d4d7de; -fx-background-radius: 20;" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="165.0" AnchorPane.rightAnchor="165.0" AnchorPane.topAnchor="220.0">
             <children>
-                <Button fx:id="backHomeButton" layoutX="290.0" layoutY="418.0" mnemonicParsing="false" onAction="#handleBackHome" prefHeight="40.0" prefWidth="166.0" style="-fx-background-color: green;" text="Back to Home" textFill="WHITE">
-                    <font>
-                        <Font name="System Bold" size="15.0" />
-                    </font>
+                <Button fx:id="backHomeButton" layoutX="292.0" layoutY="406.0" mnemonicParsing="false" onAction="#handleBackHome" prefHeight="40.0" prefWidth="166.0" styleClass="back-button" text="Back" textFill="WHITE">
                     <cursor>
                         <Cursor fx:constant="HAND" />
                     </cursor>
                 </Button>
-                <Text fx:id="movieTitleText" styleClass="menu-button" layoutX="132.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Movie: Deadpool" wrappingWidth="438.9367370605469">
+                <Text fx:id="movieTitleText" layoutX="100.0" layoutY="177.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Movie: Deadpool" wrappingWidth="438.9367370605469">
                     <font>
                         <Font size="20.0" />
                     </font>
                 </Text>
-                <Text fx:id="watchLinkText" layoutX="132.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Watch Link: www.Theater.link.594" wrappingWidth="438.9367370605469">
+                <Text fx:id="watchLinkText" layoutX="100.0" layoutY="227.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Watch Link: www.Theater.link.594" wrappingWidth="438.9367370605469">
                     <font>
                         <Font size="20.0" />
                     </font>
                 </Text>
-                <Text fx:id="validityPeriodText" layoutX="132.0" layoutY="203.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Validity Period: 2024-08-08 13:00 to 2024-08-09 13:00" wrappingWidth="438.9367370605469">
+                <Text fx:id="validityPeriodText" layoutX="100.0" layoutY="284.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Validity Period: 2024-08-08 13:00 to 2024-08-09 13:00" wrappingWidth="550.9367370605469">
                     <font>
                         <Font size="20.0" />
                     </font>

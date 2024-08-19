@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -122,7 +123,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         VBox textContent = new VBox(5);
         Label englishTitleLabel = new Label(movie.getEnglishName());
-        englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15;");
+        englishTitleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17;");
         Label hebrewTitleLabel = new Label(movie.getHebrewName());
         Label producerLabel = new Label("Producer: " + movie.getProducer());
         Label actorsLabel = new Label("Main Actors: " + movie.getActors());
@@ -131,7 +132,8 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         VBox buttons = new VBox(5);
         Button detailsButton = new Button("Movie Page");
-        detailsButton.setStyle("-fx-background-color: gray; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15;");
+        detailsButton.setStyle("-fx-background-color: #004e92; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 20");
+        detailsButton.setCursor(Cursor.HAND);
         detailsButton.setOnAction(e -> {
             try {
                 moviePage(movie);
@@ -149,6 +151,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
             if ((((Worker) p).getWorkerType().equals("Content manager"))||
                     (((Worker) p).getWorkerType().equals("Chain manager"))) {
                 Button editButton = new Button("Delete Movie");
+                editButton.setStyle("-fx-background-color: #b71c1c; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 20");
                 editButton.setOnAction(e -> {
                     try {
                         deleteMovie(movie);

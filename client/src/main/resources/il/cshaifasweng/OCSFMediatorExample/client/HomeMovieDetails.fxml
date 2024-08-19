@@ -13,21 +13,29 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.TextFlow?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.HomeMovieDetailsBoundary">
-    <children>
-        <Button fx:id="backButton" onAction="#handleBackButton" styleClass="menu-button" style="-fx-background-color: gray; -fx-font-weight: bold;" text="Back" textFill="WHITE" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
-            <cursor>
-                <Cursor fx:constant="HAND" />
-            </cursor>
-            <font>
-                <Font name="System Bold" size="12.0" />
-            </font>
-        </Button>
-        <VBox spacing="10" style="-fx-background-color: #d9d9d9;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
-            <padding>
-                <Insets top="5" right="5" bottom="5" left="5"/>
-            </padding>
-            <HBox spacing="20">
+<AnchorPane maxHeight="770.0" maxWidth="1080.0" minHeight="770.0" minWidth="1080.0" prefHeight="770.0" prefWidth="1080.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.HomeMovieDetailsBoundary">
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0" />
+    </padding>
+
+    <VBox prefHeight="730.0" prefWidth="1040.0" spacing="10" style="-fx-background-color: #d4d7de; -fx-background-radius: 20;" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.bottomAnchor="20.0">
+        <padding>
+            <Insets top="20.0" right="20.0" bottom="20.0" left="20.0" />
+        </padding>
+
+        <HBox spacing="20" alignment="CENTER_LEFT">
+            <Button fx:id="backButton" onAction="#handleBackButton" styleClass="back-button" text="Back" textFill="WHITE">
+                <cursor>
+                    <Cursor fx:constant="HAND" />
+                </cursor>
+                <font>
+                    <Font name="System Bold" size="12.0" />
+                </font>
+            </Button>
+        </HBox>
+
+        <VBox spacing="10">
+            <HBox spacing="20" alignment="CENTER_LEFT">
                 <ImageView fx:id="movieImage" fitHeight="200.0" fitWidth="150.0" preserveRatio="true" />
                 <VBox spacing="5">
                     <Label fx:id="englishTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
@@ -40,10 +48,8 @@
             </HBox>
             <TextFlow fx:id="synopsisArea" prefWidth="779.0" />
         </VBox>
-        <VBox layoutX="11.2" prefHeight="242.0" prefWidth="779.0" spacing="10" style="-fx-background-color: #d9d9d9;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="11.0" AnchorPane.rightAnchor="10.0">
-            <padding>
-                <Insets top="5" right="5" bottom="5" left="5"/>
-            </padding>
+
+        <VBox prefHeight="329.0" prefWidth="999.0" spacing="10" style="-fx-background-color: #d4d7de; -fx-background-radius: 20;">
             <ComboBox fx:id="timeComboBox" promptText="Select Time" prefHeight="26.0" prefWidth="167.0">
                 <cursor>
                     <Cursor fx:constant="HAND" />
@@ -54,14 +60,11 @@
                     <Cursor fx:constant="HAND" />
                 </cursor>
             </DatePicker>
-            <Button fx:id="buyLinkButton" styleClass="menu-button" onAction="#handleBuyLink" style="-fx-background-color: green; -fx-font-weight: bold;" text="Buy Link" textFill="WHITE" prefWidth="200" prefHeight="40">
+            <Button fx:id="buyLinkButton" styleClass="confirm-button" onAction="#handleBuyLink" text="Buy Link" textFill="WHITE" prefWidth="200" prefHeight="40">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
-                <font>
-                    <Font size="15.0" />
-                </font>
             </Button>
         </VBox>
-    </children>
+    </VBox>
 </AnchorPane>
