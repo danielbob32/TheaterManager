@@ -8,6 +8,10 @@ import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
+import javax.sound.midi.SysexMessage;
+import java.util.concurrent.ConcurrentHashMap;
+
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -16,6 +20,7 @@ import java.util.*;
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private ServerDB db;
+	private final Map<Integer, ConnectionToClient> connectedClients = new ConcurrentHashMap<>();
 	private final Object movieLock = new Object();
 	private final Object ticketLock = new Object();
 	private final Object ticketTabLock = new Object();
@@ -50,7 +55,9 @@ public class SimpleServer extends AbstractServer {
 				case "login":
 					handleLoginRequest(message, client);
 					break;
-
+				case "personLogout":
+					handleLogoutRequest(message);
+					break;
 				case "add movie":
 					handleAddMovieRequest(message, client);
 					break;
@@ -232,22 +239,45 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	private void handleLogoutRequest(Message message) {
+		System.out.println("IN SIMPLE SERVER, GOT LOGOUT REQUEST, AFTER LOGIN CONNECTED IDS:");
+		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+			System.out.println(entry.getKey());
+		}
+		int personId = Integer.parseInt(message.getData());
+
+		// Update the person's login status
+		db.updatePersonLoginStatus(personId, false);
+        connectedClients.remove(personId);
+		System.out.println("IN SIMPLE SERVER, GOT LOGOUT REQUEST, AFTER LOGIN CONNECTED IDS:");
+		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+			System.out.println(entry.getKey());
+		}
+	}
+
 
 	private void handleLoginRequest(Message message, ConnectionToClient client) throws IOException {
 		String[] loginParts = message.getMessage().split(":", 2);
 		String person = loginParts.length > 1 ? loginParts[1] : "";
-
+		System.out.println("IN SIMPLE SERVER, GOT LOGIN REQUEST, CURRENTLY CONNECTED IDS:");
+		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+			System.out.println(entry.getKey());
+		}
 		switch (person) {
 			case "worker":
 				Worker worker = objectMapper.readValue(message.getData(), Worker.class);
-				handleLoginRequest(worker, client);
+				processLogin(worker, client);
 				break;
 			case "customer":
 				Customer customer = objectMapper.readValue(message.getData(), Customer.class);
-				handleLoginRequest(customer, client);
+				processLogin(customer, client);
 				break;
 			default:
 				client.sendToClient(new Warning("Unknown login type"));
+		}
+		System.out.println("IN SIMPLE SERVER, GOT LOGIN REQUEST, AFTER LOGIN CONNECTED IDS:");
+		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+			System.out.println(entry.getKey());
 		}
 	}
 
@@ -883,10 +913,20 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 }
 
 
-	private void handleLoginRequest(Object loginRequest, ConnectionToClient client) {
+	private void processLogin(Object loginRequest, ConnectionToClient client) {
 		System.out.println("Handling login request");
 		Person p = (Person) loginRequest;
 		String message = "";
+		if(isAlreadyLoggedIn(p))
+		{
+			try {
+				client.sendToClient(new Message(0, "Person login:failed"));
+			}catch(Exception e) {
+				System.out.println("Couldn't send an 'already logged in message' to client");
+				e.printStackTrace();
+			}
+			return;
+		}
 		try {
 			if (loginRequest instanceof Worker) {
 				System.out.println("Worker login request");
@@ -895,9 +935,11 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 				System.out.println("Worker login: " + (worker != null));
 				System.out.println("Worker: " + worker);
 				if (worker != null) {
+					connectedClients.put(worker.getPersonId(), client);
 					if (worker instanceof CinemaManager) {
 						CinemaManager manager = (CinemaManager) worker;
 						p = manager;
+
 						message = "Cinema manager login:successful";
 						System.out.println("Inside if: Cinema manager login successful");
 					} else {
@@ -913,10 +955,11 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
 				customer = db.checkCustomerCredentials(customer.getPersonId());
-				//message = loginSuccess ? "Customer login successful" : "Invalid customer ID";
 				message = customer!=null ? "Customer login:successful" : "Customer login:failed";
-				if(customer!=null)
+				if(customer!=null) {
+					connectedClients.put(customer.getPersonId(), client);
 					p = customer;
+				}
 			} else {
 				message = "Invalid login request type";
 			}
@@ -928,7 +971,7 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		try {
 			System.out.println("About to serialize the worker/customer object: " + p);
 			String jsonString = objectMapper.writeValueAsString(p);
-			System.out.println("Serialization successful, JSON: " + jsonString);
+//			System.out.println("Serialization successful, JSON: " + jsonString);
 			Message message1 = new Message(0, message, jsonString);
 			client.sendToClient(message1);
 			System.out.println("Message sent to client successfully");
@@ -939,6 +982,29 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		
 	}
 
+	private boolean isAlreadyLoggedIn(Person person) {
+		return connectedClients.containsKey(person.getPersonId());
+	}
+
+	@Override
+	protected synchronized void clientDisconnected(ConnectionToClient client) {
+		Integer personId = null;
+
+		// Find the person associated with this client
+		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+			if (entry.getValue().equals(client)) {
+				personId = entry.getKey();
+				break;
+			}
+		}
+
+		if (personId != null) {
+			// Update the person's login status
+			db.updatePersonLoginStatus(personId, false);
+			connectedClients.remove(personId);
+		}
+		super.clientDisconnected(client);
+	}
 
 	@Override
 	protected void serverStarted() {

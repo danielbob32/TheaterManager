@@ -311,6 +311,24 @@ public class ServerDB {
 
     }
 
+    public void updatePersonLoginStatus(int id, boolean status)
+    {
+        try(Session session = sessionFactory.openSession())
+        {
+            Transaction t = session.beginTransaction();
+            Person p = session.get(Person.class, id);
+            if(p!=null)
+            {
+                p.setLoggedIn(status);
+                session.update(p);
+            }
+            t.commit();
+        }catch (Exception e) {
+            System.err.println("Error updating persn login status: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public Worker checkWorkerCredentials(int id, String password) {
         try (Session session = sessionFactory.openSession()) {
             String hql = "FROM Worker W WHERE W.id = :id";
@@ -318,13 +336,13 @@ public class ServerDB {
             query.setParameter("id", id);
             Worker worker = query.uniqueResult();
     
-            System.out.println("Checking worker credentials for ID: " + id);
-            System.out.println("Found worker: " + (worker != null));
-            System.out.println("in checkworkercredentials before if");
+//            System.out.println("Checking worker credentials for ID: " + id);
+//            System.out.println("Found worker: " + (worker != null));
+//            System.out.println("in checkworkercredentials before if");
     
             if (worker != null && worker.getPassword().equals(password)) {
-                System.out.println("in checkworkercredentials after if");
-    
+//                System.out.println("in checkworkercredentials after if");
+                updatePersonLoginStatus(worker.getPersonId(), true);
                 if (worker instanceof CinemaManager) {
                     System.out.println("in checkworkercredentials after if instance of");
                     System.out.println("worker is cinema manager");
@@ -357,10 +375,14 @@ public class ServerDB {
 
             System.out.println("Checking customer credentials for ID: " + id);
             System.out.println("Found customer: " + (customer != null));
-            for(Complaint c : customer.getComplaints()) {
-                System.out.println("Complaint title: " + c.getTitle());
+            if(customer != null)
+            {
+                updatePersonLoginStatus(customer.getPersonId(), true);
+                for(Complaint c : customer.getComplaints()) {
+//                    System.out.println("Complaint title: " + c.getTitle());
+                    Hibernate.initialize(c);
+                }
             }
-
             return customer;
         } catch (Exception e) {
             System.err.println("Error checking customer credentials: " + e.getMessage());

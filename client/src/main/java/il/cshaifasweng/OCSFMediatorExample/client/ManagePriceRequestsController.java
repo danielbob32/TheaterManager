@@ -98,7 +98,7 @@ public class ManagePriceRequestsController implements DataInitializable {
         if (selectedRequest != null) {
             if (selectedRequest.getStatus().equals("Approved")) {
                 showAlert("Cannot Approve", "This request has already been approved.");
-            } else {
+            }else {
                 try {
                     client.sendToServer(new Message(0, "approvePriceChangeRequest", String.valueOf(selectedRequest.getId())));
                 } catch (IOException e) {
@@ -114,7 +114,9 @@ public class ManagePriceRequestsController implements DataInitializable {
         if (selectedRequest != null) {
             if (selectedRequest.getStatus().equals("Approved")) {
                 showAlert("Cannot Deny", "This request has already been approved and cannot be denied.");
-            } else {
+            } else if(selectedRequest.getStatus().equals("Denied")) {
+                showAlert("Cannot Deny", "This request has already been denied.");
+            }else {
                 try {
                     client.sendToServer(new Message(0, "denyPriceChangeRequest", String.valueOf(selectedRequest.getId())));
                 } catch (IOException e) {

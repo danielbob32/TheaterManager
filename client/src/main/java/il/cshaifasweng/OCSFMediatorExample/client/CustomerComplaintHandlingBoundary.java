@@ -145,24 +145,39 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
 
+        // Get the Submit button to add custom behavior
+        Button submitButton = (Button) dialog.getDialogPane().lookupButton(submitButtonType);
+        submitButton.addEventFilter(ActionEvent.ACTION, e -> {
+            String title = titleField.getText().trim();
+            String description = descriptionArea.getText().trim();
+
+            if (title.isEmpty() || description.isEmpty()) {
+                e.consume(); // Prevent the dialog from closing
+                showAlert("Error", "Title and Description must not be empty.");
+            }
+        });
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == submitButtonType) {
                 Customer customer = (Customer) client.getConnectedPerson();
-                return new Complaint(new java.util.Date(), titleField.getText(), descriptionArea.getText(), true, customer);
+                return new Complaint(new java.util.Date(), titleField.getText().trim(), descriptionArea.getText().trim(), true, customer);
             }
             return null;
         });
 
         dialog.showAndWait().ifPresent(complaint -> {
-            try {
-                client.submitComplaint(complaint);
-//                loadComplaints();
-            } catch (IOException e) {
-                showAlert("Error", "Failed to submit complaint.");
-                e.printStackTrace();
+            if (complaint != null) {
+                try {
+                    client.submitComplaint(complaint);
+                } catch (IOException e) {
+                    showAlert("Error", "Failed to submit complaint.");
+                    e.printStackTrace();
+                }
             }
         });
     }
+
+
 
     @Subscribe
     public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
