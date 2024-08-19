@@ -124,15 +124,21 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     private void populateTimeComboBox() {
         LocalTime now = LocalTime.now();
         LocalTime startTime = now.plusMinutes(30 - now.getMinute() % 30);
+        
+        // Ensure the start time is at least 09:00
+        if (startTime.isBefore(LocalTime.of(9, 0))) {
+            startTime = LocalTime.of(9, 0);
+        }
+        
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-    
+
         timeComboBox.getItems().clear();
         while (startTime.isBefore(endTime) || startTime.equals(endTime)) {
             timeComboBox.getItems().add(startTime.format(formatter));
             startTime = startTime.plusMinutes(30);
         }
-    
+
         if (!timeComboBox.getItems().isEmpty()) {
             timeComboBox.getSelectionModel().selectFirst();
         }
@@ -143,33 +149,43 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         LocalDate selectedDate = dateSelector.getValue();
         LocalDate today = LocalDate.now();
     
+        // Clear the time combo box before repopulating
         timeComboBox.getItems().clear();
     
         if (selectedDate == null) {
             return;
         }
     
-        if (selectedDate.isEqual(today)) {
-            populateTimeComboBox();
-        } else if (selectedDate.isAfter(today)) {
-            populateFullTimeComboBox();
-        } else {
-            showAlert("Invalid Date", "Please select today or a future date.");
-            dateSelector.setValue(today);
-            populateTimeComboBox();
-        }
+        Platform.runLater(() -> {
+            try {
+                if (selectedDate.isEqual(today)) {
+                    populateTimeComboBox();
+                } else if (selectedDate.isAfter(today)) {
+                    populateFullTimeComboBox();
+                } else {
+                    showAlert("Invalid Date", "Please select today or a future date.");
+                    dateSelector.setValue(today);
+                    populateTimeComboBox();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert("Error", "An unexpected error occurred. Please try again.");
+            }
+        });
     }
+    
+    
     
     private void populateFullTimeComboBox() {
         LocalTime startTime = LocalTime.of(0, 0);
         LocalTime endTime = LocalTime.of(23, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-    
+
         while (startTime.isBefore(endTime) || startTime.equals(endTime)) {
             timeComboBox.getItems().add(startTime.format(formatter));
             startTime = startTime.plusMinutes(30);
         }
-    
+
         if (!timeComboBox.getItems().isEmpty()) {
             timeComboBox.getSelectionModel().selectFirst();
         }
