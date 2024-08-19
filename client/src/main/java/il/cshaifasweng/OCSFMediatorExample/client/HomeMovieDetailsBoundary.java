@@ -160,7 +160,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
                 return new Image(defaultImageStream);
             }
         } catch (Exception e) {
-            System.out.println("Error loading default image: " + e.getMessage());
+          //  System.out.println("Error loading default image: " + e.getMessage());
         }
         return null;
     }

@@ -598,18 +598,18 @@ public class ServerDB {
                     }
 
                 } catch (FileNotFoundException e) {
-                    System.out.println("Image file not found: " + movie_icons[i]);
+                    //System.out.println("Image file not found: " + movie_icons[i]);
 
                    try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
                         byte[] defaultImageData = defaultInputStream.readAllBytes();
                         movie.setMovieIcon(defaultImageData);
-                        System.out.println("loaded image number:" + i);
+                        //System.out.println("loaded image number:" + i);
                     } catch (IOException ex) {
-                        System.out.println("Error loading default image");
+                     //   System.out.println("Error loading default image");
                         ex.printStackTrace();
                     }
                 } catch (IOException e) {
-                    System.out.println("Error loading image: " + movie_icons[i]);
+                //    System.out.println("Error loading image: " + movie_icons[i]);
                     e.printStackTrace();
                 }
                 session.save(movie);
@@ -1282,6 +1282,8 @@ public class ServerDB {
                     session.update(newBooking);
 
                     transaction.commit();
+                    // Schedule availability and notifications
+                    SchedulerService.scheduleHomeLinkAvailability(link);
                     System.out.println("DEBUG: Transaction committed successfully");
                     return newBooking;
                 } catch (Exception e) {
@@ -1772,6 +1774,44 @@ public class ServerDB {
             }
             transaction.commit();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void makeHomeLinkAvailable(int linkId) {
+        System.out.println("entered makeHomeLinkAvailable");
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            HomeMovieLink link = session.get(HomeMovieLink.class, linkId);
+            if (link != null) {
+                System.out.println("entered to if becuase link is not null");
+                link.setOpen(true);
+                // print links avialbilty
+                System.out.println("befure sesiion update Home link is now available: " + link.isOpen());
+                session.update(link);
+                // print links avialbilty
+                System.out.println("DEBUG: Home link is now available: " + link.isOpen());
+            }
+            tx.commit();
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error making home link available: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void makeHomeLinkUnavailable(int linkId) {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            HomeMovieLink link = session.get(HomeMovieLink.class, linkId);
+            if (link != null) {
+                link.setOpen(false);
+                session.update(link);
+                // print links avialbilty
+                System.out.println("DEBUG: Home link is now unavailable: " + link.isOpen());
+            }
+            tx.commit();
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error making home link unavailable: " + e.getMessage());
             e.printStackTrace();
         }
     }

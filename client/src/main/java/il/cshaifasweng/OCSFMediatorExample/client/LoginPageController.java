@@ -248,11 +248,11 @@ public class LoginPageController implements Initializable, DataInitializable {
     private void startMoviePosterSlideshow() {
 
         if (allMovies == null || allMovies.isEmpty()) {
-            System.out.println("No movies available for slideshow");
+       //     System.out.println("No movies available for slideshow");
             return;
         }
 
-        System.out.println("Number of movies received: " + allMovies.size());
+      //  System.out.println("Number of movies received: " + allMovies.size());
 
         Timeline timeline = new Timeline();
         for (int i = 0; i < allMovies.size(); i++) {
@@ -317,7 +317,7 @@ public class LoginPageController implements Initializable, DataInitializable {
             // Create Image from InputStream
             return new Image(inputStream);
         } else {
-            System.out.println("No image data available");
+           // System.out.println("No image data available");
             return null;  // Or handle as needed, e.g., return a default image
         }
     }
