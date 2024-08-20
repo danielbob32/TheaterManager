@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,6 +31,7 @@ public class SimpleServer extends AbstractServer {
 		super(port);
 		try {
 			this.db = new ServerDB();
+//			objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 			this.objectMapper.registerModule(new Hibernate5Module());
 			SchedulerService.initialize(this.db, this);
 			SchedulerService.initialize(this.db, this);
@@ -1280,7 +1282,14 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		try {
 			int userId = Integer.parseInt(message.getData());
 			List<TicketTab> ticketTabs = db.fetchUserTicketTabs(userId);
-			Message response = new Message(0, "fetchUserTicketTabsResponse", objectMapper.writeValueAsString(ticketTabs));
+			List<String> jsonData = new ArrayList<>();
+			for(TicketTab tab : ticketTabs)
+			{
+				jsonData.add(objectMapper.writeValueAsString(tab));
+//				System.out.println("SIMPLE SERVER TICKET TAB JSON:" + jsonData);
+			}
+			String finalData = jsonData.toString();
+			Message response = new Message(0, "fetchUserTicketTabsResponse", finalData);
 			response.setAdditionalData(String.valueOf(userId));
 			client.sendToClient(response);
 		} catch (Exception e) {
