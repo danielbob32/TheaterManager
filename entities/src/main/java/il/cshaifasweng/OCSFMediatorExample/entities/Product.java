@@ -22,14 +22,6 @@ public abstract class Product {
     private boolean isActive;
     private Date purchaseTime;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "bookingId")
-//    private Booking booking;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "personId")
-//    private Customer customer;
-
     // Constructors
     public Product() {
     }
@@ -39,16 +31,12 @@ public abstract class Product {
         this.price = price;
         this.isActive = isActive;
         this.purchaseTime = purchaseTime;
-//        this.isActive = true;
-//        setBooking(booking);
     }
 
     public Product(Customer customer, int price, Date purchaseTime, Booking booking) {
-//        setCustomer(customer);
         this.price = price;
         this.purchaseTime = purchaseTime;
         this.isActive = true;
-//        setBooking(booking);
     }
 
     // Getters and setters
@@ -68,13 +56,6 @@ public abstract class Product {
         this.clientId = clientId;
     }
 
-//    public void setCustomer(Customer customer) {
-//        this.customer = customer;
-//        if (!customer.getProducts().contains(this)) {
-//            customer.getProducts().add(this);
-//        }
-//    }
-
     public int getPrice() {
         return price;
     }
@@ -91,14 +72,6 @@ public abstract class Product {
         isActive = active;
     }
 
-//    public Cinema getCinema() {
-//        return cinema;
-//    }
-//
-//    public void setCinema(Cinema cinema) {
-//        this.cinema = cinema;
-//    }
-
     public Date getPurchaseTime() {
         return purchaseTime;
     }
@@ -107,10 +80,4 @@ public abstract class Product {
         this.purchaseTime = purchaseTime;
     }
 
-//    public void setBooking(Booking booking) {
-//        this.booking = booking;
-//        if (!booking.getProducts().contains(this)) {
-//            booking.getProducts().add(this);
-//        }
-//    }
 }

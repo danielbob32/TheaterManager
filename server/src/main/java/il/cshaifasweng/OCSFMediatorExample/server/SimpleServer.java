@@ -58,7 +58,9 @@ public class SimpleServer extends AbstractServer {
 					handleLogoutRequest(message);
 					break;
 				case "add movie":
-					handleAddMovieRequest(message, client);
+					synchronized (movieLock) {
+						handleAddMovieRequest(message, client);
+					}
 					break;
 
 				case "getNotifications":

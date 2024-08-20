@@ -410,17 +410,19 @@ public class ServerDB {
                 session.save(movie);
 
                 List<Customer> allCustomers = getAllCustomers();
-                if(movie.getIsCinema())
-                {
-                    for (Customer customer : allCustomers) {
-                        Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
-                        notification.setCustomer(customer);
-                        session.save(notification);
-                    }
-                }
-
-
+//                if(movie.getIsCinema())
+//                {
+////                    for (Customer customer : allCustomers) {
+////                        Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+////                        notification.setCustomer(customer);
+////                        session.save(notification);
+////                    }
+//                    SchedulerService.schedulePremierNotification(movie);
+//                }
                 session.getTransaction().commit();
+                if(movie.getIsCinema())
+                    SchedulerService.schedulePremierNotification(movie);
+
                 return true;
             } catch (Exception e) {
                 if (session.getTransaction() != null) {
@@ -433,6 +435,37 @@ public class ServerDB {
             System.err.println("Error in addMovie: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<Customer> getCustomersWithTicketTabs(Movie movie) {
+        List<Customer> customers = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            List<Integer> customerIds = session.createQuery(
+                    "select distinct tt.clientId from TicketTab tt", Integer.class).getResultList();
+            if (!customerIds.isEmpty()) {
+                System.out.println("found " + customerIds.size() + " customers with ticket tabs");
+                customers = session.createQuery(
+                                "from Customer c where c.personId in (:customerIds)", Customer.class)
+                        .setParameter("customerIds", customerIds)
+                        .getResultList();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+        return customers;
+    }
+
+    public void saveNotification(Notification notification) {
+        try (Session session = sessionFactory.openSession()) {
+            System.out.println("in ServerDB saveNotification");
+            session.beginTransaction();
+            session.save(notification);
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            System.out.println("Error when saving a notification: " + notification.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -616,11 +649,11 @@ public class ServerDB {
                 movies.add(movie);
 
                 // Create and save a notification for each customer for each generated movie
-                for (Customer customer : getAllCustomers()) {
-                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
-                    notification.setCustomer(customer);
-                    session.save(notification);
-                }
+//                for (Customer customer : getAllCustomers()) {
+//                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
+//                    notification.setCustomer(customer);
+//                    session.save(notification);
+//                }
             }
             session.flush();
             session.getTransaction().commit();

@@ -1,14 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.HomeMovieLink;
-import il.cshaifasweng.OCSFMediatorExample.entities.Message;
+import il.cshaifasweng.OCSFMediatorExample.entities.*;
 
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.concurrent.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public class SchedulerService {
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     private static ServerDB serverDB;
     private static SimpleServer server;
 
@@ -52,11 +53,40 @@ public class SchedulerService {
     private static void sendNotification(HomeMovieLink link) {
         System.out.println("DEBUG: Sending notification for link: " + link.getProduct_id());
         String message = "Your movie " + link.getMovie().getEnglishName() + " will be available soon!";
-        try {
-            server.sendToAllClients(new Message(0, "notification", message));
-        } catch (Exception e) {
-            System.out.println("DEBUG: Error sending notification: " + e.getMessage());
-            e.printStackTrace();
+        Notification availableSoon = new Notification(message, link.getMovie());
+        Customer c = (Customer)serverDB.getPersonById(link.getClientId());
+        availableSoon.setCustomer(c);
+        serverDB.saveNotification(availableSoon);
+//        try {
+//            server.sendToAllClients(new Message(0, "notification", message));
+//        } catch (Exception e) {
+//            System.out.println("DEBUG: Error sending notification: " + e.getMessage());
+//            e.printStackTrace();
+//        }
+    }
+
+    public static void schedulePremierNotification(Movie movie) {
+        LocalDateTime premierDateTime = movie.getPremier().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        long delayUntilPremier = LocalDateTime.now().until(premierDateTime, ChronoUnit.MILLIS);
+        System.out.println("SchedulerService DEBUG: Delay until premier: " + delayUntilPremier);
+        if (delayUntilPremier > 0) {
+            System.out.println("SchedulerService DEBUG: schedulePremierNotification in if");
+            scheduler.schedule(() -> sendPremierNotification(movie), delayUntilPremier, TimeUnit.MILLISECONDS);
+        } else {
+            System.out.println("SchedulerService DEBUG: schedulePremierNotification in else");
+            sendPremierNotification(movie); // If the premier date is in the past, send immediately
+        }
+    }
+
+    private static void sendPremierNotification(Movie movie) {
+        List<Customer> customersWithTicketTabs = serverDB.getCustomersWithTicketTabs(movie);
+        System.out.println("SchedulerService DEBUG: sendPremierNotification customersWithTicketTabs: " + customersWithTicketTabs.size());
+        for (Customer customer : customersWithTicketTabs) {
+            Notification notification = new Notification("The movie " + movie.getEnglishName() + " is now premiering!", movie);
+            notification.setCustomer(customer);
+            serverDB.saveNotification(notification); // Implement this method to save notification to DB
         }
     }
 }

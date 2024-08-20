@@ -265,8 +265,8 @@ public class AddMovieController implements DataInitializable {
 //        cinemaFields.setVisible(true);
 //        cinemaFields.setManaged(true);
         isCinemaCheckBox.setSelected(false);
-        homeMovieFields.setVisible(true);
-        homeMovieFields.setManaged(true);
+//        homeMovieFields.setVisible(true);
+//        homeMovieFields.setManaged(true);
         cinemaPriceField.clear();
         homePriceField.clear();
         uploadImageButton.setText("Upload Image");
