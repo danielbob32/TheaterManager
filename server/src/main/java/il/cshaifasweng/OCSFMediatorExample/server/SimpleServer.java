@@ -907,28 +907,28 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			// customertest = new Customer("test", "test", 1);
 			// db.addPerson(customertest);
             customer = (Customer) db.getPersonById(id);
-            System.out.println("DEBUG: Existing customer found: " + (customer != null));
+            System.out.println("SimpleServer DEBUG: Existing customer found: " + (customer != null));
             if (customer == null) {
                 customer = new Customer(name, email, id);
                 db.addPerson(customer);
-                System.out.println("DEBUG: New customer added with ID: " + customer.getPersonId());
+                System.out.println("SimpleServer DEBUG: New customer added with ID: " + customer.getPersonId());
             }
         } catch (Exception e) {
-            System.out.println("DEBUG: Error handling customer: " + e.getMessage());
+            System.out.println("SimpleServer DEBUG: Error handling customer: " + e.getMessage());
             e.printStackTrace();
         }
 
 		
 		
         Booking newBooking = db.purchaseHomeMovieLink(name, id, email, creditCard, link);
-        System.out.println("DEBUG: New booking created: " + (newBooking != null));
+        System.out.println("SimpleServer DEBUG: New booking created: " + (newBooking != null));
 		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
-		SchedulerService.scheduleHomeLinkAvailability(link);
-		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
-
+//		SchedulerService.scheduleHomeLinkAvailability(link);
+//		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
+//
 		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
-		SchedulerService.scheduleHomeLinkAvailability(link);
-		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
+//		SchedulerService.scheduleHomeLinkAvailability(link);
+//		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
 
 
         if (newBooking != null) {
@@ -941,8 +941,7 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
             bookingNode.put("closeTime", link.getCloseTime().getTime());
             bookingNode.put("watchLink", link.getWatchLink());
             bookingNode.put("totalPrice", link.getPrice());
-			System.out.println("DEBUG: Purchase link successful");
-			System.out.println("DEBUG: Purchase link successful");
+			System.out.println("SimpleServer DEBUG: Purchase link successful");
 
             String jsonBooking = objectMapper.writeValueAsString(bookingNode);
             client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));

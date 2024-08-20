@@ -128,7 +128,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
             startTime = now.plusMinutes(30 - now.getMinute() % 30);
             System.out.println("Start time: " + startTime);
         // Check if the next round time crosses midnight
-        if (startTime.isAfter(LocalTime.of(00, 00))) {
+        if (now.isAfter(LocalTime.of(23, 30))) {
             selectedDate = selectedDate.plusDays(1);  // Move to the next day
             dateSelector.setValue(selectedDate);      // Update the date picker
             startTime = LocalTime.of(0, 0);           // Start from midnight of the next day

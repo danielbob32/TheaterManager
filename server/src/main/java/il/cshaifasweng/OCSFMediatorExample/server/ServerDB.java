@@ -1285,7 +1285,7 @@ public class ServerDB {
 
     
     public Booking purchaseHomeMovieLink(String name, int id, String email, String creditCard, HomeMovieLink link) {
-        System.out.println("DEBUG: Starting purchaseHomeMovieLink");
+        System.out.println("ServerDB DEBUG: Starting purchaseHomeMovieLink");
        
             try(Session session = sessionFactory.openSession())
             {
@@ -1293,20 +1293,20 @@ public class ServerDB {
                     Transaction transaction = session.beginTransaction();
 
                     Customer customer = (Customer) session.get(Person.class, id);
-                    System.out.println("DEBUG: Existing customer found: " + (customer != null));
+                    System.out.println("ServerDB DEBUG: Existing customer found: " + (customer != null));
                     if (customer == null) {
                         customer = new Customer(name, email, id);
                         session.save(customer);
-                        System.out.println("DEBUG: New customer saved with ID: " + customer.getPersonId());
+                        System.out.println("ServerDB DEBUG: New customer saved with ID: " + customer.getPersonId());
                     }
 
                     Booking newBooking = new Booking(customer, new Date(), email, creditCard);
                     session.save(newBooking);
-                    System.out.println("DEBUG: New booking saved with ID: " + newBooking.getBookingId());
+                    System.out.println("ServerDB DEBUG: New booking saved with ID: " + newBooking.getBookingId());
 
                     link.setClientId(customer.getPersonId());
                     session.save(link);
-                    System.out.println("DEBUG: HomeMovieLink saved");
+                    System.out.println("ServerDB DEBUG: HomeMovieLink saved");
 
                     newBooking.addProduct(link);
                     customer.addProduct(link);
@@ -1315,12 +1315,13 @@ public class ServerDB {
                     session.update(newBooking);
 
                     transaction.commit();
+                    System.out.println("ServerDB DEBUG: Transaction committed successfully");
+
                     // Schedule availability and notifications
                     SchedulerService.scheduleHomeLinkAvailability(link);
-                    System.out.println("DEBUG: Transaction committed successfully");
                     return newBooking;
                 } catch (Exception e) {
-                    System.out.println("DEBUG: Error in purchaseHomeMovieLink: " + e.getMessage());
+                    System.out.println("ServerDB DEBUG: Error in purchaseHomeMovieLink: " + e.getMessage());
                     e.printStackTrace();
                     return null;
                 }

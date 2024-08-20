@@ -45,5 +45,5 @@ Key packages include:
 6. Run the client application
 
 <p align="center">
-  Made by Yarden Itzhaky, Daniel Bobritzki, Doston Islambekov, Meshi Itzhaki, Yonatan Harel.
+  Made by Dostonbek Islambekov, Yarden Itzhaky, Daniel Bobritzki, Meshi Itzhaki, Yonathan Harel.
 </p>
