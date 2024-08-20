@@ -40,7 +40,7 @@ Key packages include:
 
 1. Clone the repository
 2. Ensure you have Java JDK 13 or later installed
-3. Set up MySQL database and update `hibernate.properties` with your database credentials
+3. Set up MySQL database and update `hibernate.properties` with your database credentials (make sure that hibernate.hbm2ddl.auto = create)
 4. Build the project using Maven: `mvn clean install`
 5. Run the server application
 6. Run the client application
