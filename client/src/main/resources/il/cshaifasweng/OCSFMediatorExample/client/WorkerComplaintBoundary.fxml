@@ -33,6 +33,8 @@
                 <TableColumn fx:id="refundColumn" text="Refund" />
                 <TableColumn fx:id="responseColumn" text="Response" />
                 <TableColumn fx:id="customerIdColumn" text="Customer ID" />
+                <TableColumn fx:id="cinemaColumn" text="Cinema" />
+
             </columns>
         </TableView>
         <Label text="Complaint Description:" />
