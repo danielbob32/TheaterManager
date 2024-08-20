@@ -4,23 +4,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.controlsfx.control.CheckComboBox;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.controlsfx.control.CheckComboBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -69,7 +69,21 @@ public class AddMovieController implements DataInitializable {
                 "Action", "Drama", "Comedy", "Fantasy", "Sci-Fi", "Romance", "Horror", "Adventure", "Animation", "Documentary", "Family", "Children"
         );
         genreCheckComboBox.getItems().addAll(genres);
+        setupDatePicker();
     }
+
+    private void setupDatePicker() {
+        LocalDate today = LocalDate.now();
+        premierDatePicker.setValue(today);
+        premierDatePicker.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(today));
+            }
+        });
+    }
+
+
 
     @FXML
     private void handleUploadImage() {
@@ -120,14 +134,22 @@ public class AddMovieController implements DataInitializable {
             List<String> selectedGenres = genreCheckComboBox.getCheckModel().getCheckedItems().stream().collect(Collectors.toList());
 
             LocalDate premierDate = validateDatePicker(premierDatePicker, "Premier Date");
+            if (premierDate.isBefore(LocalDate.now())) {
+                throw new ValidationException("Premier date must be in the future.");
+            }
+
             boolean isCinema = isCinemaCheckBox.isSelected();
             boolean isHome = isHomeCheckBox.isSelected();
 
             int cinemaPrice = 0;
-            cinemaPrice = Integer.parseInt(validateField(cinemaPriceField, "Cinema Price"));
+            if (isCinema) {
+                cinemaPrice = Integer.parseInt(validateField(cinemaPriceField, "Cinema Price"));
+            }
 
             int homePrice = 0;
-            homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
+            if (isHome) {
+                homePrice = Integer.parseInt(validateField(homePriceField, "Home Movie Price"));
+            }
 
             Date premier = Date.from(premierDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -147,7 +169,17 @@ public class AddMovieController implements DataInitializable {
             showAlert("Validation Error", e.getMessage());
         }
     }
-
+    private LocalTime validateTimeField(TextField field, String fieldName) throws ValidationException {
+        String value = field.getText().trim();
+        if (value.isEmpty()) {
+            throw new ValidationException(fieldName + " cannot be empty.");
+        }
+        try {
+            return LocalTime.parse(value);
+        } catch (Exception e) {
+            throw new ValidationException(fieldName + " must be in the format HH:mm.");
+        }
+    }
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();

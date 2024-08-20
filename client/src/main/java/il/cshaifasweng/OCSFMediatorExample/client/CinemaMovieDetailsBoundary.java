@@ -265,6 +265,17 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         });
     }
 
+    private void setupDatePicker(DatePicker datePicker) {
+        LocalDate today = LocalDate.now();
+        datePicker.setValue(today);
+        datePicker.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(today));
+            }
+        });
+    }
+
     @FXML
     private void handleAddScreening() {
         Cinema selectedCinema = cinemaComboBox.getSelectionModel().getSelectedItem();
@@ -310,6 +321,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
             return;
         }
         DatePicker datePicker = new DatePicker();
+        setupDatePicker(datePicker);  // Set up the DatePicker with restrictions
         TextField timeField = new TextField();
         timeField.setPromptText("HH:mm");
 
