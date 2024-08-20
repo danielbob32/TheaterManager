@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -179,6 +180,10 @@ public class SimpleServer extends AbstractServer {
 					synchronized (movieLock) {
 						handleGetMovieByIdRequest(message, client);
 					}
+					break;
+
+				case "fetchUserTicketTabs":
+					handleFetchUserTicketTabs(message, client);
 					break;
 
 				// Yonathan's Cases:
@@ -1268,6 +1273,26 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleFetchUserBookings: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	protected void handleFetchUserTicketTabs(Message message, ConnectionToClient client) {
+		try {
+			int userId = Integer.parseInt(message.getData());
+			List<TicketTab> ticketTabs = db.fetchUserTicketTabs(userId);
+			List<String> jsonData = new ArrayList<>();
+			for(TicketTab tab : ticketTabs)
+			{
+				jsonData.add(objectMapper.writeValueAsString(tab));
+//				System.out.println("SIMPLE SERVER TICKET TAB JSON:" + jsonData);
+			}
+			String finalData = jsonData.toString();
+			Message response = new Message(0, "fetchUserTicketTabsResponse", finalData);
+			response.setAdditionalData(String.valueOf(userId));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchUserTicketTabs: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
