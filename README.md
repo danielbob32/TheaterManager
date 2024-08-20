@@ -22,7 +22,6 @@ This project is a comprehensive Movie Theater Management System developed using 
 - 🖥️ **Frontend**: JavaFX
 - 🗄️ **Database**: MySQL with Hibernate ORM
 - 🏗️ **Build Tool**: Maven
-- 🔄 **Version Control**: Git
 
 ## 🏗️ Project Structure
 
