@@ -1512,28 +1512,29 @@ public class ServerDB {
         return reportBuilder.toString();
     }
 
-    private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
-        String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
-                     "FROM HomeMovieLink h " +
-                     "WHERE YEAR(h.purchaseTime) = :year " +
-                     "AND MONTH(h.purchaseTime) = :month " +
-                     "GROUP BY DAY(h.purchaseTime) ORDER BY day";
+private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
+    String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
+                 "FROM HomeMovieLink h " +
+                 "WHERE YEAR(h.purchaseTime) = :year " +
+                 "AND MONTH(h.purchaseTime) = :month " +
+                 "GROUP BY DAY(h.purchaseTime) ORDER BY day";
 
-        Query<Object[]> query = session.createQuery(hql, Object[].class);
-        query.setParameter("year", month.getYear());
-        query.setParameter("month", month.getMonthValue());
-        List<Object[]> results = query.getResultList();
+    Query<Object[]> query = session.createQuery(hql, Object[].class);
+    query.setParameter("year", month.getYear());
+    query.setParameter("month", month.getMonthValue());
+    List<Object[]> results = query.getResultList();
 
-        StringBuilder reportBuilder = new StringBuilder();
-        reportBuilder.append("Home Movie Link Sales\n\n");
+    StringBuilder reportBuilder = new StringBuilder();
+    reportBuilder.append("Home Movie Link Sales\n\n");
 
-        for (Object[] row : results) {
-            Integer day = (Integer) row[0];
-            Long count = (Long) row[1];
-            reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
-        }
-        return reportBuilder.toString();
+    for (Object[] row : results) {
+        Integer day = (Integer) row[0];
+        Long count = (Long) row[1];
+        reportBuilder.append("Day ").append(day).append(": ").append(count).append("\n");
     }
+    return reportBuilder.toString();
+}
+
 
     public boolean checkMovieExists(String englishName, String hebrewName) {
         try (Session session = sessionFactory.openSession()) {
@@ -1555,10 +1556,10 @@ public class ServerDB {
                      "FROM Complaint c " +
                      "WHERE YEAR(c.date) = :year AND MONTH(c.date) = :month ";
         if (cinema != null && !cinema.equals("All")) {
-            hql += "AND c.customer.id IN (SELECT DISTINCT t.clientId FROM Ticket t WHERE t.screening.cinema.cinemaName = :cinema) ";
+            hql += "AND c.cinemaName = :cinema ";
         }
         hql += "GROUP BY DAY(c.date) ORDER BY day";
-
+    
         Query<Object[]> query = session.createQuery(hql, Object[].class);
         query.setParameter("year", month.getYear());
         query.setParameter("month", month.getMonthValue());
@@ -1566,12 +1567,12 @@ public class ServerDB {
             query.setParameter("cinema", cinema);
         }
         List<Object[]> results = query.getResultList();
-
+    
         StringBuilder reportBuilder = new StringBuilder();
         reportBuilder.append("Customer Complaints Histogram - ");
         reportBuilder.append(cinema != null && !cinema.equals("All") ? cinema : "All Cinemas");
         reportBuilder.append("\n\n");
-
+    
         for (Object[] row : results) {
             Integer day = (Integer) row[0];
             Long count = (Long) row[1];
@@ -1579,7 +1580,8 @@ public class ServerDB {
         }
         return reportBuilder.toString();
     }
-
+    
+    
     public List<Booking> fetchUserBookings(int userId) throws Exception {
         try (Session session = sessionFactory.openSession()){
             CriteriaBuilder builder = session.getCriteriaBuilder();
