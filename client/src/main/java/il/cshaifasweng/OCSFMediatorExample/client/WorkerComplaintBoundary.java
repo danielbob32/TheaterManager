@@ -3,10 +3,10 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.RespondToComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
-import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -53,6 +53,9 @@ public class WorkerComplaintBoundary implements DataInitializable {
     private Button backButton;
     @FXML
     private CheckBox hideNonActiveCheckBox;
+    @FXML
+    private TableColumn<Complaint, String> cinemaColumn;
+
     private Complaint selectedComplaint;
     private SimpleClient client;
     private List<Complaint> allComplaints;
@@ -74,6 +77,8 @@ public class WorkerComplaintBoundary implements DataInitializable {
         refundColumn.setCellValueFactory(new PropertyValueFactory<>("refund"));
         responseColumn.setCellValueFactory(new PropertyValueFactory<>("response"));
         customerIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getCustomer().getPersonId()).asObject());
+        cinemaColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCinemaName() != null ? cellData.getValue().getCinemaName() : "N/A"));
+
 
         hideNonActiveCheckBox.setOnAction(event -> filterComplaints());
     }
