@@ -33,9 +33,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     @FXML private Button buyTabButton;
     @FXML private Text totalText;
     @FXML private Button backButton;
-
-    @FXML
-    private TextField cardNumTextField, nameTextField, idTextField, emailTextField;
+    @FXML private TextField cardNumTextField, nameTextField, idTextField, emailTextField;
 
     private Customer customer;
     private String id;
@@ -91,12 +89,12 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     @FXML
     public void initializeTable() throws IOException {
         ticketTabTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        ticketTabTable.setVisible(true);
-//        ticketTabIdColumn.setCellValueFactory(new PropertyValueFactory<>("product_id"));
+        //ticketTabTable.setVisible(true);
+
         ticketTabIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getProduct_id()).asObject());
         ticketsLeftColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getAmount()).asObject());
         purchaseTimeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPurchaseTime().toString()));
-        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
+        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Inactive"));
 
         if (client.getConnectedPerson() != null) {
             client.fetchUserTicketTabs();
@@ -107,7 +105,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     public void onTicketTabsListEvent(TicketTabListEvent event) {
         allTicketTabs = event.getTicketTabs();
         if (allTicketTabs.size() > 0) {
-            System.out.println("got ticket tabs!!!");
             ticketTabTable.setVisible(true);
         }
         Platform.runLater(() -> {
@@ -131,7 +128,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
             showAlert(Alert.AlertType.ERROR, "Validation Error", e.getMessage());
         }
     }
-
 
     @FXML
     void handleBackButton(ActionEvent event) throws IOException {

@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <HBox alignment="CENTER" maxHeight="770.0" maxWidth="1080.0" minHeight="770.0" minWidth="1080.0" prefHeight="750.0" prefWidth="1080.0" spacing="30.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.PurchaseTicketsBoundary">
 
     <VBox fx:id="leftPane" alignment="CENTER" maxHeight="730.0" maxWidth="312.0" minHeight="600.0" minWidth="230.0" prefHeight="730.0" prefWidth="300.0" spacing="10" style="-fx-background-color: rgba(255,255,255,0.95); -fx-background-radius: 20;">
-      <ImageView fx:id="movieImageView" fitHeight="240.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" />
+      <ImageView fx:id="movieImageView" fitHeight="240.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" style="-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 10, 0.5, 0, 3);" />
         <Label fx:id="movieTitleLabel" style="-fx-font-size: 20; -fx-font-weight: bold;" />
         <Label fx:id="cinemaLabel" style="-fx-font-size: 15;" />
         <Label fx:id="screeningTimeLabel" style="-fx-font-size: 15;" />
         <Label fx:id="totalPriceLabel" style="-fx-font-size: 15; -fx-font-weight: bold;" />
-        <Button fx:id="purchaseButton" onAction="#handlePurchase" prefHeight="38.0" prefWidth="166.0" styleClass="confirm-button" style="-fx-font-size: 14" text="Proceed to Payment" textFill="WHITE">
+        <Button fx:id="purchaseButton" onAction="#handlePurchase" prefHeight="38.0" prefWidth="166.0" style="-fx-font-size: 14" styleClass="confirm-button" text="Proceed to Payment" textFill="WHITE">
         </Button>
         <Button fx:id="backButton" onAction="#handleBackButton" prefWidth="54.0" styleClass="back-button" text="Back" textFill="WHITE">
         </Button>
