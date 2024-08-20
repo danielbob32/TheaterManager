@@ -673,15 +673,18 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    private void handleCinemaList(String data) {
-    try {
-        List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {});
-        EventBus.getDefault().post(new CinemaListEvent(cinemas));
-    } catch (IOException e) {
-        e.printStackTrace();
-        EventBus.getDefault().post(new FailureEvent("Failed to parse cinema list"));
+    public void handleCinemaList(String data) {
+        System.out.println("Received cinema list data: " + data);
+        try {
+            List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {});
+            System.out.println("Parsed cinema list: " + cinemas);
+            EventBus.getDefault().post(new CinemaListEvent(cinemas));
+        } catch (IOException e) {
+            System.out.println("Error parsing cinema list: " + e.getMessage());
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to parse cinema list"));
+        }
     }
-}
 
 private void handleReportData(String data) {
     try {
@@ -699,6 +702,7 @@ private void handleReportData(String data) {
 }
 
     public void requestCinemaList() throws IOException {
+        System.out.println("Sending getCinemaList request to server");
         sendToServer(new Message(0, "getCinemaList"));
     }
 

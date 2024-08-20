@@ -21,12 +21,13 @@
                 <TableColumn fx:id="titleColumn" text="Title" />
                 <TableColumn fx:id="dateColumn" text="Date Submitted" />
                 <TableColumn fx:id="statusColumn" text="Status" />
+                <TableColumn fx:id="cinemaColumn" text="Cinema" />
             </columns>
         </TableView>
 
         <HBox alignment="CENTER" spacing="10">
             <Button fx:id="viewComplaintButton" styleClass="menu-button" text="View Complaint" />
-            <Button fx:id="submitNewComplaintButton" styleClass="confirm-button" text="Submit New Complaint" />
+            <Button fx:id="submitNewComplaintButton" onAction="#handleSubmitNewComplaint" styleClass="confirm-button" text="Submit New Complaint" />
         </HBox>
 
         <Button onAction="#handleBackButton" styleClass="back-button" text="Back" />

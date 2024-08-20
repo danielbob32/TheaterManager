@@ -1,8 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.entities;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -25,6 +23,8 @@ public class Complaint {
     @JsonIgnoreProperties({"complaints"})
     private Customer customer;
 
+    private String cinemaName;
+
     // Constructors
     public Complaint() {
     }
@@ -46,6 +46,18 @@ public class Complaint {
         this.refund = refund;
         this.customer = customer;
     }
+
+    public Complaint(Date date, String title, String description, boolean isActive, Customer customer, String cinemaName) {
+        this.date = date;
+        this.title = title;
+        this.description = description;
+        this.refund = 0;
+        this.isActive = isActive;
+        this.customer = customer;
+        this.cinemaName = cinemaName;  // Set the cinema name
+        this.response = "No response yet";
+    }
+
 
     
     // Getters and setters
@@ -108,5 +120,13 @@ public class Complaint {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public String getCinemaName() {
+        return cinemaName;
+    }
+
+    public void setCinemaName(String cinemaName) {
+        this.cinemaName = cinemaName;
     }
 }

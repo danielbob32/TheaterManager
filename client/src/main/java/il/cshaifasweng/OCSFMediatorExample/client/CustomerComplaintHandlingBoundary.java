@@ -1,9 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
-import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
@@ -37,11 +39,20 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     @FXML
     private Button submitNewComplaintButton;
 
+    @FXML
+    private TableColumn<Complaint, String> cinemaColumn;
+
+    private ComboBox<String> cinemaComboBox;  // Add this line
+
+
     private SimpleClient client;
 
     @FXML
     public void initialize() {
         EventBus.getDefault().register(this);
+
+        // Initialize cinemaComboBox
+        cinemaComboBox = new ComboBox<>();
 
         complaintTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -49,6 +60,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate().toString()));
         statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
+        cinemaColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCinemaName() != null ? cellData.getValue().getCinemaName() : "N/A"));
 
         // Handle button actions
         viewComplaintButton.setOnAction(this::handleViewComplaint);
@@ -104,7 +116,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         complaintTableView.getItems().setAll(complaints);
     }
 
-    private void showComplaintDetails(Complaint complaint) {
+    void showComplaintDetails(Complaint complaint) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Complaint Details");
         dialog.setHeaderText(null);
@@ -114,7 +126,8 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
                 new Label("Title: " + complaint.getTitle()),
                 new Label("Description: " + complaint.getDescription()),
                 new Label("Date Submitted: " + complaint.getDate()),
-                new Label("Status: " + (complaint.isActive() ? "Active" : "Resolved"))
+                new Label("Status: " + (complaint.isActive() ? "Active" : "Resolved")),
+                new Label("Cinema: " + (complaint.getCinemaName() != null ? complaint.getCinemaName() : "N/A"))
         );
 
         if (!complaint.isActive()) {
@@ -129,7 +142,19 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         dialog.showAndWait();
     }
 
+    private void requestCinemaList() {
+        try {
+            client.sendToServer(new Message(0, "getCinemaList"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Failed to request cinema list.");
+        }
+    }
+
+    @FXML
     private void handleSubmitNewComplaint(ActionEvent event) {
+        System.out.println("Submit New Complaint button pressed");
+
         Dialog<Complaint> dialog = new Dialog<>();
         dialog.setTitle("Submit New Complaint");
         dialog.setHeaderText(null);
@@ -139,20 +164,21 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         TextArea descriptionArea = new TextArea();
         descriptionArea.setPromptText("Description");
 
-        VBox content = new VBox(10, new Label("Title:"), titleField, new Label("Description:"), descriptionArea);
+        cinemaComboBox.setPromptText("Select Cinema (Optional)");
+
+        VBox content = new VBox(10, new Label("Title:"), titleField, new Label("Description:"), descriptionArea, new Label("Cinema:"), cinemaComboBox);
         dialog.getDialogPane().setContent(content);
 
         ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(submitButtonType, ButtonType.CANCEL);
 
-        // Get the Submit button to add custom behavior
         Button submitButton = (Button) dialog.getDialogPane().lookupButton(submitButtonType);
         submitButton.addEventFilter(ActionEvent.ACTION, e -> {
             String title = titleField.getText().trim();
             String description = descriptionArea.getText().trim();
 
             if (title.isEmpty() || description.isEmpty()) {
-                e.consume(); // Prevent the dialog from closing
+                e.consume();
                 showAlert("Error", "Title and Description must not be empty.");
             }
         });
@@ -160,22 +186,50 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == submitButtonType) {
                 Customer customer = (Customer) client.getConnectedPerson();
-                return new Complaint(new java.util.Date(), titleField.getText().trim(), descriptionArea.getText().trim(), true, customer);
+                String selectedCinema = cinemaComboBox.getValue();
+                if ("No Cinema".equals(selectedCinema)) {
+                    selectedCinema = null;  // Set to null if "No Cinema" is selected
+                }
+                return new Complaint(new java.util.Date(), titleField.getText().trim(), descriptionArea.getText().trim(), true, customer, selectedCinema);
             }
             return null;
         });
 
+        // Ensure registration before request
+        //EventBus.getDefault().register(this);
+
+        // Send request for cinema list
+        requestCinemaList();
+        System.out.println("Cinema list requested");
+
         dialog.showAndWait().ifPresent(complaint -> {
             if (complaint != null) {
                 try {
+                    System.out.println("Submitting complaint");
                     client.submitComplaint(complaint);
                 } catch (IOException e) {
+                    System.out.println("Error submitting complaint: " + e.getMessage());
                     showAlert("Error", "Failed to submit complaint.");
                     e.printStackTrace();
                 }
             }
         });
+
     }
+
+    @Subscribe
+    public void onCinemaListEvent(CinemaListEvent event) {
+        System.out.println("Received cinema list event");
+        Platform.runLater(() -> {
+            cinemaComboBox.getItems().clear();
+            cinemaComboBox.getItems().add("No Cinema");  // Add "No Cinema" option
+            // Directly add the list of cinema names (Strings) to the ComboBox
+            cinemaComboBox.getItems().addAll(event.getCinemas());
+            System.out.println("Added cinemas to combo box: " + cinemaComboBox.getItems());
+        });
+    }
+
+
 
 
 

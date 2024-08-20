@@ -167,15 +167,15 @@ public class ServerDB {
                 for (int i = 0; i < 30; i++) {  // Generate 30 complaints per cinema
                     Customer customer = customers.get(random.nextInt(customers.size()));
                     Date complaintDate = new Date(System.currentTimeMillis() - random.nextInt(30) * 24 * 60 * 60 * 1000L);
-                    Complaint complaint = new Complaint(complaintDate, "Sample title" + i,"Sample complaint " + i, true,  customer);
+                    Complaint complaint = new Complaint(complaintDate, "Sample title" + i,"Sample complaint " + i, true,  customer, cinema.getCinemaName());
                     session.save(complaint);
                 }
             }
 
             // Generate complaints for customer with id: 2001
             Customer myCostumer = session.get(Customer.class, 2001);
-            Complaint c1 = new Complaint(new Date(), "First Comaplaint", "Too Expensive", true, myCostumer);
-            Complaint c2 = new Complaint(new Date(), "Second Comaplaint", "Too Hot", true, myCostumer);
+            Complaint c1 = new Complaint(new Date(), "First Comaplaint", "Too Expensive", true, myCostumer, "Cinema City");
+            Complaint c2 = new Complaint(new Date(), "Second Comaplaint", "Too Hot", true, myCostumer, "Cinema City");
             session.save(c1);
             session.save(c2);
 
