@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -550,7 +549,7 @@ public class ServerDB {
             String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
             String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
             String[] genresArray = {"Action, Fantasy", "Family, Children", "Drama, Comedy", "Comedy, Drama", "Fantasy, Action", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
-            String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hungergames.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
+            String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jump street 22.jpg", "hunger games.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
             int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
             boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
 
@@ -635,7 +634,7 @@ public class ServerDB {
     private List<Cinema> generateCinemas() {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
+            String[] cinemaNames = {"Cinema City", "Yes Planet", "Levgit HaMifratz", "Rav-Hen"};
             String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
     
             List<Cinema> cinemas = new ArrayList<>();

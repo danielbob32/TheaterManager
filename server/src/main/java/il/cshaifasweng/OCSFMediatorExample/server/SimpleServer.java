@@ -8,14 +8,11 @@ import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
-import javax.sound.midi.SysexMessage;
-import java.util.concurrent.ConcurrentHashMap;
-
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SimpleServer extends AbstractServer {
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -860,6 +857,14 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date openTime = sdf.parse(selectedDate + " " + selectedTime);
+
+		// Check if the selected time is in the past
+		Date currentTime = new Date();
+		if (currentTime.after(openTime)) {
+			client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed", "Cannot purchase link for a past date and time."));
+			return;
+		}
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(openTime);
         calendar.add(Calendar.MINUTE, movie.getDuration());

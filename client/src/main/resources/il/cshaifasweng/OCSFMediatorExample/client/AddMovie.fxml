@@ -48,21 +48,25 @@
                         <TextArea fx:id="synopsisArea" prefHeight="100.0" promptText="Synopsis"
                                   GridPane.rowIndex="5" GridPane.columnIndex="1" />
 
-                        <Label text="Select Genres:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <Label text="Movie Image:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage"
+                                GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                        <Label text="Select Genres:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
                         <CheckComboBox fx:id="genreCheckComboBox"
-                                       GridPane.rowIndex="6" GridPane.columnIndex="1" />
+                                       GridPane.rowIndex="7" GridPane.columnIndex="1" />
 
-                        <Label text="Premier Date:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
+                        <Label text="Premier Date:" GridPane.rowIndex="8" GridPane.columnIndex="0" style="-fx-text-fill: #1e3c72;"/>
                         <DatePicker fx:id="premierDatePicker" promptText="Premier Date"
-                                    GridPane.rowIndex="7" GridPane.columnIndex="1" />
+                                    GridPane.rowIndex="8" GridPane.columnIndex="1" />
 
-                        <CheckBox fx:id="isCinemaCheckBox" GridPane.rowIndex="8" GridPane.columnIndex="0" text="Is Cinema Movie" onAction="#toggleCinemaFields" style="-fx-text-fill: #1e3c72;"/>
+                        <CheckBox fx:id="isCinemaCheckBox" GridPane.rowIndex="9" GridPane.columnIndex="0" text="Is Cinema Movie" onAction="#toggleCinemaFields" style="-fx-text-fill: #1e3c72;"/>
                         <TextField fx:id="cinemaPriceField" promptText="Cinema Price"
-                                   GridPane.rowIndex="8" GridPane.columnIndex="1"/>
-
-                        <CheckBox fx:id="isHomeCheckBox" GridPane.rowIndex="9" GridPane.columnIndex="0" text="Is Home Movie" onAction="#toggleHomeMovieFields" style="-fx-text-fill: #1e3c72;"/>
-                        <TextField fx:id="homePriceField" promptText="Home Movie Price"
                                    GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+                        <CheckBox fx:id="isHomeCheckBox" GridPane.rowIndex="10" GridPane.columnIndex="0" text="Is Home Movie" onAction="#toggleHomeMovieFields" style="-fx-text-fill: #1e3c72;"/>
+                        <TextField fx:id="homePriceField" promptText="Home Movie Price"
+                                   GridPane.rowIndex="10" GridPane.columnIndex="1"/>
 
                     </children>
                 </GridPane>
