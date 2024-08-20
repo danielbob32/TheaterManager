@@ -48,7 +48,7 @@ public class App extends Application {
         stage.show();
         stage.setMaxWidth(1080);
         stage.setMaxHeight(900);
-        stage.setResizable(false);
+        //stage.setResizable(false);
     }
 
     public static void setRoot(String fxml) throws IOException {
