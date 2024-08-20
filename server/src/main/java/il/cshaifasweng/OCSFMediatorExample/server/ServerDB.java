@@ -549,9 +549,10 @@ public class ServerDB {
             String[] movie_descriptions = {"Cool Movie", "Nice Movie", "Amazing Movie", "Funny Movie", "Fantastic Movie", "Epic Movie", "Romantic Movie", "Sci-Fi Movie", "Fantasy Movie", "Magic Movie"};
             String[] movie_actors = {"Ryan Reynolds", "Hank Azaria", "Margot Robbie", "Channing Tatum", "Jennifer Lawrence", "Sam Worthington", "Leonardo DiCaprio", "Mark Hamill", "Elijah Wood", "Daniel Radcliffe"};
             String[] genresArray = {"Action, Fantasy", "Family, Children", "Drama, Comedy", "Comedy, Drama", "Fantasy, Action", "Sci-Fi", "Romance", "Sci-Fi", "Fantasy", "Fantasy"};
-            String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jump street 22.jpg", "hunger games.jpg", "avatar.jpg", "titanic.jpg", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
+            String[] movie_icons = {"deadpool.jpg", "smurfs.jpg", "barbie.jpg", "jumpstreet22.jpg", "hunger games.jpg", "avatar.jpg", "titanic.png", "starwars.jpg", "lotr.jpg", "harrypotter.jpg"};
             int[] durations = {120, 125, 96, 111, 150, 162, 195, 121, 178, 152};
-            boolean[] isHome = {true, false, true, false, true, false, true, false, true, false};
+            boolean[] isCinema = {true, true, true, true, false, true, false, true, false, false};
+            boolean[] isHome = {true, false, true, false, true, false, true, false, false, false};
 
             List<Movie> movies = new ArrayList<>();
 
@@ -560,7 +561,7 @@ public class ServerDB {
 
             for (int i = 0; i < 10; i++) {
                 Date premierDate;
-                if (i < 3) {
+                if (i > 7) {
                     premierDate = calendar.getTime(); // Use the calculated future date for the first 3 movies
                 } else {
                     premierDate = new Date(); // For other movies, use current date
@@ -578,7 +579,7 @@ public class ServerDB {
                         genres,
                         premierDate,
                         isHome[i],
-                        true,
+                        isCinema[i],
                         i,
                         i);
 

@@ -33,6 +33,21 @@
     -fx-min-height: 35;
 }
 
+/* General menu button styles */
+.content-button {
+    -fx-background-color: #004e92;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 10 20;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
+    -fx-transition: all 0.3s;
+    -fx-min-width: 200px;
+    -fx-min-height: 35;
+}
+
+
 .menu-button:hover {
     -fx-background-color: #0056b3;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 0);

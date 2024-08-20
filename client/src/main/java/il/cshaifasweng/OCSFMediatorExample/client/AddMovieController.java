@@ -262,8 +262,8 @@ public class AddMovieController implements DataInitializable {
         genreCheckComboBox.getCheckModel().clearChecks();  // Clear selected genres
         premierDatePicker.setValue(null);
         isHomeCheckBox.setSelected(false);
-        cinemaFields.setVisible(true);
-        cinemaFields.setManaged(true);
+//        cinemaFields.setVisible(true);
+//        cinemaFields.setManaged(true);
         isCinemaCheckBox.setSelected(false);
         homeMovieFields.setVisible(true);
         homeMovieFields.setManaged(true);

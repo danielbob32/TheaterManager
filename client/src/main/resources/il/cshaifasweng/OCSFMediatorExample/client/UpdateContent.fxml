@@ -11,11 +11,11 @@
             <Insets top="30" right="30" bottom="30" left="30"/>
         </padding>
         <Text text="Update Content" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e3c72; "/>
-        <Button text="All Movies List" onAction="#allMoviesList" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
-        <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
-        <Button text="Edit Home Movies" onAction="#editHomeMovies" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
-        <Button text="Add movie/Home Movie" onAction="#addMovie" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
-        <Button text="Update Prices" onAction="#updatePrices" styleClass="menu-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
+        <Button text="All Movies List" onAction="#allMoviesList" styleClass="content-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
+        <Button text="Edit Cinema Movies" onAction="#editCinemaMovies" styleClass="content-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
+        <Button text="Edit Home Movies" onAction="#editHomeMovies" styleClass="content-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
+        <Button text="Add movie/Home Movie" onAction="#addMovie" styleClass="content-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
+        <Button text="Update Prices" onAction="#updatePrices" styleClass="content-button" style="-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;"/>
         <Button text="Back" onAction="#goBack" styleClass="back-button" />
     </VBox>
 </AnchorPane>

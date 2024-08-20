@@ -33,7 +33,15 @@ public class App extends Application {
         Object controller = loader.getController();
         ((DataInitializable)controller).setClient(client);
         ((DataInitializable)controller).initData(null);
-        scene = new Scene(root, 1080, 900);
+//        scene = new Scene(root, 1000, 500);
+
+        // Get screen dimensions
+        javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+        double screenWidth = screenBounds.getWidth();
+        double screenHeight = screenBounds.getHeight();
+
+        // Set scene dimensions to full height and half width
+        scene = new Scene(root, screenWidth - 500, screenHeight - 20);
         scene.getStylesheets().add(getClass().getResource("App.css").toExternalForm());
         primaryStage = stage;
         stage.setScene(scene);
