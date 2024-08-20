@@ -1,15 +1,25 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
+import il.cshaifasweng.OCSFMediatorExample.client.events.TicketTabListEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Booking;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
+import il.cshaifasweng.OCSFMediatorExample.entities.TicketTab;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import javax.xml.bind.ValidationException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +43,13 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     private String cardNum;
     private String email;
     private boolean isConnected = false;
+    private List<TicketTab> allTicketTabs;
+
+    @FXML private TableView<TicketTab> ticketTabTable;
+    @FXML private TableColumn<TicketTab, Integer> ticketTabIdColumn;
+    @FXML private TableColumn<TicketTab, String> purchaseTimeColumn;
+    @FXML private TableColumn<TicketTab, Integer> ticketsLeftColumn;
+    @FXML private TableColumn<TicketTab, String> statusColumn;
 
     @Override
     public void setClient(SimpleClient client) { this.client = client; }
@@ -40,6 +57,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     @Override
     public void initData(Object data) {
         initialize();
+        ticketTabTable.setVisible(false);
 
         // if customer is already in the system
         if (data instanceof Customer) {
@@ -48,16 +66,54 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
             nameTextField.setText(customer.getName());
             idTextField.setText(String.valueOf(customer.getPersonId()));
             emailTextField.setText(customer.getEmail());
+            try {
+                initializeTable();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @FXML
     public void initialize() {
+        // Check if already registered before registering
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         totalText.setText("₪200");
         addTextListener(cardNumTextField);
         addTextListener(nameTextField);
         addTextListener(idTextField);
         addTextListener(emailTextField);
+    }
+
+    @FXML
+    public void initializeTable() throws IOException {
+        ticketTabTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        ticketTabTable.setVisible(true);
+//        ticketTabIdColumn.setCellValueFactory(new PropertyValueFactory<>("product_id"));
+        ticketTabIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getProduct_id()).asObject());
+        ticketsLeftColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getAmount()).asObject());
+        purchaseTimeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPurchaseTime().toString()));
+        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
+
+        if (client.getConnectedPerson() != null) {
+            client.fetchUserTicketTabs();
+        }
+    }
+
+    @Subscribe
+    public void onTicketTabsListEvent(TicketTabListEvent event) {
+        allTicketTabs = event.getTicketTabs();
+        if (allTicketTabs.size() > 0) {
+            System.out.println("got ticket tabs!!!");
+            ticketTabTable.setVisible(true);
+        }
+        Platform.runLater(() -> {
+            ticketTabTable.getItems().clear();
+            ticketTabTable.getItems().addAll(allTicketTabs);
+        });
     }
 
     @FXML
@@ -161,6 +217,10 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public void cleanup() {
+        EventBus.getDefault().unregister(this);
     }
 
 }

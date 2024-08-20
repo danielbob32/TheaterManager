@@ -1624,6 +1624,26 @@ public class ServerDB {
         }
     }
 
+    public List<TicketTab> fetchUserTicketTabs(int userId) throws Exception {
+        try (Session session = sessionFactory.openSession()) {
+            List<Booking> bookings = fetchUserBookings(userId);
+            List<TicketTab> ticketTabs = new ArrayList<>();
+            for (Booking booking : bookings) {
+                for (Product product : booking.getProducts()) {
+                    if (product instanceof TicketTab) {
+                        ticketTabs.add((TicketTab) product);
+                    }
+                }
+            }
+            return ticketTabs;
+        }
+        catch (Exception e) {
+            System.out.println("Error fetching ticket tabs: " + e.getMessage());
+            e.printStackTrace();
+            throw new Exception("Error fetching ticket tabs: " + e.getMessage(), e);
+        }
+    }
+
     public void addComplaint(Complaint c) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();

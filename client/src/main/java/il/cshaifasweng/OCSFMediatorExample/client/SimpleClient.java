@@ -15,7 +15,9 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SimpleClient extends AbstractClient {
@@ -117,6 +119,9 @@ public class SimpleClient extends AbstractClient {
                 case "reportData":
                     System.out.println("Received report data: " + message.getData());
                     handleReportData(message.getData());
+                    break;
+                case "fetchUserTicketTabsResponse":
+                    handleFetchUserTicketTabsResponse(message);
                     break;
                 //YONI`S CASES:
                 case "fetchUserBookingsResponse":
@@ -453,6 +458,24 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
+    private void handleFetchUserTicketTabsResponse(Message message) {
+        try {
+            System.out.println("got handleFetchUserTicketTabsResponse");
+            System.out.println("Received Data: " + message.getData());
+            List<TicketTab> ticketTabs = objectMapper.readValue(message.getData(), new TypeReference<List<TicketTab>>() {});
+            System.out.println("Deserialized Data: " + ticketTabs);
+
+            System.out.println("Finished deserializing ticket tabs");
+            for (TicketTab ticketTab : ticketTabs) {
+                System.out.println("TicketTab Product ID: " + ticketTab.getProduct_id() + " - isActive: " + ticketTab.isActive());
+            }
+            EventBus.getDefault().post(new TicketTabListEvent(Integer.parseInt(message.getAdditionalData()), ticketTabs));
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to deserialize ticket tabs"));
+        }
+    }
+
     private void handleCancelBookingResponse(Message message)
     {
 //        System.out.println("got cancelBookingResponse");
@@ -767,6 +790,11 @@ private void handleReportData(String data) {
 
     public Person getConnectedPerson() {
         return connectedPerson;
+    }
+
+    public void fetchUserTicketTabs() throws IOException {
+        Message message = new Message(0, "fetchUserTicketTabs", String.valueOf(this.connectedPerson.getPersonId()));
+        sendToServer(message);
     }
 
     // ----- YONATHAN`S PART ------

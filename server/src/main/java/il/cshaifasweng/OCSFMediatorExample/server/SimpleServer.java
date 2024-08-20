@@ -181,6 +181,10 @@ public class SimpleServer extends AbstractServer {
 					}
 					break;
 
+				case "fetchUserTicketTabs":
+					handleFetchUserTicketTabs(message, client);
+					break;
+
 				// Yonathan's Cases:
 				case "fetchUserBookings":
 					handleFetchUserBookings(message, client);
@@ -1268,6 +1272,19 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleFetchUserBookings: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	protected void handleFetchUserTicketTabs(Message message, ConnectionToClient client) {
+		try {
+			int userId = Integer.parseInt(message.getData());
+			List<TicketTab> ticketTabs = db.fetchUserTicketTabs(userId);
+			Message response = new Message(0, "fetchUserTicketTabsResponse", objectMapper.writeValueAsString(ticketTabs));
+			response.setAdditionalData(String.valueOf(userId));
+			client.sendToClient(response);
+		} catch (Exception e) {
+			System.err.println("Error in handleFetchUserTicketTabs: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
