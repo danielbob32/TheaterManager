@@ -125,14 +125,16 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
 
         if (selectedDate.isEqual(today)) {
             // Start from the next round half-hour if today is selected
-            startTime = now.plusMinutes(30 - now.getMinute() % 30);
-            System.out.println("Start time: " + startTime);
-        // Check if the next round time crosses midnight
-        if (now.isAfter(LocalTime.of(23, 30))) {
-            selectedDate = selectedDate.plusDays(1);  // Move to the next day
-            dateSelector.setValue(selectedDate);      // Update the date picker
-            startTime = LocalTime.of(0, 0);           // Start from midnight of the next day
-        }
+//            startTime = now.plusMinutes(30 - now.getMinute() % 30);
+            startTime = now.withSecond(0).withNano(0);
+            startTime = startTime.plusMinutes(30 - startTime.getMinute() % 30);
+//            System.out.println("Start time: " + startTime);
+            // Check if the next round time crosses midnight
+            if (now.isAfter(LocalTime.of(23, 30))) {
+                selectedDate = selectedDate.plusDays(1);  // Move to the next day
+                dateSelector.setValue(selectedDate);      // Update the date picker
+                startTime = LocalTime.of(0, 0);           // Start from midnight of the next day
+            }
         } else {
             // Start from midnight for future dates
             startTime = LocalTime.of(0, 0);
@@ -143,13 +145,14 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
 
         timeComboBox.getItems().clear();
 
-        // Use a for loop with an inclusive end condition
-        for (LocalTime time = startTime; !time.isAfter(endTime); time = time.plusMinutes(30)) {
+        // Use a while loop that adds the time options
+        LocalTime time = startTime;
+        while (!time.equals(endTime)) {
             timeComboBox.getItems().add(time.format(formatter));
-            if (time.equals(endTime)) {
-                break;
-            }
+            time = time.plusMinutes(30);
         }
+        // Add the final time which equals endTime
+        timeComboBox.getItems().add(endTime.format(formatter));
 
         if (!timeComboBox.getItems().isEmpty()) {
             timeComboBox.getSelectionModel().selectFirst();
