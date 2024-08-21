@@ -1515,10 +1515,10 @@ public class ServerDB {
     // Generate a report of home movie link sales
     private String generateHomeMovieLinkSalesReport(Session session, LocalDate month) {
         String hql = "SELECT DAY(h.purchaseTime) as day, COUNT(h) " +
-        "FROM HomeMovieLink h " +
-        "WHERE YEAR(h.purchaseTime) = :year " +
-        "AND MONTH(h.purchaseTime) = :month " +
-        "GROUP BY DAY(h.purchaseTime) ORDER BY DAY(h.purchaseTime)";
+                "FROM HomeMovieLink h " +
+                "WHERE YEAR(h.purchaseTime) = :year " +
+                "AND MONTH(h.purchaseTime) = :month " +
+                "GROUP BY DAY(h.purchaseTime) ORDER BY DAY(h.purchaseTime)";
 
         Query<Object[]> query = session.createQuery(hql, Object[].class);
         query.setParameter("year", month.getYear());
