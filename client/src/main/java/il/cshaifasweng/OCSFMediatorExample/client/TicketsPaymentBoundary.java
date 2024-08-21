@@ -187,8 +187,8 @@ public class TicketsPaymentBoundary implements DataInitializable {
 
     private boolean validateId() {
        String id = idField.getText().trim();
-       if (!Pattern.matches("\\d{9}", id) || !Pattern.matches("\\d{4}", id)) {
-           showAlert("Invalid ID. Please enter 9 digits.");
+       if (!Pattern.matches("\\d{9}", id) && !Pattern.matches("\\d{4}", id)) {
+           showAlert("Invalid ID. Please enter 9 or 4 digits.");
            return false;
        }
         return true;
