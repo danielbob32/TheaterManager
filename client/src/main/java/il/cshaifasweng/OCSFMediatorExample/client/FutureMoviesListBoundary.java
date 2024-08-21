@@ -9,7 +9,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,6 +26,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for the Future Movies List scene. Manages initialization, movie display, and scene navigation.
+ */
 public class FutureMoviesListBoundary implements DataInitializable {
 
     @FXML
@@ -35,6 +37,9 @@ public class FutureMoviesListBoundary implements DataInitializable {
     private SimpleClient client;
     private List<Movie> allMovies;
 
+    /**
+     * Initializes the controller by registering with the EventBus.
+     */
     public void initialize() {
         EventBus.getDefault().register(this);
     }
@@ -44,27 +49,35 @@ public class FutureMoviesListBoundary implements DataInitializable {
         this.client = client;
     }
 
+    /**
+     * Requests and displays the list of future movies when called.
+     */
     @FXML
     private void showFutureMovies() {
-//        System.out.println("in showFutureMovies");
         moviesContainer.getChildren().clear();
         client.getMovies();
     }
 
     @Override
     public void initData(Object data) {
-//        System.out.println("in initData with the next data" + data);
         moviesContainer.getChildren().clear();
         client.getMovies();
     }
 
+    /**
+     * Handles the MovieListEvent by updating the list of movies and displaying future ones.
+     *
+     * @param event The event containing the list of movies.
+     */
     @Subscribe
     public void onMovieListEvent(MovieListEvent event) {
-//        System.out.println("in onMovieListEvent");
         allMovies = event.getMovies();
         displayFutureMovies();
     }
 
+    /**
+     * Filters and displays movies with a premiere date in the future.
+     */
     private void displayFutureMovies() {
         Date currentDate = new Date();
         Calendar calendar = Calendar.getInstance();
@@ -87,43 +100,32 @@ public class FutureMoviesListBoundary implements DataInitializable {
         });
     }
 
+    /**
+     * Creates a VBox representing a movie, including its image and details.
+     *
+     * @param movie The movie to display.
+     * @return A VBox containing the movie's details.
+     */
     private VBox createMovieBox(Movie movie) {
-//        System.out.println("in createMovieBox");
         VBox movieBox = new VBox(5);
-
         movieBox.setPadding(new Insets(10));
         movieBox.setStyle("-fx-border-color: gray; -fx-border-width: 1; -fx-border-radius: 5;");
 
         HBox contentBox = new HBox(10);
         contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 
-        byte[] image2 = movie.getMovieIcon();
-        if (image2 != null) {
-//			System.out.println("Image byte array length: " + image2.length);
-        } else {
-            System.out.println("Image byte array is null");
-        }
-        Image image3 = convertByteArrayToImage(image2);
-        if (image3 == null) {
-            System.out.println("Image is null");
-        } else {
-//			System.out.println("Image created successfully");
-        }
-        if (image3 == null || image3.isError()) {
-//            System.out.println("Using default image");
+        Image image = convertByteArrayToImage(movie.getMovieIcon());
+        if (image == null || image.isError()) {
             try {
                 InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
                 if (defaultImageStream != null) {
-                    image3 = new Image(defaultImageStream);
-//					System.out.println("Default image loaded successfully");
-                } else {
-					System.out.println("Default image not found");
+                    image = new Image(defaultImageStream);
                 }
             } catch (Exception e) {
                 System.out.println("Error loading default image: " + e.getMessage());
             }
         }
-        ImageView iv = new ImageView(image3);
+        ImageView iv = new ImageView(image);
         iv.setFitWidth(150);
         iv.setFitHeight(200);
         iv.setPreserveRatio(true);
@@ -141,27 +143,31 @@ public class FutureMoviesListBoundary implements DataInitializable {
         HBox.setHgrow(textContent, Priority.ALWAYS);
 
         contentBox.getChildren().addAll(iv, textContent);
-        // If Person is ContentManager, add an edit movie button.
-        Person p = client.getConnectedPerson();
-
         movieBox.getChildren().add(contentBox);
 
         return movieBox;
     }
 
+    /**
+     * Converts a byte array to an Image.
+     *
+     * @param imageData The byte array representing the image.
+     * @return The Image object, or null if no data is available.
+     */
     public Image convertByteArrayToImage(byte[] imageData) {
         if (imageData != null && imageData.length > 0) {
-            // Convert byte[] to InputStream
             ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
-            // Create Image from InputStream
             return new Image(inputStream);
-        } else {
-            System.out.println("No image data available");
-            return null;  // Or handle as needed, e.g., return a default image
         }
+        return null;
     }
 
+    /**
+     * Handles the back button action, navigating to the appropriate scene based on the user type.
+     *
+     * @param event The ActionEvent triggered by the back button.
+     * @throws IOException If an error occurs while loading the scene.
+     */
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
         Person connectedPerson = client.getConnectedPerson();
@@ -175,7 +181,9 @@ public class FutureMoviesListBoundary implements DataInitializable {
         }
     }
 
-
+    /**
+     * Cleans up resources and unregisters from the EventBus.
+     */
     public void cleanup() {
         EventBus.getDefault().unregister(this);
     }

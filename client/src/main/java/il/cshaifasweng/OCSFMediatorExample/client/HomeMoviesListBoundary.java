@@ -72,7 +72,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
         Platform.runLater(() -> {
             moviesContainer.getChildren().clear();
             for (Movie movie : homeMovies) {
-                if(movie.getIsHome()) {
+                if (movie.getIsHome()) {
                     VBox movieBox = createMovieBox(movie);
                     moviesContainer.getChildren().add(movieBox);
                 }
@@ -81,7 +81,6 @@ public class HomeMoviesListBoundary implements DataInitializable {
     }
 
     private VBox createMovieBox(Movie movie) {
-        //System.out.println("in createMovieBox");
         VBox movieBox = new VBox(5);
 
         movieBox.setPadding(new Insets(10));
@@ -91,29 +90,15 @@ public class HomeMoviesListBoundary implements DataInitializable {
         contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 
         byte[] image2 = movie.getMovieIcon();
-        if (image2 != null) {
-            //System.out.println("Image byte array length: " + image2.length);
-        } else {
-            //System.out.println("Image byte array is null");
-        }
         Image image3 = convertByteArrayToImage(image2);
-        if (image3 == null) {
-            //System.out.println("Image is null");
-        } else {
-           // System.out.println("Image created successfully");
-        }
         if (image3 == null || image3.isError()) {
-            //System.out.println("Using default image");
             try {
                 InputStream defaultImageStream = getClass().getClassLoader().getResourceAsStream("Images/default.jpg");
                 if (defaultImageStream != null) {
                     image3 = new Image(defaultImageStream);
-                   // System.out.println("Default image loaded successfully");
                 } else {
-                  //  System.out.println("Default image not found");
                 }
             } catch (Exception e) {
-              //  System.out.println("Error loading default image: " + e.getMessage());
             }
         }
         ImageView iv = new ImageView(image3);
@@ -132,7 +117,8 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         VBox buttons = new VBox(5);
         Button detailsButton = new Button("Movie Page");
-        detailsButton.setStyle("-fx-background-color: #004e92; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 20");
+        detailsButton.setStyle(
+                "-fx-background-color: #004e92; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 20");
         detailsButton.setCursor(Cursor.HAND);
         detailsButton.setOnAction(e -> {
             try {
@@ -146,12 +132,12 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
         // If Person is ContentManager, add an edit movie button.
         Person p = client.getConnectedPerson();
-        if(p!=null && p instanceof Worker)
-        {
-            if ((((Worker) p).getWorkerType().equals("Content manager"))||
+        if (p != null && p instanceof Worker) {
+            if ((((Worker) p).getWorkerType().equals("Content manager")) ||
                     (((Worker) p).getWorkerType().equals("Chain manager"))) {
                 Button editButton = new Button("Delete Movie");
-                editButton.setStyle("-fx-background-color: #b71c1c; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 20");
+                editButton.setStyle(
+                        "-fx-background-color: #b71c1c; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 20");
                 editButton.setOnAction(e -> {
                     try {
                         deleteMovie(movie);
@@ -164,8 +150,8 @@ public class HomeMoviesListBoundary implements DataInitializable {
             }
         }
 
-
-        textContent.getChildren().addAll(englishTitleLabel, hebrewTitleLabel, producerLabel, actorsLabel, synopsisLabel);
+        textContent.getChildren().addAll(englishTitleLabel, hebrewTitleLabel, producerLabel, actorsLabel,
+                synopsisLabel);
         HBox.setHgrow(textContent, Priority.ALWAYS);
         HBox.setHgrow(buttons, Priority.NEVER);
 
@@ -181,14 +167,10 @@ public class HomeMoviesListBoundary implements DataInitializable {
 
     public Image convertByteArrayToImage(byte[] imageData) {
         if (imageData != null && imageData.length > 0) {
-            // Convert byte[] to InputStream
             ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
-            // Create Image from InputStream
             return new Image(inputStream);
         } else {
-           // System.out.println("No image data available");
-            return null;  // Or handle as needed, e.g., return a default image
+            return null;
         }
     }
 
@@ -240,7 +222,6 @@ public class HomeMoviesListBoundary implements DataInitializable {
             App.setRoot("Loginpage", null);
         }
     }
-
 
     public void cleanup() {
         EventBus.getDefault().unregister(this);

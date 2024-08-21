@@ -47,7 +47,6 @@ public class ManagePriceRequestsController implements DataInitializable {
     public void initialize() {
         objectMapper = new ObjectMapper();
         EventBus.getDefault().register(this);
-        //loadPriceChangeRequests();
         movieColumn.setPrefWidth(150);
         typeColumn.setPrefWidth(120);
         oldPriceColumn.setPrefWidth(80);
@@ -140,7 +139,6 @@ public class ManagePriceRequestsController implements DataInitializable {
                         message.getMessage().contains("Price change request denied")) {
                     PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
                     updateTableRow(updatedRequest);
-                    //showAlert("Success", message.getMessage());
                 } else if (message.getMessage().contains("Failed to approve") ||
                         message.getMessage().contains("Failed to deny")) {
                     showAlert("Error", message.getMessage());

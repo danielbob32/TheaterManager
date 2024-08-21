@@ -46,7 +46,7 @@ public class AllMoviesListController implements DataInitializable {
     @FXML
     private void showAllMovies() {
         moviesContainer.getChildren().clear();
-        client.getMovies(); // Assume this method is implemented in SimpleClient
+        client.getMovies();
     }
 
     @Subscribe

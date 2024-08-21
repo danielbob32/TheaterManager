@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,12 +26,11 @@ public class SimpleServer extends AbstractServer {
 	private final Object complaintLock = new Object();
 	private final Object movieLinkLock = new Object();
 
-	public SimpleServer(int port) {
+	public SimpleServer(int port, String password) {
 		super(port);
 		try {
-			this.db = new ServerDB();
+			this.db = new ServerDB(password);
 			this.objectMapper.registerModule(new Hibernate5Module());
-			SchedulerService.initialize(this.db, this);
 			SchedulerService.initialize(this.db, this);
 		} catch (Exception e) {
 			System.err.println("Failed to initialize ServerDB: " + e.getMessage());
@@ -247,26 +245,24 @@ public class SimpleServer extends AbstractServer {
 
 	private void handleLogoutRequest(Message message) {
 		System.out.println("IN SIMPLE SERVER, GOT LOGOUT REQUEST, AFTER LOGIN CONNECTED IDS:");
-		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
 			System.out.println(entry.getKey());
 		}
 		int personId = Integer.parseInt(message.getData());
-
 		// Update the person's login status
 		db.updatePersonLoginStatus(personId, false);
-        connectedClients.remove(personId);
+		connectedClients.remove(personId);
 		System.out.println("IN SIMPLE SERVER, GOT LOGOUT REQUEST, AFTER LOGIN CONNECTED IDS:");
-		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
 			System.out.println(entry.getKey());
 		}
 	}
-
 
 	private void handleLoginRequest(Message message, ConnectionToClient client) throws IOException {
 		String[] loginParts = message.getMessage().split(":", 2);
 		String person = loginParts.length > 1 ? loginParts[1] : "";
 		System.out.println("IN SIMPLE SERVER, GOT LOGIN REQUEST, CURRENTLY CONNECTED IDS:");
-		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
 			System.out.println(entry.getKey());
 		}
 		switch (person) {
@@ -282,11 +278,10 @@ public class SimpleServer extends AbstractServer {
 				client.sendToClient(new Warning("Unknown login type"));
 		}
 		System.out.println("IN SIMPLE SERVER, GOT LOGIN REQUEST, AFTER LOGIN CONNECTED IDS:");
-		for(Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
+		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
 			System.out.println(entry.getKey());
 		}
 	}
-
 
 	// Handles the add movie request
 	private void handleAddMovieRequest(Message message, ConnectionToClient client) throws IOException {
@@ -403,7 +398,8 @@ public class SimpleServer extends AbstractServer {
 		if (priceSuccess) {
 			PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
 			String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
-			client.sendToClient(new Message(0, "Price change request approved and price updated successfully", updatedRequestJson));
+			client.sendToClient(
+					new Message(0, "Price change request approved and price updated successfully", updatedRequestJson));
 		} else {
 			client.sendToClient(new Message(0, "Failed to approve price change request. It may already be approved."));
 		}
@@ -432,7 +428,6 @@ public class SimpleServer extends AbstractServer {
 		client.sendToClient(message);
 	}
 
-
 	// Handles I/O exceptions
 	private void handleIOException(IOException e, ConnectionToClient client) {
 		System.out.println("DEBUG: Error processing message - " + e.getMessage());
@@ -444,268 +439,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
-
-//	protected void handleClientRequest(Object msg, ConnectionToClient client) {
-//		Message message = (Message) msg;
-////		System.out.println("Received message from client: " + msg);
-//		String request = message.getMessage();
-//		try {
-//			String action = request.split(":")[0];
-//
-//			switch (action) {
-//				case "login":
-//					String[] loginParts = request.split(":", 2);
-//					String person = loginParts.length > 1 ? loginParts[1] : "";
-//
-//					switch (person) {
-//						case "worker":
-//							Worker worker = objectMapper.readValue(message.getData(), Worker.class);
-//							handleLoginRequest(worker, client);
-//							break;
-//						case "customer":
-//							Customer customer = objectMapper.readValue(message.getData(), Customer.class);
-//							handleLoginRequest(customer, client);
-//							break;
-//						default:
-//							client.sendToClient(new Warning("Unknown login type"));
-//					}
-//					break;
-//
-//				case "add movie":
-//					String movieData = message.getData();
-//					Movie movie = objectMapper.readValue(movieData, Movie.class);
-//					boolean movieExists = db.checkMovieExists(movie.getEnglishName(), movie.getHebrewName());
-//					if (movieExists) {
-//						client.sendToClient(new Message(0, "Movie add:failed", "Movie already exists"));
-//					} else {
-//						boolean add_success = db.addMovie(movie);
-//						if (add_success) {
-//							client.sendToClient(new Message(0, "Movie add:success"));
-//							// Notify all connected clients about the new movie
-//							sendToAllClients(new Message(0, "new_movie_added", objectMapper.writeValueAsString(movie)));
-//						} else {
-//							client.sendToClient(new Message(0, "Movie add:failed"));
-//						}
-//					}
-//					break;
-//				case "getNotifications":
-//					int customerId = Integer.parseInt(message.getData());
-//					List<Notification> notifications = db.getUnreadNotificationsForCustomer(customerId);
-//					client.sendToClient(new Message(0, "notifications", objectMapper.writeValueAsString(notifications)));
-//					break;
-//
-//				case "markNotificationAsRead":
-//					String[] parts2 = message.getData().split(",");
-//					int notificationId = Integer.parseInt(parts2[0]);
-//					int customerIdForMarkRead = Integer.parseInt(parts2[1]);
-//					db.markNotificationAsRead(notificationId, customerIdForMarkRead);
-//					client.sendToClient(new Message(0, "notificationMarkedAsRead"));
-//					break;
-//
-//				case "getMovies":
-//					System.out.println("in SimpleServer getMovies request");
-//					movieListRequest(message, client);
-//					break;
-//
-//				case "updatePrice":
-//					System.out.println("in SimpleServer updatePrice request");
-//					String[] parts = message.getData().split(",");
-//					int movieId = Integer.parseInt(parts[0]);
-//					String movieType = parts[1];
-//					int newPrice = Integer.parseInt(parts[2]);
-//					boolean success = db.updateMoviePrice(movieId, movieType, newPrice);
-//					if (success) {
-//						System.out.println("Price updated successfull in simple server");
-//						message.setMessage("Price:success");
-//					} else {
-//						message.setMessage("Price:failed");
-//					}
-//					client.sendToClient(message);
-//					break;
-//
-//				case "deleteMovie":
-//					String deleteMovieType = request.split(":")[1];
-//					int movieId2 = Integer.parseInt(message.getData());
-//					boolean deleteSuccess = db.deleteMovie(movieId2, deleteMovieType);
-//					if (deleteSuccess) {
-//						client.sendToClient(new Message(0, "Movie delete:success"));
-//					} else {
-//						client.sendToClient(new Message(0, "Movie delete:failed", "Movie is currently in use"));
-//					}
-//					break;
-//
-//				case "updateMovie":
-//					Movie movie_to_update = objectMapper.readValue(message.getData(), Movie.class);
-//					boolean updateSuccess = db.updateMovie(movie_to_update);
-//					if (updateSuccess) {
-//						client.sendToClient(new Message(0, "Movie update:success"));
-//					} else {
-//						client.sendToClient(new Message(0, "Movie update:failed", "error occured"));
-//					}
-//					break;
-//
-//				case "addScreening":
-//					Screening newScreening = objectMapper.readValue(message.getData(), Screening.class);
-////					System.out.println("Received screening to add: " + newScreening);
-//					boolean addSuccess = db.addScreening(newScreening);
-//					if (addSuccess) {
-//						client.sendToClient(new Message(0, "Screening add:success"));
-//					} else {
-//						client.sendToClient(new Message(0, "Screening add:failed", "Hall is not available at the specified time"));
-//					}
-//					break;
-//
-//				case "deleteScreening":
-//					int screeningId = Integer.parseInt(message.getData());
-//					boolean deleteScreeningSuccess = db.deleteScreening(screeningId);
-//					if (deleteScreeningSuccess) {
-//						System.out.println("Screening deleted successfully");
-//						client.sendToClient(new Message(0, "Screening delete:success"));
-//					} else {
-//						System.out.println("Failed to delete screening");
-//						client.sendToClient(new Message(0, "Screening delete:failed", "Hall is not available at the specified time"));
-//					}
-//					break;
-//
-//				case "createPriceChangeRequest":
-//					PriceChangeRequest price_request = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
-//					db.createPriceChangeRequest(price_request);
-//					client.sendToClient(new Message(0, "Price change request created successfully"));
-//					break;
-//
-//				case "getPriceChangeRequests":
-//					List<PriceChangeRequest> requests = db.getPriceChangeRequests();
-//					String requestsJson = objectMapper.writeValueAsString(requests);
-//					client.sendToClient(new Message(0, "priceChangeRequests", requestsJson));
-//					break;
-//
-//				case "approvePriceChangeRequest":
-//					int requestId = Integer.parseInt(message.getData());
-////					System.out.println("Approving price change request: " + requestId);
-//					boolean price_success = db.updatePriceChangeRequestStatus(requestId, true);
-//					if (price_success) {
-//						PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
-//						String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
-//						client.sendToClient(new Message(0, "Price change request approved and price updated successfully", updatedRequestJson));
-//					} else {
-//						client.sendToClient(new Message(0, "Failed to approve price change request. It may already be approved."));
-//					}
-//					break;
-//
-//				case "denyPriceChangeRequest":
-//					int requestId2 = Integer.parseInt(message.getData());
-//					boolean price_success2 = db.updatePriceChangeRequestStatus(requestId2, false);
-//					if (price_success2) {
-//						PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId2);
-//						String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
-//						client.sendToClient(new Message(0, "Price change request denied", updatedRequestJson));
-//					} else {
-//						client.sendToClient(new Message(0, "Failed to deny price change request. It may already be approved."));
-//					}
-//					break;
-//
-//				case "getSeatAvailability":
-//					System.out.println("in SimpleServer getSeatAvailability request");
-//					handleGetSeatAvailability(message, client);
-//					break;
-//
-//				case "checkTicketTab":
-//					System.out.println("in SimpleServer checkTicketTab request");
-//					handleCheckTicketTab(message, client);
-//					break;
-//
-//				case "processPayment":
-//					System.out.println("in SimpleServer processPayment request");
-//					handleProcessPayment(message.getData(), client);
-//					break;
-
-
-
-//
-//				case "getScreeningById":
-//					System.out.println("in SimpleServer getScreeningById request");
-//					handleGetScreeningById(message, client);
-//					break;
-//
-//				case "purchaseTicketTab":
-//					System.out.println("in SimpleServer purchaseTicketTab request");
-//					handlePurchaseTicketTab(message.getData(), client);
-//					break;
-//
-//				case "purchaseLink":
-//					System.out.println("In SimpleServer, handling purchaseLink request.");
-//					handlePurchaseLink(message.getData(), client); // Pass message data as String
-//					break;
-//				case "getCinemaList":
-//					handleGetCinemaList(client);
-//					break;
-//
-//				case "generateReport":
-//					System.out.println("Handling generate report request");
-//					handleGenerateReport(message.getData(), client);
-//					break;
-//
-//				case "getMovieById":
-//					int movie_id = message.getExtraData();
-//					Movie movie3 = db.getMovieById(movie_id);
-//					String jsonMovie = objectMapper.writeValueAsString(movie3);
-//					message.setData(jsonMovie);
-//					message.setMessage("movie refreshed");
-//					client.sendToClient(message);
-//					break;
-//				// YONATHAN`S CASES:
-//				case "fetchUserBookings":
-//					System.out.println("In SimpleServer handleFetchUserBookings request");
-//					handleFetchUserBookings(message, client);
-//					break;
-//				case "cancelPurchase":
-//					System.out.println("In SimpleServer handleCancelBooking request");
-//					handleCancelBooking(message, client);
-//					break;
-//				case "submitComplaint":
-//					System.out.println("In SimpleServer submitComplaint request");
-//					handleSubmitComplaint(message, client);
-//					break;
-//				case "fetchAllComplaints":
-//					System.out.println("In SimpleServer fetchAllComplaints request");
-//					handleFetchAllComplaints(message, client);
-//					break;
-//				case "fetchCustomerComplaints":
-//					System.out.println("In SimpleServer fetchCustomerComplaints request");
-//					handleFetchCustomerComplaints(message, client);
-//					break;
-//				case "fetchComplaints":
-//					System.out.println("In SimpleServer fetchComplaints request");
-//					handleFetchComplaints(message, client);
-//					break;
-//				case "respondToComplaint":
-//					System.out.println("In SimpleServer respondToComplaint request");
-//					handleRespondToComplaint(message, client);
-//					break;
-//				case "updateComplaint":
-//					System.out.println("In SimpleServer updateComplaint request");
-//					handleUpdateComplaint(message, client);
-//					break;
-//				case "fetchRandomCustomer":
-//					System.out.println("In SimpleServer fetchRandomCustomer request");
-//					handleFetchRandomCustomer(message, client);
-//					break;
-//
-//				default:
-//					client.sendToClient(new Warning("Unknown request type"));
-//			}
-//		} catch (IOException e) {
-//			System.out.println("DEBUG: Error processing message - " + e.getMessage());
-//			e.printStackTrace();
-//			try {
-//				client.sendToClient(new Warning("Server error: " + e.getMessage()));
-//			} catch (IOException ioException) {
-//				ioException.printStackTrace();
-//			}
-//		} catch (Exception e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
+	
 
 	protected void handleGetSeatAvailability(Message message, ConnectionToClient client) throws Exception {
 		int screeningId = Integer.parseInt(message.getData());
@@ -718,7 +452,6 @@ public class SimpleServer extends AbstractServer {
 
 	protected void handleProcessPaymentRequest(String data, ConnectionToClient client) throws Exception {
 		try {
-			// open json
 			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
 			String name = dataNode.get("name").asText();
 			int id = dataNode.get("id").asInt();
@@ -739,7 +472,8 @@ public class SimpleServer extends AbstractServer {
 			TicketTab ticketTab = null;
 
 			if (paymentMethod.equals("creditCard")) {
-				newBooking = db.purchaseTicketWithCreditCard(name, id, email, paymentNum, cinemaPrice, screeningId, seatIds);
+				newBooking = db.purchaseTicketWithCreditCard(name, id, email, paymentNum, cinemaPrice, screeningId,
+						seatIds);
 			} else if (paymentMethod.equals("ticketTab")) {
 				newBooking = db.purchaseTicketWithTicketTab(name, id, email, paymentNum, screeningId, seatIds);
 				ticketTab = db.getTicketTabById(Integer.parseInt(paymentNum));
@@ -749,7 +483,7 @@ public class SimpleServer extends AbstractServer {
 				System.out.println("created booking successfully " + newBooking.getBookingId());
 
 				int ticketNum = newBooking.getProducts().size();
-				StringBuilder seatsString = new StringBuilder();	// building string of the seats
+				StringBuilder seatsString = new StringBuilder(); // building string of the seats
 				for (Product product : newBooking.getProducts()) {
 					if (product instanceof Ticket) {
 						String row = String.valueOf(((Ticket) product).getSeat().getSeatRow());
@@ -759,9 +493,6 @@ public class SimpleServer extends AbstractServer {
 				}
 				String seats = seatsString.substring(0, seatsString.length() - 2);
 				Screening screening = db.getScreeningById(screeningId);
-
-//				TicketPurchaseInfo purchaseInfo = new TicketPurchaseInfo(screening, newBooking, seats, paymentMethod, paymentNum);
-
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
 				bookingNode.put("name", name);
@@ -782,7 +513,7 @@ public class SimpleServer extends AbstractServer {
 					}
 				}
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-				client.sendToClient(new Message(0,"addedTicketsSuccessfully", jsonBooking));
+				client.sendToClient(new Message(0, "addedTicketsSuccessfully", jsonBooking));
 
 			} else {
 				client.sendToClient(new Message(0, "addingTicketsFailed"));
@@ -831,189 +562,109 @@ public class SimpleServer extends AbstractServer {
 				bookingNode.put("ticketTabId", newBooking.getTicketTabId());
 
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-				client.sendToClient(new Message(0,"purchasedTicketTabSuccessfully", jsonBooking));
+				client.sendToClient(new Message(0, "purchasedTicketTabSuccessfully", jsonBooking));
 			} else {
-			client.sendToClient(new Message(0, "purchasingTicketTabFailed"));
+				client.sendToClient(new Message(0, "purchasingTicketTabFailed"));
 			}
 		} catch (Exception e) {
 			client.sendToClient(new Message(0, "failedSendingBookingInfo"));
 		}
-    }
+	}
 
+	protected void handlePurchaseLinkRequest(String data, ConnectionToClient client) {
+		System.out.println("DEBUG: Processing purchase link");
+		try {
+			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
+			String name = dataNode.has("name") ? dataNode.get("name").asText() : "";
+			int id = dataNode.has("id") ? dataNode.get("id").asInt() : 0;
+			String email = dataNode.has("email") ? dataNode.get("email").asText() : "";
+			String creditCard = dataNode.has("creditCard") ? dataNode.get("creditCard").asText() : "";
+			int movieId = dataNode.has("movieId") ? dataNode.get("movieId").asInt() : 0;
+			String selectedDate = dataNode.has("selectedDate") ? dataNode.get("selectedDate").asText() : "";
+			String selectedTime = dataNode.has("selectedTime") ? dataNode.get("selectedTime").asText() : "";
+			int totalPrice = dataNode.has("totalPrice") ? dataNode.get("totalPrice").asInt() : 0;
 
-protected void handlePurchaseLinkRequest(String data, ConnectionToClient client) {
-    System.out.println("DEBUG: Processing purchase link");
-    try {
-        ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
-        String name = dataNode.has("name") ? dataNode.get("name").asText() : "";
-        int id = dataNode.has("id") ? dataNode.get("id").asInt() : 0;
-        String email = dataNode.has("email") ? dataNode.get("email").asText() : "";
-        String creditCard = dataNode.has("creditCard") ? dataNode.get("creditCard").asText() : "";
-        int movieId = dataNode.has("movieId") ? dataNode.get("movieId").asInt() : 0;
-        String selectedDate = dataNode.has("selectedDate") ? dataNode.get("selectedDate").asText() : "";
-        String selectedTime = dataNode.has("selectedTime") ? dataNode.get("selectedTime").asText() : "";
-        int totalPrice = dataNode.has("totalPrice") ? dataNode.get("totalPrice").asInt() : 0;
+			Movie movie = db.getMovieById(movieId);
+			if (movie == null) {
+				client.sendToClient(new Message(0, "Movie not found"));
+				return;
+			}
 
-//        System.out.println("DEBUG: Purchase data - Name: " + name + ", ID: " + id + ", Email: " + email);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+			Date openTime = sdf.parse(selectedDate + " " + selectedTime);
 
-        Movie movie = db.getMovieById(movieId);
-        if (movie == null) {
-            client.sendToClient(new Message(0, "Movie not found"));
-            return;
-        }
+			// Check if the selected time is in the past
+			Date currentTime = new Date();
+			if (currentTime.after(openTime)) {
+				client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed",
+						"Cannot purchase link for a past date and time."));
+				return;
+			}
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        Date openTime = sdf.parse(selectedDate + " " + selectedTime);
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(openTime);
+			calendar.add(Calendar.MINUTE, movie.getDuration());
+			calendar.add(Calendar.MINUTE, movie.getDuration());
+			Date closeTime = calendar.getTime();
 
-		// Check if the selected time is in the past
-		Date currentTime = new Date();
-		if (currentTime.after(openTime)) {
-			client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed", "Cannot purchase link for a past date and time."));
-			return;
+			HomeMovieLink link = new HomeMovieLink(openTime, closeTime, false,
+					HomeMovieLink.generateRandomLink("www.Theater.link."),
+					id, totalPrice, true, new Date());
+			link.setMovie(movie);
+			Customer customer = null;
+
+			try {
+				customer = (Customer) db.getPersonById(id);
+				System.out.println("SimpleServer DEBUG: Existing customer found: " + (customer != null));
+				if (customer == null) {
+					customer = new Customer(name, email, id);
+					db.addPerson(customer);
+					System.out.println("SimpleServer DEBUG: New customer added with ID: " + customer.getPersonId());
+				}
+			} catch (Exception e) {
+				System.out.println("SimpleServer DEBUG: Error handling customer: " + e.getMessage());
+				e.printStackTrace();
+			}
+
+			Booking newBooking = db.purchaseHomeMovieLink(name, id, email, creditCard, link);
+			System.out.println("SimpleServer DEBUG: New booking created: " + (newBooking != null));
+			if (newBooking != null) {
+				ObjectNode bookingNode = objectMapper.createObjectNode();
+				bookingNode.put("bookingId", newBooking.getBookingId());
+				bookingNode.put("name", name);
+				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
+				bookingNode.put("movie", movie.getEnglishName());
+				bookingNode.put("openTime", link.getOpenTime().getTime());
+				bookingNode.put("closeTime", link.getCloseTime().getTime());
+				bookingNode.put("watchLink", link.getWatchLink());
+				bookingNode.put("totalPrice", link.getPrice());
+				System.out.println("SimpleServer DEBUG: Purchase link successful");
+
+				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
+				client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
+			} else {
+				client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
+			}
+
+		} catch (Exception e) {
+			System.out.println("DEBUG: Error in handlePurchaseLink: " + e.getMessage());
+			e.printStackTrace();
+			try {
+				client.sendToClient(new Message(0, "failedProcessingPurchaseLink", e.getMessage()));
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
 		}
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(openTime);
-        calendar.add(Calendar.MINUTE, movie.getDuration());
-        calendar.add(Calendar.MINUTE, movie.getDuration());
-        Date closeTime = calendar.getTime();
-
-        HomeMovieLink link = new HomeMovieLink(openTime, closeTime, false, HomeMovieLink.generateRandomLink("www.Theater.link."),
-                                               id, totalPrice, true, new Date());
-        link.setMovie(movie);
-		// // Simulating a purchase for a movie starting in 30 seconds and ending 60 seconds later
-		// Calendar calendar1 = Calendar.getInstance();
-		// Date now = calendar1.getTime();
-		// calendar1.add(Calendar.SECOND, 30);
-		// Date openTime1 = calendar1.getTime();
-		// calendar1.add(Calendar.SECOND, 30);
-		// Date closeTime1 = calendar1.getTime();
-
-		// HomeMovieLink testLink = new HomeMovieLink(openTime1, closeTime1, false, "test_link", id, 10, true, now);
-		// testLink.setMovie(movie);
-		// Customer customertest = null;
-		// // Simulating a purchase for a movie starting in 30 seconds and ending 60 seconds later
-		// Calendar calendar1 = Calendar.getInstance();
-		// Date now = calendar1.getTime();
-		// calendar1.add(Calendar.SECOND, 30);
-		// Date openTime1 = calendar1.getTime();
-		// calendar1.add(Calendar.SECOND, 30);
-		// Date closeTime1 = calendar1.getTime();
-
-		// HomeMovieLink testLink = new HomeMovieLink(openTime1, closeTime1, false, "test_link", id, 10, true, now);
-		// testLink.setMovie(movie);
-		// Customer customertest = null;
-        Customer customer = null;
-
-
-        try {
-			// customertest = new Customer("test", "test", 1);
-			// db.addPerson(customertest);
-			// customertest = new Customer("test", "test", 1);
-			// db.addPerson(customertest);
-            customer = (Customer) db.getPersonById(id);
-            System.out.println("SimpleServer DEBUG: Existing customer found: " + (customer != null));
-            if (customer == null) {
-                customer = new Customer(name, email, id);
-                db.addPerson(customer);
-                System.out.println("SimpleServer DEBUG: New customer added with ID: " + customer.getPersonId());
-            }
-        } catch (Exception e) {
-            System.out.println("SimpleServer DEBUG: Error handling customer: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-		
-		
-        Booking newBooking = db.purchaseHomeMovieLink(name, id, email, creditCard, link);
-        System.out.println("SimpleServer DEBUG: New booking created: " + (newBooking != null));
-		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
-//		SchedulerService.scheduleHomeLinkAvailability(link);
-//		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
-//
-		// Booking testBooking = db.purchaseHomeMovieLink("test", 1, "test", "test", testLink);
-//		SchedulerService.scheduleHomeLinkAvailability(link);
-//		System.out.println("DEBUG: Test link scheduled. Open time: " + openTime + ", Close time: " + closeTime);
-
-
-        if (newBooking != null) {
-            ObjectNode bookingNode = objectMapper.createObjectNode();
-            bookingNode.put("bookingId", newBooking.getBookingId());
-            bookingNode.put("name",name);
-            bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
-            bookingNode.put("movie", movie.getEnglishName());
-            bookingNode.put("openTime", link.getOpenTime().getTime());
-            bookingNode.put("closeTime", link.getCloseTime().getTime());
-            bookingNode.put("watchLink", link.getWatchLink());
-            bookingNode.put("totalPrice", link.getPrice());
-			System.out.println("SimpleServer DEBUG: Purchase link successful");
-
-            String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-            client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
-        } else {
-            client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
-        }
-		// if (testBooking != null) {
-		// 	ObjectNode bookingNode = objectMapper.createObjectNode();
-		// 	bookingNode.put("bookingId", testBooking.getBookingId());
-		// 	bookingNode.put("name", "test");
-		// 	bookingNode.put("purchaseTime", testBooking.getPurchaseTime().getTime());
-		// 	bookingNode.put("movie", movie.getEnglishName());
-		// 	bookingNode.put("openTime", testLink.getOpenTime().getTime());
-		// 	bookingNode.put("closeTime", testLink.getCloseTime().getTime());
-		// 	bookingNode.put("watchLink", testLink.getWatchLink());
-		// 	bookingNode.put("totalPrice", testLink.getPrice());
-		// 	System.out.println("DEBUG: Purchase link successful");
-		// 	// Schedule availability and notifications
-		// 	SchedulerService.scheduleHomeLinkAvailability(testLink);
-		// 	System.out.println("DEBUG: Scheduled link availability");
-		// 	String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-		// 	client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
-		// } else {
-		// 	client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
-		// }
-
-		// if (testBooking != null) {
-		// 	ObjectNode bookingNode = objectMapper.createObjectNode();
-		// 	bookingNode.put("bookingId", testBooking.getBookingId());
-		// 	bookingNode.put("name", "test");
-		// 	bookingNode.put("purchaseTime", testBooking.getPurchaseTime().getTime());
-		// 	bookingNode.put("movie", movie.getEnglishName());
-		// 	bookingNode.put("openTime", testLink.getOpenTime().getTime());
-		// 	bookingNode.put("closeTime", testLink.getCloseTime().getTime());
-		// 	bookingNode.put("watchLink", testLink.getWatchLink());
-		// 	bookingNode.put("totalPrice", testLink.getPrice());
-		// 	System.out.println("DEBUG: Purchase link successful");
-		// 	// Schedule availability and notifications
-		// 	SchedulerService.scheduleHomeLinkAvailability(testLink);
-		// 	System.out.println("DEBUG: Scheduled link availability");
-		// 	String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-		// 	client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
-		// } else {
-		// 	client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
-		// }
-
-    } catch (Exception e) {
-        System.out.println("DEBUG: Error in handlePurchaseLink: " + e.getMessage());
-        e.printStackTrace();
-        try {
-            client.sendToClient(new Message(0, "failedProcessingPurchaseLink", e.getMessage()));
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-    }
-}
-
+	}
 
 	private void processLogin(Object loginRequest, ConnectionToClient client) {
 		System.out.println("Handling login request");
 		Person p = (Person) loginRequest;
 		String message = "";
-		if(isAlreadyLoggedIn(p))
-		{
+		if (isAlreadyLoggedIn(p)) {
 			try {
 				client.sendToClient(new Message(0, "Person login:failed"));
-			}catch(Exception e) {
+			} catch (Exception e) {
 				System.out.println("Couldn't send an 'already logged in message' to client");
 				e.printStackTrace();
 			}
@@ -1043,12 +694,12 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 					message = "Worker login:failed";
 					System.out.println("Inside else: Worker login failed");
 				}
-				
+
 			} else if (loginRequest instanceof Customer) {
 				Customer customer = (Customer) loginRequest;
 				customer = db.checkCustomerCredentials(customer.getPersonId());
-				message = customer!=null ? "Customer login:successful" : "Customer login:failed";
-				if(customer!=null) {
+				message = customer != null ? "Customer login:successful" : "Customer login:failed";
+				if (customer != null) {
 					connectedClients.put(customer.getPersonId(), client);
 					p = customer;
 				}
@@ -1063,7 +714,6 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		try {
 			System.out.println("About to serialize the worker/customer object: " + p);
 			String jsonString = objectMapper.writeValueAsString(p);
-//			System.out.println("Serialization successful, JSON: " + jsonString);
 			Message message1 = new Message(0, message, jsonString);
 			client.sendToClient(message1);
 			System.out.println("Message sent to client successfully");
@@ -1071,7 +721,7 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			System.err.println("Error during serialization or sending: " + e.getMessage());
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	private boolean isAlreadyLoggedIn(Person person) {
@@ -1119,46 +769,21 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 	}
 
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
-      //  System.out.println("In SimpleServer, Handling getMovies.");
-      //  System.out.println("In SimpleServer, Handling getMovies.");
 		List<Movie> movies = db.getAllMovies();
-		for (Movie movie : movies) {
-			//System.out.println("Movie Title: " + movie.getEnglishName());
-			//System.out.println("Movie Title: " + movie.getEnglishName());
-		}
 		String movieType = message.getData();
-		//System.out.println("got the movies from serverDB");
-		//System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
-		//System.out.println("got the movies from serverDB");
-		//System.out.println("In SimpleServer, got back from serverDB.getAllMovies");
 		String jsonMovies = objectMapper.writeValueAsString(movies);
 		message.setData(jsonMovies);
 		message.setAdditionalData(movieType);
 		message.setMessage("movieList");
-//		System.out.println("In SimpleServer, Sending the client: \n ." + jsonMovies);
 		client.sendToClient(message);
 
 	}
 
 	private void handleGetCinemaList(ConnectionToClient client) throws IOException {
-    List<String> cinemas = db.getCinemaList();
-    client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
+		List<String> cinemas = db.getCinemaList();
+		client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
 	}
 
-//	private void handleGenerateReportRequest(String data, ConnectionToClient client) throws IOException {
-//		JsonNode dataNode = objectMapper.readTree(data);
-//		String reportType = dataNode.get("reportType").asText();
-//		LocalDate month = LocalDate.parse(dataNode.get("month").asText());
-//		String cinema = dataNode.get("cinema").asText();
-//
-//		String reportData = db.generateReport(reportType, month, cinema);
-//
-//		ObjectNode responseNode = objectMapper.createObjectNode();
-//		responseNode.put("reportType", reportType);
-//		responseNode.put("reportData", reportData);
-//
-//		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
-//	}
 
 	private void handleGenerateReportRequest(String data, ConnectionToClient client) throws IOException {
 		JsonNode dataNode = objectMapper.readTree(data);
@@ -1193,42 +818,48 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		}
 	}
 
-	private void generateMonthlyTicketSalesReport(LocalDate month, String cinema, ConnectionToClient client) throws IOException {
+	private void generateMonthlyTicketSalesReport(LocalDate month, String cinema, ConnectionToClient client)
+			throws IOException {
 		synchronized (ticketLock) {
 			String reportData = db.generateReport("Monthly Ticket Sales", month, cinema);
 			sendReportToClient("Monthly Ticket Sales", reportData, client);
 		}
 	}
 
-	private void generateMonthlyTicketSalesManagerReport(LocalDate month, String cinema, ConnectionToClient client) throws IOException {
+	private void generateMonthlyTicketSalesManagerReport(LocalDate month, String cinema, ConnectionToClient client)
+			throws IOException {
 		synchronized (ticketLock) {
 			String reportData = db.generateReport("Monthly Ticket Sales Manager", month, cinema);
 			sendReportToClient("Monthly Ticket Sales Manager", reportData, client);
 		}
 	}
 
-	private void generateTicketTabSalesReport(LocalDate month, String cinema, ConnectionToClient client) throws IOException {
+	private void generateTicketTabSalesReport(LocalDate month, String cinema, ConnectionToClient client)
+			throws IOException {
 		synchronized (ticketTabLock) {
 			String reportData = db.generateReport("Ticket Tab Sales", month, cinema);
 			sendReportToClient("Ticket Tab Sales", reportData, client);
 		}
 	}
 
-	private void generateHomeMovieLinkSalesReport(LocalDate month, String cinema, ConnectionToClient client) throws IOException {
+	private void generateHomeMovieLinkSalesReport(LocalDate month, String cinema, ConnectionToClient client)
+			throws IOException {
 		synchronized (movieLinkLock) {
 			String reportData = db.generateReport("Home Movie Link Sales", month, cinema);
 			sendReportToClient("Home Movie Link Sales", reportData, client);
 		}
 	}
 
-	private void generateCustomerComplaintsHistogramReport(LocalDate month, String cinema, ConnectionToClient client) throws IOException {
+	private void generateCustomerComplaintsHistogramReport(LocalDate month, String cinema, ConnectionToClient client)
+			throws IOException {
 		synchronized (complaintLock) {
 			String reportData = db.generateReport("Customer Complaints Histogram", month, cinema);
 			sendReportToClient("Customer Complaints Histogram", reportData, client);
 		}
 	}
 
-	private void sendReportToClient(String reportType, String reportData, ConnectionToClient client) throws IOException {
+	private void sendReportToClient(String reportType, String reportData, ConnectionToClient client)
+			throws IOException {
 		ObjectNode responseNode = objectMapper.createObjectNode();
 		responseNode.put("reportType", reportType);
 		responseNode.put("reportData", reportData);
@@ -1236,12 +867,11 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
 	}
 
-
-	// YONATHAN`S PARTS:
 	protected void handleFetchRandomCustomer(Message message, ConnectionToClient client) {
 		try {
 			Person randomCustomer = db.fetchRandomCustomer();
-			Message response = new Message(0, "fetchRandomCustomerResponse", objectMapper.writeValueAsString(randomCustomer));
+			Message response = new Message(0, "fetchRandomCustomerResponse",
+					objectMapper.writeValueAsString(randomCustomer));
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleFetchRandomCustomer: " + e.getMessage());
@@ -1251,25 +881,13 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 
 	protected void handleFetchUserBookings(Message message, ConnectionToClient client) {
 		try {
-			//System.out.println("In SimpleServer, handleFetchUserBookings function");
-			//System.out.println("In SimpleServer, handleFetchUserBookings function");
 			int userId = Integer.parseInt(message.getData());
-			//System.out.println("1");
-			//System.out.println("1");
 			List<Booking> bookings = db.fetchUserBookings(userId);
-			//System.out.println("2");
-			//System.out.println("2");
 			for (Booking booking : bookings) {
 				System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
 			}
-			//System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
-			//System.out.println("Serialized Bookings: " + objectMapper.writeValueAsString(bookings));
 			Message response = new Message(0, "fetchUserBookingsResponse", objectMapper.writeValueAsString(bookings));
-			//System.out.println("3");
-			//System.out.println("3");
 			response.setAdditionalData(String.valueOf(userId));
-			//System.out.println("4");
-			//System.out.println("4");
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleFetchUserBookings: " + e.getMessage());
@@ -1282,10 +900,8 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			int userId = Integer.parseInt(message.getData());
 			List<TicketTab> ticketTabs = db.fetchUserTicketTabs(userId);
 			List<String> jsonData = new ArrayList<>();
-			for(TicketTab tab : ticketTabs)
-			{
+			for (TicketTab tab : ticketTabs) {
 				jsonData.add(objectMapper.writeValueAsString(tab));
-//				System.out.println("SIMPLE SERVER TICKET TAB JSON:" + jsonData);
 			}
 			String finalData = jsonData.toString();
 			Message response = new Message(0, "fetchUserTicketTabsResponse", finalData);
@@ -1304,7 +920,8 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			db.cancelBooking(bookingId);
 			System.out.println("Refund is " + refund);
 
-			Message response = new Message(0, "cancelBookingResponse", "Booking cancelled", bookingId + ":" + String.valueOf(refund));
+			Message response = new Message(0, "cancelBookingResponse", "Booking cancelled",
+					bookingId + ":" + String.valueOf(refund));
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleCancelBooking: " + e.getMessage());
@@ -1344,7 +961,8 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 		try {
 			String customerId = message.getData();
 			List<Complaint> complaints = db.fetchCustomerComplaints(customerId);
-			Message response = new Message(0, "fetchCustomerComplaintsResponse", objectMapper.writeValueAsString(complaints));
+			Message response = new Message(0, "fetchCustomerComplaintsResponse",
+					objectMapper.writeValueAsString(complaints));
 			client.sendToClient(response);
 		} catch (Exception e) {
 			System.err.println("Error in handleFetchCustomerComplaints: " + e.getMessage());
@@ -1393,15 +1011,6 @@ protected void handlePurchaseLinkRequest(String data, ConnectionToClient client)
 			e.printStackTrace();
 		}
 	}
-
-	// Add this method to SimpleServer class fixed using coplit
-	// public void sendToAllClients(Message message) throws Exception {
-	// 	for (Object clientObj : getClientConnections()) {
-	// 		ConnectionToClient client = (ConnectionToClient) clientObj;
-	// 		client.sendToClient(message);
-	// 		System.out.println("Message sent to client, inside simpleserver sendtoallclients: " + message.getMessage());
-	// 	}
-	// }
 
 
 }

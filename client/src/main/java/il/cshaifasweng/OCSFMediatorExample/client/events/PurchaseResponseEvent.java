@@ -1,5 +1,4 @@
 package il.cshaifasweng.OCSFMediatorExample.client.events;
-import il.cshaifasweng.OCSFMediatorExample.entities.*;
 
 public class PurchaseResponseEvent {
     private boolean success;

@@ -101,10 +101,6 @@ public class LoginPageController implements Initializable, DataInitializable {
         animateClock();
         addButtonHoverEffects();
         addParticleEffect();
-//        if (client == null) {
-//            client = SimpleClient.getClient();
-//        }
-//        client.getMovies();
     }
 
     @Subscribe
@@ -116,13 +112,6 @@ public class LoginPageController implements Initializable, DataInitializable {
         startMoviePosterSlideshow();
     }
 
-    // @Subscribe
-    // public void onMovieListUpdatedEvent(MovieListUpdatedEvent event) {
-    //     allMovies = event.getUpdatedMovies();
-    //     filterMovies(allMovies);
-    //     stopSlideshow();
-    //     //startMoviePosterSlideshow();
-    // }
 
     private void stopSlideshow() {
         if (slideshowTimeline != null) {
@@ -175,13 +164,11 @@ public class LoginPageController implements Initializable, DataInitializable {
             cleanup();
             stopSlideshow();
             client.tryWorkerLogin(worker);
-    //                SimpleClient.getClient().sendToServer(worker);
         } else {
             Customer customer = new Customer("Yarden", "yarden@gmail.com", id);
             cleanup();
             stopSlideshow();
             client.tryCustomerLogin(customer);
-//            SimpleClient.getClient().sendToServer(customer);
         }
     }
 
@@ -248,11 +235,9 @@ public class LoginPageController implements Initializable, DataInitializable {
     private void startMoviePosterSlideshow() {
 
         if (allMovies == null || allMovies.isEmpty()) {
-       //     System.out.println("No movies available for slideshow");
             return;
         }
 
-      //  System.out.println("Number of movies received: " + allMovies.size());
 
         Timeline timeline = new Timeline();
         for (int i = 0; i < allMovies.size(); i++) {
@@ -260,10 +245,7 @@ public class LoginPageController implements Initializable, DataInitializable {
             KeyFrame keyFrame = new KeyFrame(Duration.seconds(i * 5), event -> {
                 Movie movie = allMovies.get(index);
                 byte[] image = movie.getMovieIcon();
-
-                // Convert byte array to Image
                 Image image2 = convertByteArrayToImage(image);
-                // Handle null or error image
                 if (image2 == null || image2.isError()) {
                     System.out.println("Using default image");
                     try {
@@ -278,20 +260,15 @@ public class LoginPageController implements Initializable, DataInitializable {
                         System.out.println("Error loading default image: " + e.getMessage());
                     }
                 }
-
-                // Apply fade transition for the image
                 FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), moviePoster);
                 fadeOut.setFromValue(1.0);
                 fadeOut.setToValue(0.0);
-                //System.out.println("Fading out image: " + index + "movie title:" + movie.getEnglishName());
-                // Set the image after fading out
                 Image finalImage = image2;
                 fadeOut.setOnFinished(e -> {
                     moviePoster.setImage(finalImage);
                     if (finalImage == null) {
                         System.out.println("Final image is null");
                     } else {
-                        //System.out.println("Setting image to ImageView");
                     }
                     // Fade in the new image
                     FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), moviePoster);
@@ -317,7 +294,6 @@ public class LoginPageController implements Initializable, DataInitializable {
             // Create Image from InputStream
             return new Image(inputStream);
         } else {
-           // System.out.println("No image data available");
             return null;  // Or handle as needed, e.g., return a default image
         }
     }

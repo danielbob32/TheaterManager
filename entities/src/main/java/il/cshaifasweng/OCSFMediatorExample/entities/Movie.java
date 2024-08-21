@@ -150,7 +150,6 @@ public class Movie {
             System.out.println("movieIcon is null");
             return null;
         }
-        // Convert byte[] to Base64 string
         String base64 = Base64.getEncoder().encodeToString(movieIcon);
         System.out.println("Base64 string length: " + base64.length());
         return base64;
@@ -160,7 +159,6 @@ public class Movie {
     public void setMovieIconAsString(String movieIconAsString) {
         this.movieIconAsString = movieIconAsString;
         if (movieIconAsString != null) {
-            // Convert Base64 string back to byte array
             this.movieIcon = Base64.getDecoder().decode(movieIconAsString);
         }
     }
@@ -228,7 +226,6 @@ public class Movie {
         this.homePrice = homePrice;
     }
 
-    // New method to add a screening
     public void addScreening(Screening screening) {
         if (!this.screenings.contains(screening)) {
             this.screenings.add(screening);
@@ -236,13 +233,11 @@ public class Movie {
         }
     }
 
-    // New method to remove a screening
     public void removeScreening(Screening screening) {
         screenings.remove(screening);
         screening.setMovie(null);
     }
 
-    // Getter and setter for screenings
     public List<Screening> getScreenings() {
         return screenings;
     }

@@ -67,8 +67,6 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		toDatePicker.setValue(LocalDate.now().plusWeeks(1));
 
 		filterButton.setOnAction(event -> applyFilters());
-//		showMovies();
-
 	}
 
 	@Override
@@ -94,7 +92,6 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	public void onMovieListEvent(MovieListEvent event) {
 		System.out.println("in onMovieListEvent");
 		allMovies = event.getMovies();
-//		applyFilters();
 		displayFilteredMovies(allMovies);
 	}
 
@@ -163,26 +160,13 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	}
 
 	private VBox createMovieBox(Movie movie) {
-//		System.out.println("in createMovieBox");
 		VBox movieBox = new VBox(5);
-
 		movieBox.setPadding(new Insets(10));
 		movieBox.setStyle("-fx-border-color: #1e3c72; -fx-border-width: 1; -fx-border-radius: 10; -fx-fill: #FFFFFFF2");
-
 		HBox contentBox = new HBox(10);
 		contentBox.prefWidthProperty().bind(this.moviesContainer.widthProperty().multiply(0.80));
 		byte[] image2 = movie.getMovieIcon();
-		if (image2 != null) {
-//			System.out.println("Image byte array length: " + image2.length);
-		} else {
-			System.out.println("Image byte array is null");
-		}
 		Image image3 = convertByteArrayToImage(image2);
-		if (image3 == null) {
-			System.out.println("Image is null");
-		} else {
-//			System.out.println("Image created successfully");
-		}
 		if (image3 == null || image3.isError()) {
 			System.out.println("Using default image");
 			try {
@@ -224,33 +208,15 @@ public class CinemaMoviesListBoundary implements DataInitializable {
         });
 
 		buttons.getChildren().add(detailsButton);
-
-		// If Person is ContentManager, add an edit movie button.
 		Person p = client.getConnectedPerson();
-//		if(p instanceof Worker && ((Worker) p).getWorkerType().equals("Content Manager"))
-//		{
-//			Button editButton = new Button("Edit Movie");
-//			editButton.setOnAction(e-> {
-//				try {
-//					editMoviePage(movie);
-//				} catch (IOException ex) {
-//					throw new RuntimeException(ex);
-//				}
-//			});
-//
-//			buttons.getChildren().add(editButton);
-//		}
 		textContent.getChildren().addAll(englishTitleLabel, hebrewTitleLabel, producerLabel, actorsLabel, synopsisLabel);
 		HBox.setHgrow(textContent, Priority.ALWAYS);
 		HBox.setHgrow(buttons, Priority.NEVER);
-
 		contentBox.getChildren().addAll(iv, textContent);
 		HBox buttonBox = new HBox(buttons);
 		buttonBox.setAlignment(Pos.CENTER_RIGHT);
 		contentBox.getChildren().add(buttonBox);
-
 		movieBox.getChildren().add(contentBox);
-
 		return movieBox;
 	}
 
@@ -258,7 +224,6 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		if (imageData != null && imageData.length > 0) {
 			// Convert byte[] to InputStream
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
 			// Create Image from InputStream
 			return new Image(inputStream);
 		} else {
@@ -273,12 +238,6 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		cleanup();
 		App.setRoot("CinemaMovieDetails", movie);
 	}
-
-//	public void editMoviePage(Movie movie) throws IOException {
-//		System.out.println("in editMoviePage");
-//		cleanup();
-//		App.setRoot("editMoviePage", movie);
-//	}
 
 	@FXML
 	private void handleBackButton(ActionEvent event) throws IOException {

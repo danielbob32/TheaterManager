@@ -33,7 +33,6 @@ public class App extends Application {
         Object controller = loader.getController();
         ((DataInitializable)controller).setClient(client);
         ((DataInitializable)controller).initData(null);
-//        scene = new Scene(root, 1000, 500);
 
         // Get screen dimensions
         javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
@@ -48,7 +47,6 @@ public class App extends Application {
         stage.show();
         stage.setMaxWidth(1080);
         stage.setMaxHeight(900);
-        //stage.setResizable(false);
     }
 
     public static void setRoot(String fxml) throws IOException {

@@ -134,7 +134,6 @@ public class GeneralMovieDetailsController implements DataInitializable {
                     movie.setHomePrice(newHomePrice);
                 }
 
-                // Send updated movie to server
                 Message updateMsg = new Message(0, "updateMovie", objectMapper.writeValueAsString(movie));
                 client.sendToServer(updateMsg);
             } catch (NumberFormatException e) {

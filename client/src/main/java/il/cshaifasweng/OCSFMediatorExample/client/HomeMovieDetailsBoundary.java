@@ -81,7 +81,6 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         if (data instanceof Movie) {
             currentMovie = (Movie) data;
             displayMovieDetails();
-//            populateTimeComboBox();
             checkUserPermissions();
         }
     }
@@ -124,19 +123,14 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         LocalTime startTime;
 
         if (selectedDate.isEqual(today)) {
-            // Start from the next round half-hour if today is selected
-//            startTime = now.plusMinutes(30 - now.getMinute() % 30);
             startTime = now.withSecond(0).withNano(0);
             startTime = startTime.plusMinutes(30 - startTime.getMinute() % 30);
-//            System.out.println("Start time: " + startTime);
-            // Check if the next round time crosses midnight
             if (now.isAfter(LocalTime.of(23, 30))) {
                 selectedDate = selectedDate.plusDays(1);  // Move to the next day
                 dateSelector.setValue(selectedDate);      // Update the date picker
                 startTime = LocalTime.of(0, 0);           // Start from midnight of the next day
             }
         } else {
-            // Start from midnight for future dates
             startTime = LocalTime.of(0, 0);
         }
 
@@ -167,7 +161,6 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
                 return new Image(defaultImageStream);
             }
         } catch (Exception e) {
-          //  System.out.println("Error loading default image: " + e.getMessage());
         }
         return null;
     }

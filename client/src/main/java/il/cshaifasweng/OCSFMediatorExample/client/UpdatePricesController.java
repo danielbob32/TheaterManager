@@ -156,10 +156,9 @@ public class UpdatePricesController implements DataInitializable {
         Platform.runLater(() -> {
             if (!isUpdating) {
                 isUpdating = true;
-                //showAlert("Update Result", event.getWarning().getMessage());
                 if (event.getWarning().getMessage().contains("successfully")) {
-                    updateCurrentPrice(); // Update the current price label
-                    loadMovies(); // Reload the movies to reflect the updated price
+                    updateCurrentPrice(); 
+                    loadMovies();
                 }
                 isUpdating = false;
             }

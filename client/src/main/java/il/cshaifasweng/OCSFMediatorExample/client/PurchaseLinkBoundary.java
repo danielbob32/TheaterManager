@@ -13,24 +13,34 @@ import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 
 public class PurchaseLinkBoundary implements DataInitializable {
 
-    @FXML private Label movieTitleLabel;
-    @FXML private Label selectedDateLabel;
-    @FXML private Label selectedTimeLabel;
-    @FXML private Label totalPriceLabel;
+    @FXML
+    private Label movieTitleLabel;
+    @FXML
+    private Label selectedDateLabel;
+    @FXML
+    private Label selectedTimeLabel;
+    @FXML
+    private Label totalPriceLabel;
 
-    @FXML private TextField nameField;
-    @FXML private TextField idField;
-    @FXML private TextField emailField;
-    @FXML private TextField creditCardNumberField;
+    @FXML
+    private TextField nameField;
+    @FXML
+    private TextField idField;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private TextField creditCardNumberField;
 
-    @FXML private Button confirmPaymentButton;
-    @FXML private Button backButton;
+    @FXML
+    private Button confirmPaymentButton;
+    @FXML
+    private Button backButton;
 
     private SimpleClient client;
     private Movie currentMovie;
     private String selectedDate;
     private String selectedTime;
-    private int totalPrice; // Example price for the home movie link
+    private int totalPrice;
 
     @Override
     public void setClient(SimpleClient client) {
@@ -44,18 +54,17 @@ public class PurchaseLinkBoundary implements DataInitializable {
             currentMovie = (Movie) params[0];
             selectedTime = (String) params[1];
             selectedDate = (String) params[2];
-            totalPrice = currentMovie.getHomePrice(); // Set the price from the movie
-            // print total price
+            totalPrice = currentMovie.getHomePrice();
             System.out.println("Total price: " + totalPrice);
             initializePaymentDetails();
         }
     }
+
     private void initializePaymentDetails() {
         movieTitleLabel.setText(currentMovie.getEnglishName());
         selectedDateLabel.setText("Date: " + selectedDate);
         selectedTimeLabel.setText("Time: " + selectedTime);
         totalPriceLabel.setText("Price: ₪" + totalPrice);
-        // show total price
         System.out.println("Total price: " + totalPrice);
 
         Person connectedPerson = client.getConnectedPerson();
@@ -84,15 +93,14 @@ public class PurchaseLinkBoundary implements DataInitializable {
             String creditCard = creditCardNumberField.getText().trim();
 
             client.purchaseLink(
-                currentMovie.getId(),
-                selectedDate,
-                selectedTime,
-                totalPrice,
-                email,
-                name,
-                id,
-                creditCard
-            );
+                    currentMovie.getId(),
+                    selectedDate,
+                    selectedTime,
+                    totalPrice,
+                    email,
+                    name,
+                    id,
+                    creditCard);
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Error processing payment. Please try again.");
@@ -158,6 +166,7 @@ public class PurchaseLinkBoundary implements DataInitializable {
             showAlert("Error returning to movie details.");
         }
     }
+
     @Subscribe
     public void onHomeLinkPurchaseResponse(HomeLinkPurchaseResponseEvent event) {
         Platform.runLater(() -> {
@@ -165,7 +174,7 @@ public class PurchaseLinkBoundary implements DataInitializable {
                 System.out.println("Purchase successful. Response data: " + event.getData());
                 showAlert("Payment successful! An email has been sent with the movie link details.");
                 try {
-                    cleanup(); 
+                    cleanup();
                     App.setRoot("LinkDetails", event.getData());
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -181,5 +190,3 @@ public class PurchaseLinkBoundary implements DataInitializable {
         EventBus.getDefault().unregister(this);
     }
 }
-
-

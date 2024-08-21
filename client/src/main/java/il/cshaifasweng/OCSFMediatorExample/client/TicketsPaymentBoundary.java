@@ -53,7 +53,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
     private String id;
     private String email;
     private String paymentMethod;
-    private String paymentNum;   // number of credit card / ticket tab
+    private String paymentNum;   
 
     @Override
     public void setClient(SimpleClient client) {
@@ -113,19 +113,8 @@ public class TicketsPaymentBoundary implements DataInitializable {
             emailField.setText(((Customer) connectedPerson).getEmail());
         }
 
-        // image
         byte[] image2 = screening.getMovie().getMovieIcon();
-        if (image2 != null) {
-            System.out.println("Image byte array length: " + image2.length);
-        } else {
-            System.out.println("Image byte array is null");
-        }
         Image image3 = convertByteArrayToImage(image2);
-        if (image3 == null) {
-            System.out.println("Image is null");
-        } else {
-            System.out.println("Image created successfully");
-        }
         if (image3 == null || image3.isError()) {
             System.out.println("Using default image");
             try {
@@ -145,14 +134,11 @@ public class TicketsPaymentBoundary implements DataInitializable {
 
     public Image convertByteArrayToImage(byte[] imageData) {
         if (imageData != null && imageData.length > 0) {
-            // Convert byte[] to InputStream
             ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
-            // Create Image from InputStream
             return new Image(inputStream);
         } else {
             System.out.println("No image data available");
-            return null;  // Or handle as needed, e.g., return a default image
+            return null; 
         }
     }
 
@@ -200,11 +186,11 @@ public class TicketsPaymentBoundary implements DataInitializable {
     }
 
     private boolean validateId() {
-//        String id = idField.getText().trim();
-//        if (!Pattern.matches("\\d{9}", id) || !Pattern.matches("\\d{4}", id)) {
-//            showAlert("Invalid ID. Please enter 9 digits.");
-//            return false;
-//        }
+       String id = idField.getText().trim();
+       if (!Pattern.matches("\\d{9}", id) || !Pattern.matches("\\d{4}", id)) {
+           showAlert("Invalid ID. Please enter 9 digits.");
+           return false;
+       }
         return true;
     }
 
@@ -270,7 +256,6 @@ public class TicketsPaymentBoundary implements DataInitializable {
                 System.out.println("Ticket tab validation failed");
                 showAlert("Invalid information or insufficient balance.");
             } else {
-                // Proceed with payment
                 updatePurchaseInfoWithPaymentDetails();
                 try {
                     System.out.println("in Tickets payment boundary, sending name: " + name);

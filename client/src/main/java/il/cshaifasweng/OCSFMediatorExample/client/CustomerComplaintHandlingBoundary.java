@@ -42,8 +42,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     @FXML
     private TableColumn<Complaint, String> cinemaColumn;
 
-    private ComboBox<String> cinemaComboBox;  // Add this line
-
+    private ComboBox<String> cinemaComboBox; // Add this line
 
     private SimpleClient client;
 
@@ -59,8 +58,10 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         // Set up the table columns
         titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate().toString()));
-        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
-        cinemaColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCinemaName() != null ? cellData.getValue().getCinemaName() : "N/A"));
+        statusColumn.setCellValueFactory(
+                cellData -> new SimpleStringProperty(cellData.getValue().isActive() ? "Active" : "Resolved"));
+        cinemaColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getCinemaName() != null ? cellData.getValue().getCinemaName() : "N/A"));
 
         // Handle button actions
         viewComplaintButton.setOnAction(this::handleViewComplaint);
@@ -127,14 +128,12 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
                 new Label("Description: " + complaint.getDescription()),
                 new Label("Date Submitted: " + complaint.getDate()),
                 new Label("Status: " + (complaint.isActive() ? "Active" : "Resolved")),
-                new Label("Cinema: " + (complaint.getCinemaName() != null ? complaint.getCinemaName() : "N/A"))
-        );
+                new Label("Cinema: " + (complaint.getCinemaName() != null ? complaint.getCinemaName() : "N/A")));
 
         if (!complaint.isActive()) {
             content.getChildren().addAll(
                     new Label("Response: " + complaint.getResponse()),
-                    new Label("Refund Amount: $" + complaint.getRefund())
-            );
+                    new Label("Refund Amount: $" + complaint.getRefund()));
         }
 
         dialog.getDialogPane().setContent(content);
@@ -166,7 +165,8 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
 
         cinemaComboBox.setPromptText("Select Cinema (Optional)");
 
-        VBox content = new VBox(10, new Label("Title:"), titleField, new Label("Description:"), descriptionArea, new Label("Cinema:"), cinemaComboBox);
+        VBox content = new VBox(10, new Label("Title:"), titleField, new Label("Description:"), descriptionArea,
+                new Label("Cinema:"), cinemaComboBox);
         dialog.getDialogPane().setContent(content);
 
         ButtonType submitButtonType = new ButtonType("Submit", ButtonBar.ButtonData.OK_DONE);
@@ -188,20 +188,15 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
                 Customer customer = (Customer) client.getConnectedPerson();
                 String selectedCinema = cinemaComboBox.getValue();
                 if ("No Cinema".equals(selectedCinema)) {
-                    selectedCinema = null;  // Set to null if "No Cinema" is selected
+                    selectedCinema = null; // Set to null if "No Cinema" is selected
                 }
-                return new Complaint(new java.util.Date(), titleField.getText().trim(), descriptionArea.getText().trim(), true, customer, selectedCinema);
+                return new Complaint(new java.util.Date(), titleField.getText().trim(),
+                        descriptionArea.getText().trim(), true, customer, selectedCinema);
             }
             return null;
         });
-
-        // Ensure registration before request
-        //EventBus.getDefault().register(this);
-
-        // Send request for cinema list
         requestCinemaList();
         System.out.println("Cinema list requested");
-
         dialog.showAndWait().ifPresent(complaint -> {
             if (complaint != null) {
                 try {
@@ -222,26 +217,20 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         System.out.println("Received cinema list event");
         Platform.runLater(() -> {
             cinemaComboBox.getItems().clear();
-            cinemaComboBox.getItems().add("No Cinema");  // Add "No Cinema" option
-            // Directly add the list of cinema names (Strings) to the ComboBox
+            cinemaComboBox.getItems().add("No Cinema"); // Add "No Cinema" option
             cinemaComboBox.getItems().addAll(event.getCinemas());
             System.out.println("Added cinemas to combo box: " + cinemaComboBox.getItems());
         });
     }
-
-
-
-
 
     @Subscribe
     public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
         Platform.runLater(() -> {
             showAlert("Success", "Complaint submitted successfully!");
         });
-        try{
+        try {
             client.fetchCustomerComplaints();
-        }
-        catch(IOException e){
+        } catch (IOException e) {
             showAlert("Error", "Failed to fetch customer complaints.");
             e.printStackTrace();
         }
@@ -259,7 +248,6 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     public void cleanup() {
         EventBus.getDefault().unregister(this);
     }
-
 
     @FXML
     void handleBackButton(ActionEvent event) {

@@ -15,9 +15,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SimpleClient extends AbstractClient {
@@ -123,7 +121,7 @@ public class SimpleClient extends AbstractClient {
                 case "fetchUserTicketTabsResponse":
                     handleFetchUserTicketTabsResponse(message);
                     break;
-                //YONI`S CASES:
+                // YONI`S CASES:
                 case "fetchUserBookingsResponse":
                     handleFetchUserBookingsResponse(message);
                     break;
@@ -148,8 +146,9 @@ public class SimpleClient extends AbstractClient {
 
                 case "notifications":
                     try {
-                        List<Notification> notifications = objectMapper.readValue(message.getData(), new TypeReference<List<Notification>>() {
-                        });
+                        List<Notification> notifications = objectMapper.readValue(message.getData(),
+                                new TypeReference<List<Notification>>() {
+                                });
                         EventBus.getDefault().post(new NotificationEvent(notifications));
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -160,13 +159,12 @@ public class SimpleClient extends AbstractClient {
                     break;
             }
         } else if (msg instanceof Warning) {
-        Warning warning = (Warning) msg;
-        EventBus.getDefault().post(new WarningEvent(warning));
+            Warning warning = (Warning) msg;
+            EventBus.getDefault().post(new WarningEvent(warning));
         } else {
-        System.out.println("Received unknown message type: " + msg.getClass().getName());
+            System.out.println("Received unknown message type: " + msg.getClass().getName());
         }
     }
-
 
     private void showSuccessAlert(String content) {
         Platform.runLater(() -> {
@@ -196,7 +194,6 @@ public class SimpleClient extends AbstractClient {
         showFailAlert(content, null);
     }
 
-
     private void showFailAlert(String content, String defaultContent) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -211,25 +208,12 @@ public class SimpleClient extends AbstractClient {
     private void handleMovieList(Message message) {
         try {
             JsonNode rootNode = objectMapper.readTree(message.getData());
-
-            // Assuming the JSON is an array of movies, get the first movie's genres
             if (rootNode.isArray() && rootNode.size() > 0) {
                 JsonNode firstMovieNode = rootNode.get(0);
                 JsonNode genresNode = firstMovieNode.get("genres");
-
-                //System.out.println("Genres of the first movie: " + genresNode);
-            } else {
-                //System.out.println("No movies available or empty list.");
             }
-
-//            System.out.println("In handleMovieList Received JSON: " + message.getData());
-            List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {});
-            // Debugging deserialized objects
-            for (Movie movie : movies) {
-                //System.out.println("Movie Title: " + movie.getEnglishName());
-               // System.out.println("Genres: " + movie.getGenres());
-            }
-
+            List<Movie> movies = objectMapper.readValue(message.getData(), new TypeReference<List<Movie>>() {
+            });
             String movieType = message.getAdditionalData();
             if (movieType != null) {
                 List<Movie> filteredMovies = movies.stream()
@@ -263,8 +247,7 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    public void handlePersonLoginFail()
-    {
+    public void handlePersonLoginFail() {
         showErrorAlert("This user is already logged in. Log out from the other device first.");
     }
 
@@ -288,11 +271,9 @@ public class SimpleClient extends AbstractClient {
             System.out.println("Worker login successful");
             Platform.runLater(() -> {
                 try {
-                    // Deserialize the JSON to a Worker object
                     Worker current = objectMapper.readValue(message.getData(), Worker.class);
                     System.out.println("Deserialized object type: " + current.getClass().getName());
-    
-                    // Check if the deserialized object is a CinemaManager
+
                     if (current instanceof CinemaManager) {
                         CinemaManager cinemaManager = (CinemaManager) current;
                         System.out.println("Cinema Manager detected: " + cinemaManager.getName());
@@ -329,7 +310,6 @@ public class SimpleClient extends AbstractClient {
         }
 
     }
-    
 
     private void handleScreeningAdd(Message message, String status) {
         System.out.println("screening add message received");
@@ -362,9 +342,8 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-
     private void handleMovieUpdate(Message message, String messageStatus) {
-        if(messageStatus.equals("success")) {
+        if (messageStatus.equals("success")) {
             EventBus.getDefault().post(new MovieUpdateEvent(true));
         } else {
             EventBus.getDefault().post(new MovieUpdateEvent(false));
@@ -377,14 +356,12 @@ public class SimpleClient extends AbstractClient {
             showSuccessAlert("Movie have been added successfully");
         } else if (message.getData().equals("Movie already exists")) {
             showErrorAlert("This movie already exists in the database.");
-        }
-        else {
+        } else {
             showErrorAlert("Failed to add movie");
         }
     }
 
     private void handlePriceChangeRequests(Message message) {
-//        System.out.println("Price change requests in simple client: " + message.getData());
         EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
     }
 
@@ -402,8 +379,10 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             try {
                 System.out.println("got seatAvailabilityResponse");
-                List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {});
-                EventBus.getDefault().post(new SeatAvailabilityEvent(Integer.parseInt(message.getAdditionalData()), seats));
+                List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {
+                });
+                EventBus.getDefault()
+                        .post(new SeatAvailabilityEvent(Integer.parseInt(message.getAdditionalData()), seats));
             } catch (IOException e) {
                 e.printStackTrace();
                 EventBus.getDefault().post(new FailureEvent("Failed to deserialize seats"));
@@ -435,7 +414,8 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             if (isSuccessful) {
                 System.out.println("Received successful purchase response: " + message.getData());
-                EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(true, "Purchase successful", message.getData()));
+                EventBus.getDefault()
+                        .post(new HomeLinkPurchaseResponseEvent(true, "Purchase successful", message.getData()));
             } else {
                 EventBus.getDefault().post(new HomeLinkPurchaseResponseEvent(false, "Purchase failed", null));
             }
@@ -446,7 +426,8 @@ public class SimpleClient extends AbstractClient {
         try {
             System.out.println("got fetchUserBookingsResponse");
             System.out.println("Received Data: " + message.getData());
-            List<Booking> bookings = objectMapper.readValue(message.getData(), new TypeReference<List<Booking>>() {});
+            List<Booking> bookings = objectMapper.readValue(message.getData(), new TypeReference<List<Booking>>() {
+            });
             System.out.println("Finished deserializing bookings - SimpleClient");
             for (Booking booking : bookings) {
                 System.out.println("Booking ID: " + booking.getBookingId() + " - isActive: " + booking.isActive());
@@ -462,42 +443,40 @@ public class SimpleClient extends AbstractClient {
         try {
             System.out.println("got handleFetchUserTicketTabsResponse");
             System.out.println("Received Data: " + message.getData());
-            List<TicketTab> ticketTabs = objectMapper.readValue(message.getData(), new TypeReference<List<TicketTab>>() {});
+            List<TicketTab> ticketTabs = objectMapper.readValue(message.getData(),
+                    new TypeReference<List<TicketTab>>() {
+                    });
             System.out.println("Deserialized Data: " + ticketTabs);
 
             System.out.println("Finished deserializing ticket tabs");
             for (TicketTab ticketTab : ticketTabs) {
-                System.out.println("TicketTab Product ID: " + ticketTab.getProduct_id() + " - isActive: " + ticketTab.isActive());
+                System.out.println(
+                        "TicketTab Product ID: " + ticketTab.getProduct_id() + " - isActive: " + ticketTab.isActive());
             }
-            EventBus.getDefault().post(new TicketTabListEvent(Integer.parseInt(message.getAdditionalData()), ticketTabs));
+            EventBus.getDefault()
+                    .post(new TicketTabListEvent(Integer.parseInt(message.getAdditionalData()), ticketTabs));
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to deserialize ticket tabs"));
         }
     }
 
-    private void handleCancelBookingResponse(Message message)
-    {
-//        System.out.println("got cancelBookingResponse");
+    private void handleCancelBookingResponse(Message message) {
         String[] parts = message.getAdditionalData().split(":");
         int bookingId = Integer.parseInt(parts[0]);
         double refund = Double.parseDouble(parts[1]);
-//        System.out.println("In cancelBookingResponse: " + bookingId);
-//        System.out.println("In cancelBookingResponse: " + message.getAdditionalData());
         EventBus.getDefault().post(new CancelBookingEvent(bookingId, refund));
     }
 
-    private void handleSubmitComplaintResponse(Message message)
-    {
-//        System.out.println("got submitComplaintResponse");
+    private void handleSubmitComplaintResponse(Message message) {
         EventBus.getDefault().post(new SubmitComplaintEvent(message.getAdditionalData()));
     }
 
-    private void handleFetchComplaintsResponse(Message message)
-    {
+    private void handleFetchComplaintsResponse(Message message) {
         try {
-//            System.out.println("got fetchComplaintsResponse");
-            List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
+            List<Complaint> complaints = objectMapper.readValue(message.getData(),
+                    new TypeReference<List<Complaint>>() {
+                    });
             System.out.println("Got all the complaints, size: " + complaints.size());
             EventBus.getDefault().post(new ComplaintListEvent(complaints));
         } catch (IOException e) {
@@ -506,11 +485,11 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    private void handleFetchCustomerComplaintsResponse(Message message)
-    {
+    private void handleFetchCustomerComplaintsResponse(Message message) {
         try {
-//            System.out.println("got fetchComplaintsResponse");
-            List<Complaint> complaints = objectMapper.readValue(message.getData(), new TypeReference<List<Complaint>>() {});
+            List<Complaint> complaints = objectMapper.readValue(message.getData(),
+                    new TypeReference<List<Complaint>>() {
+                    });
             System.out.println("Got customer complaints, size: " + complaints.size());
             EventBus.getDefault().post(new CustomerComplaintListEvent(complaints));
         } catch (IOException e) {
@@ -519,16 +498,12 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    private void handleRespondToComplaintResponse(Message message)
-    {
-//        System.out.println("got updateComplaintResponse");
+    private void handleRespondToComplaintResponse(Message message) {
         EventBus.getDefault().post(new RespondToComplaintEvent(message.getAdditionalData()));
     }
 
-    private void handleFetchRandomPersonResponse(Message message)
-    {
+    private void handleFetchRandomPersonResponse(Message message) {
         try {
-//            System.out.println("got fetchRandomPersonResponse");
             Person person = objectMapper.readValue(message.getData(), Person.class);
             EventBus.getDefault().post(new FetchRandomPersonEvent(person));
         } catch (IOException e) {
@@ -540,7 +515,7 @@ public class SimpleClient extends AbstractClient {
     public static SimpleClient getClient() {
         if (client == null) {
             client = new SimpleClient("localhost", 3000);
-//            client = new SimpleClient("0.tcp.eu.ngrok.io", 16312);
+            // client = new SimpleClient("0.tcp.eu.ngrok.io", 16312);
         }
         return client;
     }
@@ -597,7 +572,7 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    public void getMovieById(int id){
+    public void getMovieById(int id) {
         try {
             Message message = new Message(0, "getMovieById", "", id);
             sendToServer(message);
@@ -607,16 +582,14 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-
     public void getSeatAvailability(int screeningId) throws IOException {
         Message message = new Message(0, "getSeatAvailability", String.valueOf(screeningId));
         sendToServer(message);
     }
 
     public void purchaseTickets(String name, String id, String email, String paymentMethod, String paymentNum,
-                                int cinemaPrice, int screeningId, List<Integer> chosenSeatsId) throws IOException {
+            int cinemaPrice, int screeningId, List<Integer> chosenSeatsId) throws IOException {
         System.out.println("in SimpleClient: purchaseTickets for " + name);
-        // convert to json and send to server
         try {
             ObjectNode dataNode = objectMapper.createObjectNode();
             dataNode.put("name", name);
@@ -675,7 +648,8 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    public void purchaseLink(int movieId, String selectedDate, String selectedTime, int totalPrice, String email, String name, String id, String creditCard) {
+    public void purchaseLink(int movieId, String selectedDate, String selectedTime, int totalPrice, String email,
+            String name, String id, String creditCard) {
         try {
             ObjectNode dataNode = objectMapper.createObjectNode();
             dataNode.put("movieId", movieId);
@@ -699,7 +673,8 @@ public class SimpleClient extends AbstractClient {
     public void handleCinemaList(String data) {
         System.out.println("Received cinema list data: " + data);
         try {
-            List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {});
+            List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {
+            });
             System.out.println("Parsed cinema list: " + cinemas);
             EventBus.getDefault().post(new CinemaListEvent(cinemas));
         } catch (IOException e) {
@@ -709,20 +684,20 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-private void handleReportData(String data) {
-    try {
-        System.out.println("Processing report data: " + data);
-        JsonNode reportNode = objectMapper.readTree(data);
-        String reportType = reportNode.get("reportType").asText();
-        String reportData = reportNode.get("reportData").asText();
-        System.out.println("Posting report event: type=" + reportType + ", data=" + reportData);
-        EventBus.getDefault().post(new ReportDataEvent(reportType, reportData));
-    } catch (IOException e) {
-        System.out.println("Error parsing report data: " + e.getMessage());
-        e.printStackTrace();
-        EventBus.getDefault().post(new FailureEvent("Failed to parse report data"));
+    private void handleReportData(String data) {
+        try {
+            System.out.println("Processing report data: " + data);
+            JsonNode reportNode = objectMapper.readTree(data);
+            String reportType = reportNode.get("reportType").asText();
+            String reportData = reportNode.get("reportData").asText();
+            System.out.println("Posting report event: type=" + reportType + ", data=" + reportData);
+            EventBus.getDefault().post(new ReportDataEvent(reportType, reportData));
+        } catch (IOException e) {
+            System.out.println("Error parsing report data: " + e.getMessage());
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to parse report data"));
+        }
     }
-}
 
     public void requestCinemaList() throws IOException {
         System.out.println("Sending getCinemaList request to server");
@@ -732,34 +707,29 @@ private void handleReportData(String data) {
     public void requestReport(String reportType, LocalDate month, String cinema) throws IOException {
         Person connectedPerson = getConnectedPerson();
         System.out.println("Connected person class inside simple client: " + connectedPerson.getClass().getName());
-        System.out.println("Requesting report for connected person: " + connectedPerson.getName() + ", type: " + connectedPerson.getClass().getSimpleName());
-    
-        // Adjust the report type if the connected person is a CinemaManager
+        System.out.println("Requesting report for connected person: " + connectedPerson.getName() + ", type: "
+                + connectedPerson.getClass().getSimpleName());
+
         if (connectedPerson instanceof CinemaManager) {
             CinemaManager manager = (CinemaManager) connectedPerson;
             cinema = manager.getCinema().getCinemaName();
-            reportType = "Monthly Ticket Sales Manager";  // Correct the report type for CinemaManager
+            reportType = "Monthly Ticket Sales Manager"; // Correct the report type for CinemaManager
             System.out.println("CinemaManager detected. Requesting report: " + reportType + " for cinema: " + cinema);
         } else {
             System.out.println("Connected person is not a CinemaManager");
         }
-    
-        // Prepare the report request data
+
         ObjectNode dataNode = objectMapper.createObjectNode();
         dataNode.put("reportType", reportType);
         dataNode.put("month", month.toString());
         dataNode.put("cinema", cinema);
-    
-        // Send the report request to the server
+
         String jsonData = objectMapper.writeValueAsString(dataNode);
         System.out.println("Sending report request: " + jsonData);
         sendToServer(new Message(0, "generateReport", jsonData));
     }
-    
-    
 
-    public void updateMovie(Movie movie)
-    {
+    public void updateMovie(Movie movie) {
         try {
             String jsonData = objectMapper.writeValueAsString(movie);
             Message updateMovieMsg = new Message(0, "updateMovie", jsonData);
@@ -777,13 +747,12 @@ private void handleReportData(String data) {
     }
 
     public void logout() {
-        if(this.connectedPerson!=null)
-        {
-            try{
-                Message logout_message = new Message(0, "personLogout", String.valueOf(this.connectedPerson.getPersonId()));
+        if (this.connectedPerson != null) {
+            try {
+                Message logout_message = new Message(0, "personLogout",
+                        String.valueOf(this.connectedPerson.getPersonId()));
                 sendToServer(logout_message);
-            }catch (IOException e)
-            {
+            } catch (IOException e) {
                 System.out.println("Error sending the server logout request");
                 e.printStackTrace();
             }
@@ -801,14 +770,13 @@ private void handleReportData(String data) {
         sendToServer(message);
     }
 
-    // ----- YONATHAN`S PART ------
     public void fetchUserBookings() throws IOException {
         Message message = new Message(0, "fetchUserBookings", String.valueOf(this.connectedPerson.getPersonId()));
         sendToServer(message);
     }
 
     public void cancelPurchase(int purchaseId, double refund) throws IOException {
-        Message message = new Message(0, "cancelPurchase", String.valueOf(purchaseId),String.valueOf(refund));
+        Message message = new Message(0, "cancelPurchase", String.valueOf(purchaseId), String.valueOf(refund));
         sendToServer(message);
     }
 
@@ -834,8 +802,7 @@ private void handleReportData(String data) {
         sendToServer(message);
     }
 
-    public void fetchCustomerComplaints() throws IOException
-    {
+    public void fetchCustomerComplaints() throws IOException {
         Message message = new Message(0, "fetchCustomerComplaints", String.valueOf(this.connectedPerson.getPersonId()));
         sendToServer(message);
     }

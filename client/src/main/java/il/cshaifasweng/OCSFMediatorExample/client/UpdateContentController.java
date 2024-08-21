@@ -21,16 +21,6 @@ public class UpdateContentController implements DataInitializable {
         if (data instanceof String) {
             workerType = (String) data;
         }
-//        if (!"Content manager".equals(workerType) && !"Chain manager".equals(workerType)) {
-//            // If not a content manager or chain manager, go back to the worker menu
-//            try {
-//                Person connectedPerson = client.getConnectedPerson();
-//                App.setRoot("WorkerMenu", connectedPerson);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-        System.out.println("UpdateContentController initialized for " + workerType);
     }
 
     @FXML

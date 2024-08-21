@@ -37,10 +37,8 @@ public class CinemaManager extends Worker{
 
         return cinemaManager;
     }
+    
     // Getters and setters
-   
-
-
     public Cinema getCinema() {
         return this.cinema;
     }

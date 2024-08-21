@@ -19,7 +19,7 @@ public class PriceChangeRequest {
     private int oldPrice;
     private int newPrice;
     private Date requestDate;
-    private String status; // "Pending", "Approved", "Denied"
+    private String status; 
 
     public PriceChangeRequest() {}
 

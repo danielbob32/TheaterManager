@@ -32,8 +32,7 @@ public class ReportsPageController implements DataInitializable {
 
     private SimpleClient client;
     private String currentReportData;
-
-    // Define colors for each report type
+    private String cinemaName;
     private static final String MONTHLY_SALES_COLOR = " #4CAF50";
     private static final String TICKET_TAB_COLOR = " #e156c3";
     private static final String HOME_MOVIE_COLOR = " #FFC107";
@@ -73,22 +72,39 @@ public class ReportsPageController implements DataInitializable {
     
     @Override
     public void initData(Object data) {
+        System.out.println("inside init data before if data");
         if (data instanceof Worker) {
             Worker user = (Worker) data;
+            System.out.println("inside init data before instance");
             boolean isCinemaManager = "CinemaManager".equalsIgnoreCase(user.getWorkerType());
             boolean isChainManager = "Chain manager".equalsIgnoreCase(user.getWorkerType());
     
+            System.out.println("Worker Type: " + user.getWorkerType());
+            System.out.println("Is Cinema Manager: " + isCinemaManager);
+            System.out.println("Is Chain Manager: " + isChainManager);
+    
             if (isCinemaManager && user instanceof CinemaManager) {
+                CinemaManager cinemaManager = (CinemaManager) user;
+                // Lock the cinema selection to the cinema managed by the CinemaManager
                 cinemaComboBox.setVisible(false);
                 cinemaComboBox.setManaged(false);
+                
+                // Lock the report type to "Monthly Ticket Sales"
                 reportTypeComboBox.setVisible(false);
                 reportTypeComboBox.setManaged(false);
+                
+                // Set the cinema name for the report
+                this.cinemaName = cinemaManager.getCinema().getCinemaName();
+                
+                // Enable the export button since Cinema Managers should be able to export
                 exportButton.setDisable(false);
             } else if (isChainManager) {
+                // Chain manager can see all options
                 cinemaComboBox.setVisible(true);
                 reportTypeComboBox.setVisible(true);
                 exportButton.setDisable(false);
             } else {
+                // Other worker types: hide the report options
                 cinemaComboBox.setVisible(false);
                 reportTypeComboBox.setVisible(false);
                 exportButton.setDisable(true);
@@ -137,25 +153,33 @@ public class ReportsPageController implements DataInitializable {
 
     @FXML
     private void generateReport() {
-        String reportType = reportTypeComboBox.getValue();
         YearMonth month = monthPicker.getValue();
-        String cinema = cinemaComboBox.getValue();
-
-        hideAllLabels();
-    
         Person connectedPerson = client.getConnectedPerson();
+        String reportType;
+        String cinema;
     
         if (connectedPerson instanceof Worker) {
             Worker worker = (Worker) connectedPerson;
             if ("CinemaManager".equals(worker.getWorkerType())) {
                 reportType = "Monthly Ticket Sales Manager";
+                cinema = this.cinemaName;
+            } else {
+                reportType = reportTypeComboBox.getValue();
+                cinema = cinemaComboBox.getValue();
             }
+        } else {
+            reportType = reportTypeComboBox.getValue();
+            cinema = cinemaComboBox.getValue();
         }
+    
+        System.out.println("Generating report - Type: " + reportType + ", Month: " + month + ", Cinema: " + cinema);
     
         if (reportType == null || month == null || cinema == null) {
             showAlert("Please select all required fields.");
             return;
         }
+    
+        hideAllLabels();
     
         try {
             client.requestReport(reportType, month.atDay(1), cinema);
@@ -203,9 +227,23 @@ public class ReportsPageController implements DataInitializable {
             CategoryAxis xAxis = new CategoryAxis();
             NumberAxis yAxis = new NumberAxis();
             BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-          
-            barChart.setTitle("Monthly Ticket Sales - All Cinemas");
-            xAxis.setLabel("Cinema");
+            
+            boolean isCinemaManager = reportType.equals("Monthly Ticket Sales Manager");
+            boolean isAllCinemas = cinemaComboBox.getValue().equals("All");
+            
+            if (isCinemaManager) {
+                String cinemaName = lines[0].split("for ")[1].split(" -")[0];
+                barChart.setTitle("Monthly Ticket Sales for " + cinemaName);
+                xAxis.setLabel("Day of Month");
+            } else if (isAllCinemas) {
+                barChart.setTitle("Monthly Ticket Sales - All Cinemas");
+                xAxis.setLabel("Cinema");
+            } else {
+                String cinemaName = cinemaComboBox.getValue();
+                barChart.setTitle("Monthly Ticket Sales for " + cinemaName);
+                xAxis.setLabel("Day of Month");
+            }
+            
             yAxis.setLabel("Number of Tickets Sold");
         
             XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -218,9 +256,12 @@ public class ReportsPageController implements DataInitializable {
                 String[] parts = lines[i].split(": ");
                 if (parts.length == 2) {
                     try {
-                        String cinemaName = parts[0].trim();
+                        String key = parts[0].trim();
                         int tickets = Integer.parseInt(parts[1].trim());
-                        series.getData().add(new XYChart.Data<>(cinemaName, tickets));
+                        if (isCinemaManager || !isAllCinemas) {
+                            key = "Day " + key; // Prefix with "Day" for single cinema reports
+                        }
+                        series.getData().add(new XYChart.Data<>(key, tickets));
                         totalTickets += tickets;
                     } catch (NumberFormatException e) {
                         System.out.println("Skipping line due to number format issue: " + lines[i]);
@@ -240,7 +281,6 @@ public class ReportsPageController implements DataInitializable {
             showAlert("Error parsing ticket sales report data: " + e.getMessage());
         }
     }
-    
     private void displayTabSalesReport(String reportData) {
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();

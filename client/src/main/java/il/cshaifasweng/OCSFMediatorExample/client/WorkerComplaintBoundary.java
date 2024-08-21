@@ -42,9 +42,9 @@ public class WorkerComplaintBoundary implements DataInitializable {
     @FXML
     private TextField responseField;
     @FXML
-    private TextField refundField;  // New field for refund amount
+    private TextField refundField;  
     @FXML
-    private Label responseLabel;    // New label for response field
+    private Label responseLabel;    
     @FXML
     private Button selectComplaintButton;
     @FXML
@@ -66,9 +66,7 @@ public class WorkerComplaintBoundary implements DataInitializable {
     @FXML
     public void initialize() throws IOException {
         EventBus.getDefault().register(this);
-
         complaintTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
         complaintIdColumn.setCellValueFactory(new PropertyValueFactory<>("complaint_id"));
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -78,8 +76,6 @@ public class WorkerComplaintBoundary implements DataInitializable {
         responseColumn.setCellValueFactory(new PropertyValueFactory<>("response"));
         customerIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getCustomer().getPersonId()).asObject());
         cinemaColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCinemaName() != null ? cellData.getValue().getCinemaName() : "N/A"));
-
-
         hideNonActiveCheckBox.setOnAction(event -> filterComplaints());
     }
 
@@ -154,14 +150,10 @@ public class WorkerComplaintBoundary implements DataInitializable {
                 showAlert("Error", "Response field cannot be empty.");
                 return;
             }
-
-            // Check if the complaint already has a reply
             if (!selectedComplaint.isActive()) {
                 showAlert("Error", "A reply has already been submitted for this complaint.");
                 return;
             }
-
-            // Check for refund value if applicable
             String refundText = refundField.getText();
             try {
                 int refundAmount = Integer.parseInt(refundText);

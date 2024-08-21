@@ -22,7 +22,7 @@ public class Booking {
     private String creditCard;
     private int ticketTabId;
     @JsonProperty("isActive")
-    boolean isActive; // Saves if this booking is active or cancelled
+    boolean isActive; 
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "bookingId")
@@ -80,7 +80,6 @@ public class Booking {
     }
 
     public void setCustomerAndBooking(Customer customer) {
-        //System.out.println("in Booking setCustomer");
         this.customer = customer;
         if (!customer.getBookings().contains(this)) {
             customer.getBookings().add(this);

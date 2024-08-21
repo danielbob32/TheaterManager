@@ -18,13 +18,14 @@ import java.util.*;
 
 public class ServerDB {
     private SessionFactory sessionFactory;
-//    private ObjectMapper mapper = new ObjectMapper();
 
-    public ServerDB() {
+    public ServerDB(String password) {
         try {
             // Configure Hibernate
             Configuration configuration = new Configuration();
-            configuration.addProperties(getHibernateProperties());
+            Properties props = getHibernateProperties();
+            props.setProperty("hibernate.connection.password", password);
+            configuration.addProperties(props);
 
             // Add all entity classes here
             configuration.addAnnotatedClass(Booking.class);
@@ -187,7 +188,6 @@ public class ServerDB {
 
     }
     
-     // genereate ticket tabs function
     private void generateTicketTabs() {
         try(Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
@@ -286,11 +286,6 @@ public class ServerDB {
             query.from(Movie.class);
             List<Movie> data = session.createQuery(query).getResultList();
             for (Movie movie : data) {
-//                if (movie.getEnglishName().equals("Deadpool")) {
-//                    System.out.println("Movie: " + movie.getEnglishName());
-//                    System.out.println("in serverDB price is:" + movie.getCinemaPrice());
-//                    System.out.println("Deadpool genres are:"+movie.getGenres());
-//                }
                 Hibernate.initialize(movie.getGenres());
             }
             return data;
@@ -326,13 +321,7 @@ public class ServerDB {
             Query<Worker> query = session.createQuery(hql, Worker.class);
             query.setParameter("id", id);
             Worker worker = query.uniqueResult();
-    
-//            System.out.println("Checking worker credentials for ID: " + id);
-//            System.out.println("Found worker: " + (worker != null));
-//            System.out.println("in checkworkercredentials before if");
-    
             if (worker != null && worker.getPassword().equals(password)) {
-//                System.out.println("in checkworkercredentials after if");
                 updatePersonLoginStatus(worker.getPersonId(), true);
                 if (worker instanceof CinemaManager) {
                     System.out.println("in checkworkercredentials after if instance of");
@@ -370,7 +359,6 @@ public class ServerDB {
             {
                 updatePersonLoginStatus(customer.getPersonId(), true);
                 for(Complaint c : customer.getComplaints()) {
-//                    System.out.println("Complaint title: " + c.getTitle());
                     Hibernate.initialize(c);
                 }
             }
@@ -405,20 +393,8 @@ public class ServerDB {
         try (Session session = sessionFactory.openSession()) {
             try {
                 session.beginTransaction();
-
-                // Save the movie
                 session.save(movie);
-
                 List<Customer> allCustomers = getAllCustomers();
-//                if(movie.getIsCinema())
-//                {
-////                    for (Customer customer : allCustomers) {
-////                        Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
-////                        notification.setCustomer(customer);
-////                        session.save(notification);
-////                    }
-//                    SchedulerService.schedulePremierNotification(movie);
-//                }
                 session.getTransaction().commit();
                 if(movie.getIsCinema())
                     SchedulerService.schedulePremierNotification(movie);
@@ -503,7 +479,6 @@ public class ServerDB {
     }
     public void generateData() {
         try {
-//            session.beginTransaction();
             System.out.println("Generating data...");
             List<Cinema> cinemas = generateCinemas();
             System.out.println("1. Cinemas generated: " + cinemas.size());
@@ -519,12 +494,8 @@ public class ServerDB {
             System.out.println("6. Complaints generated");
             generateTicketTabs();
             System.out.println("7. Ticket tabs generated");
-
-//            session.getTransaction().commit();
             System.out.println("Data generated successfully");
-    
         } catch (HibernateException e) {
-//            session.getTransaction().rollback();
             System.err.println("Error generating data: " + e.getMessage());
             e.printStackTrace();
         }
@@ -539,14 +510,12 @@ public class ServerDB {
             Random random = new Random();
 
             for (Booking booking : bookings) {
-                int numTickets = random.nextInt(5) + 1; // 1 to 5 tickets per booking
-//            System.out.println("\n For booking number:" + booking.getBookingId() + " adding " + numTickets + " tickets \n");
+                int numTickets = random.nextInt(5) + 1; 
                 for (int i = 0; i < numTickets; i++) {
                     if (screenings.isEmpty()) {
                         System.out.println("No screenings available to create tickets.");
                         return;
                     }
-                    // Randomly select a screening
                     Screening randomScreening = screenings.get(random.nextInt(screenings.size()));
 
                     Ticket ticket = new Ticket(
@@ -555,7 +524,7 @@ public class ServerDB {
                             true,
                             randomScreening.getCinema(),
                             randomScreening.getMovie(),
-                            null, // We'll set the seat later if needed
+                            null,
                             randomScreening.getHall(),
                             booking.getPurchaseTime(),
                             randomScreening
@@ -590,14 +559,14 @@ public class ServerDB {
             List<Movie> movies = new ArrayList<>();
 
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DAY_OF_YEAR, 20); // Set premier date 20 days from now
+            calendar.add(Calendar.DAY_OF_YEAR, 20);
 
             for (int i = 0; i < 10; i++) {
                 Date premierDate;
                 if (i > 7) {
-                    premierDate = calendar.getTime(); // Use the calculated future date for the first 3 movies
+                    premierDate = calendar.getTime(); 
                 } else {
-                    premierDate = new Date(); // For other movies, use current date
+                    premierDate = new Date();
                 }
                 List<String> genres = Arrays.asList(genresArray[i].split(",\\s*"));
 
@@ -636,24 +605,15 @@ public class ServerDB {
                    try (InputStream defaultInputStream = getClass().getResourceAsStream("/Images/" + "default.jpg")) {
                         byte[] defaultImageData = defaultInputStream.readAllBytes();
                         movie.setMovieIcon(defaultImageData);
-                        //System.out.println("loaded image number:" + i);
                     } catch (IOException ex) {
-                     //   System.out.println("Error loading default image");
                         ex.printStackTrace();
                     }
                 } catch (IOException e) {
-                //    System.out.println("Error loading image: " + movie_icons[i]);
                     e.printStackTrace();
                 }
                 session.save(movie);
                 movies.add(movie);
 
-                // Create and save a notification for each customer for each generated movie
-//                for (Customer customer : getAllCustomers()) {
-//                    Notification notification = new Notification("New movie added: " + movie.getEnglishName(), movie);
-//                    notification.setCustomer(customer);
-//                    session.save(notification);
-//                }
             }
             session.flush();
             session.getTransaction().commit();
@@ -1711,7 +1671,7 @@ private String generateHomeMovieLinkSalesReport(Session session, LocalDate month
             return Collections.emptyList();
         }
     }
-
+    
     public void respondToComplaint(int complaintId, String responseText,int refund) {
         try (Session session = sessionFactory.openSession()){
             Transaction transaction = session.beginTransaction();
@@ -1835,22 +1795,15 @@ private String generateHomeMovieLinkSalesReport(Session session, LocalDate month
     }
 
     public void makeHomeLinkAvailable(int linkId) {
-        System.out.println("entered makeHomeLinkAvailable");
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             HomeMovieLink link = session.get(HomeMovieLink.class, linkId);
             if (link != null) {
-                System.out.println("entered to if becuase link is not null");
                 link.setOpen(true);
-                // print links avialbilty
-                System.out.println("befure sesiion update Home link is now available: " + link.isOpen());
                 session.update(link);
-                // print links avialbilty
-                System.out.println("DEBUG: Home link is now available: " + link.isOpen());
             }
             tx.commit();
         } catch (Exception e) {
-            System.out.println("DEBUG: Error making home link available: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1862,12 +1815,9 @@ private String generateHomeMovieLinkSalesReport(Session session, LocalDate month
             if (link != null) {
                 link.setOpen(false);
                 session.update(link);
-                // print links avialbilty
-                System.out.println("DEBUG: Home link is now unavailable: " + link.isOpen());
             }
             tx.commit();
         } catch (Exception e) {
-            System.out.println("DEBUG: Error making home link unavailable: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -45,7 +45,6 @@ public class CustomerMenuController implements DataInitializable {
         updateWelcomeMessage();
         EventBus.getDefault().register(this);
         displayNotifications();
-        //addDynamicEffects();
     }
 
     private void updateWelcomeMessage() {
@@ -54,27 +53,6 @@ public class CustomerMenuController implements DataInitializable {
             welcomeLabel.setText("Welcome, " + connectedPerson.getName());
         }
     }
-
-//    private void addDynamicEffects() {
-//        // Adding a particle effect
-//        for (int i = 0; i < 100; i++) {
-//            javafx.scene.shape.Circle particle = new javafx.scene.shape.Circle(2, javafx.scene.paint.Color.web("rgba(255, 255, 255, 0.8)"));
-//            rootPane.getChildren().add(particle);
-//
-//            double startX = Math.random() * rootPane.getWidth();
-//            double startY = Math.random() * rootPane.getHeight();
-//
-//            particle.setTranslateX(startX);
-//            particle.setTranslateY(startY);
-//
-//            javafx.animation.FadeTransition fadeTransition = new javafx.animation.FadeTransition(Duration.seconds(4), particle);
-//            fadeTransition.setFromValue(1);
-//            fadeTransition.setToValue(0);
-//            fadeTransition.setCycleCount(javafx.animation.FadeTransition.INDEFINITE);
-//            fadeTransition.setAutoReverse(true);
-//            fadeTransition.play();
-//        }
-//    }
 
     private void requestNotifications() {
         try {
@@ -123,10 +101,9 @@ public class CustomerMenuController implements DataInitializable {
     private void markNotificationAsRead(Notification notification) {
         try {
             client.markNotificationAsRead(notification.getId());
-            notificationsBoard.getChildren().removeIf(node ->
-                    node instanceof HBox && ((HBox) node).getChildren().get(0) instanceof Label &&
-                            ((Label) ((HBox) node).getChildren().get(0)).getText().equals(notification.getMessage())
-            );
+            notificationsBoard.getChildren()
+                    .removeIf(node -> node instanceof HBox && ((HBox) node).getChildren().get(0) instanceof Label &&
+                            ((Label) ((HBox) node).getChildren().get(0)).getText().equals(notification.getMessage()));
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Failed to mark notification as read: " + e.getMessage());

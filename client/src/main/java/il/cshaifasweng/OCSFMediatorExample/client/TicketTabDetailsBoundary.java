@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
@@ -45,7 +43,6 @@ public class TicketTabDetailsBoundary implements DataInitializable{
                 initialize();
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
-                // Handle JSON parsing error
                 showAlert("Error parsing booking data");
             }
         }
@@ -66,14 +63,8 @@ public class TicketTabDetailsBoundary implements DataInitializable{
         ticketTabNum.setText(ticketTabId);
         numOfTickets.setText("20");
         bookingIdText.setText(bookingId);
-        //purchaseTime.setText(time);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         purchaseTime.setText(dateFormat.format(new Date()));
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//        Date purchaseDate = new Date(time);
-//        String formattedTime = sdf.format(purchaseDate);
-//        purchaseTime.setText(formattedTime);
     }
 
     public void cleanup()

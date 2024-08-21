@@ -52,12 +52,10 @@ public class TicketDetailsBoundary implements DataInitializable {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode bookingData = objectMapper.readTree((String) data);
-
-                // Use these values to update your UI or store them in class fields
-                bookingId = bookingData.path("bookingId").asInt(-1);  // -1 as default if missing
-                name = bookingData.path("name").asText("N/A");  // "N/A" as default if missing
-                ticketNum = bookingData.path("ticketNum").asInt(0);  // 0 as default if missing
-                seats = bookingData.path("seats").asText("");  // Empty string as default if missing
+                bookingId = bookingData.path("bookingId").asInt(-1); 
+                name = bookingData.path("name").asText("N/A"); 
+                ticketNum = bookingData.path("ticketNum").asInt(0);  
+                seats = bookingData.path("seats").asText(""); 
                 movie  = bookingData.path("movie").asText("");
                 cinema = bookingData.path("cinema").asText("");
                 movieHall = bookingData.path("movieHall").asText("");
@@ -65,9 +63,7 @@ public class TicketDetailsBoundary implements DataInitializable {
                 if (paymentMethod.equals("ticketTab")) {
                     amountLeft = bookingData.path("amountLeft").asInt(0);
                 }
-
-                System.out.println("in TicketDetailsBoundary initData with: " + name);
-
+                
                 long screeningTimeMillis = bookingData.path("screeningTime").asLong(0);
                 long purchaseTimeMillis = bookingData.path("purchaseTime").asLong(0);
 

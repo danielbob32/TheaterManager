@@ -169,7 +169,6 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private void handleCinemaSelection() {
         Cinema selectedCinema = cinemaComboBox.getSelectionModel().getSelectedItem();
         if (selectedCinema != null) {
-            //client.getMovieById(currentMovie.getId());
             List<Screening> screenings = currentMovie.getScreenings().stream()
                     .filter(s -> s.getCinema().equals(selectedCinema))
                     .collect(Collectors.toList());
@@ -255,7 +254,6 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
                 }
                 try {
                     currentMovie.removeScreening(selectedScreening);
-                    //client.getMovieById(currentMovie.getId());
                     client.sendToServer(new Message(0, "deleteScreening", String.valueOf(selectedScreening.getScreening_id())));
                 } catch (IOException e) {
                     e.printStackTrace();

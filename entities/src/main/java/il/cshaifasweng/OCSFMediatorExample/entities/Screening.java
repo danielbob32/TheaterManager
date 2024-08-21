@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "screening_id")
-//@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Screening {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,17 +15,12 @@ public class Screening {
     @ManyToOne
     private Cinema cinema;
 
-//    @ManyToOne
-//    @JoinColumn(name = "movie_id")
-//    @JsonBackReference(value = "movie-screenings")
-//    private Movie movie;
-
     @ManyToOne
     @JoinColumn(name = "movie_id")
     @JsonIgnoreProperties("screenings")
     private Movie movie;
 
-    @ManyToOne (fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     private MovieHall hall;
 
     private Date time;
@@ -35,10 +28,6 @@ public class Screening {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "screening_id")
     private List<Seat> seats;
-
-//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JoinColumn(name = "screening_id")
-//    private List<Ticket> tickets;
 
     private boolean isFull;
 
@@ -54,9 +43,7 @@ public class Screening {
         this.seats = seats;
         this.isFull = isFull;
         setMovie(movie);
-//        this.tickets = new ArrayList<Ticket>();
     }
-    
 
     // Getters and setters
     public int getScreening_id() {
@@ -114,19 +101,8 @@ public class Screening {
     public void setMovie(Movie movie) {
         this.movie = movie;
         if (movie != null && !movie.getScreenings().contains(this)) {
-            //System.out.println("Adding screening to movie on the screening entity");
             movie.getScreenings().add(this);
         }
     }
-
-//    public void setTickets(List<Ticket> tickets)
-//    {
-//        this.tickets=tickets;
-//    }
-//
-//    public List<Ticket> getTickets()
-//    {
-//        return this.tickets;
-//    }
 
 }

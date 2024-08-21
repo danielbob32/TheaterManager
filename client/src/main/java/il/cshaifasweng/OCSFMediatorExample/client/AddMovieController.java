@@ -101,15 +101,11 @@ public class AddMovieController implements DataInitializable {
     @FXML
     private void toggleHomeMovieFields() {
         boolean isHomeMovie = isHomeCheckBox.isSelected();
-        //homeMovieFields.setVisible(isHomeMovie);
-        //homeMovieFields.setManaged(isHomeMovie);
     }
 
     @FXML
     private void toggleCinemaFields() {
         boolean isCinemaMovie = isCinemaCheckBox.isSelected();
-        //cinemaFields.setVisible(isCinemaMovie);
-        //cinemaFields.setManaged(isCinemaMovie);
     }
 
     @FXML
@@ -180,6 +176,7 @@ public class AddMovieController implements DataInitializable {
             throw new ValidationException(fieldName + " must be in the format HH:mm.");
         }
     }
+
     @FXML
     private void goBack() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
@@ -251,22 +248,16 @@ public class AddMovieController implements DataInitializable {
     }
 
     private void clearForms() {
-
-        // Clear Movie form fields
         englishNameField.clear();
         hebrewNameField.clear();
         producerField.clear();
         actorsField.clear();
         durationField.clear();
         synopsisArea.clear();
-        genreCheckComboBox.getCheckModel().clearChecks();  // Clear selected genres
+        genreCheckComboBox.getCheckModel().clearChecks();  
         premierDatePicker.setValue(null);
         isHomeCheckBox.setSelected(false);
-//        cinemaFields.setVisible(true);
-//        cinemaFields.setManaged(true);
         isCinemaCheckBox.setSelected(false);
-//        homeMovieFields.setVisible(true);
-//        homeMovieFields.setManaged(true);
         cinemaPriceField.clear();
         homePriceField.clear();
         uploadImageButton.setText("Upload Image");

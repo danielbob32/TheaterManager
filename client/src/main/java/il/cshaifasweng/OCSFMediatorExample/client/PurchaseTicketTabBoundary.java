@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.client.events.TicketTabListEvent;
-import il.cshaifasweng.OCSFMediatorExample.entities.Booking;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.TicketTab;
 import javafx.application.Platform;
@@ -17,7 +16,6 @@ import org.greenrobot.eventbus.Subscribe;
 
 import javax.xml.bind.ValidationException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,8 +55,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     public void initData(Object data) {
         initialize();
         ticketTabTable.setVisible(false);
-
-        // if customer is already in the system
         if (data instanceof Customer) {
             isConnected = true;
             this.customer = (Customer) data;
@@ -75,7 +71,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
 
     @FXML
     public void initialize() {
-        // Check if already registered before registering
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -90,8 +85,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     @FXML
     public void initializeTable() throws IOException {
         ticketTabTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        //ticketTabTable.setVisible(true);
-
         ticketTabIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getProduct_id()).asObject());
         ticketsLeftColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getAmount()).asObject());
         purchaseTimeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPurchaseTime().toString()));
@@ -197,7 +190,6 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     }
 
     private static boolean isEmailValid(String email) {
-        // Regular expression for a valid email address
         String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(email);

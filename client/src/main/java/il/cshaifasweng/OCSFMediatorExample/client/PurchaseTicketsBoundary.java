@@ -30,16 +30,26 @@ import java.util.List;
 
 public class PurchaseTicketsBoundary implements DataInitializable {
 
-    @FXML private Label movieTitleLabel;
-    @FXML private Label cinemaLabel;
-    @FXML private Label screeningTimeLabel;
-    @FXML private GridPane seatGrid;
-    @FXML private ImageView movieImageView;
-    @FXML private VBox leftPane;
-    @FXML private VBox rightPane;
-    @FXML private Label totalPriceLabel;
-    @FXML private Button backButton;
-    @FXML private Button purchaseButton;
+    @FXML
+    private Label movieTitleLabel;
+    @FXML
+    private Label cinemaLabel;
+    @FXML
+    private Label screeningTimeLabel;
+    @FXML
+    private GridPane seatGrid;
+    @FXML
+    private ImageView movieImageView;
+    @FXML
+    private VBox leftPane;
+    @FXML
+    private VBox rightPane;
+    @FXML
+    private Label totalPriceLabel;
+    @FXML
+    private Button backButton;
+    @FXML
+    private Button purchaseButton;
 
     private SimpleClient client;
     private Screening screening;
@@ -65,8 +75,6 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         cinemaLabel.setText(screening.getCinema().getCinemaName());
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         screeningTimeLabel.setText(dateFormat.format(screening.getTime()));
-
-        // initialize image
         byte[] image2 = screening.getMovie().getMovieIcon();
         if (image2 != null) {
             System.out.println("Image byte array length: " + image2.length);
@@ -98,14 +106,11 @@ public class PurchaseTicketsBoundary implements DataInitializable {
 
     public Image convertByteArrayToImage(byte[] imageData) {
         if (imageData != null && imageData.length > 0) {
-            // Convert byte[] to InputStream
             ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-
-            // Create Image from InputStream
             return new Image(inputStream);
         } else {
             System.out.println("No image data available");
-            return null;  // Or handle as needed, e.g., return a default image
+            return null; 
         }
     }
 
@@ -142,14 +147,12 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         int cols = 10;
         int rows = screening.getHall().getHallNumber() % 2 == 0 ? 8 : 5;
 
-        // Add row numbers
         for (int row = 1; row <= rows; row++) {
             Label rowLabel = new Label(String.valueOf(row));
             rowLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17;");
             seatGrid.add(rowLabel, 0, row);
         }
 
-        // Add seats
         for (Seat seat : screening.getSeats()) {
             StackPane seatPane = createSeatPane(seat);
             seatGrid.add(seatPane, seat.getSeatNumber(), seat.getSeatRow());
@@ -163,7 +166,6 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         cinemaLabel.setText(screening.getCinema().getCinemaName());
         screeningTimeLabel.setText(screening.getTime().toString());
 
-        // Load movie image
         String imagePath = screening.getMovie().getMovieIconAsString();
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
@@ -211,7 +213,6 @@ public class PurchaseTicketsBoundary implements DataInitializable {
     private StackPane createSeatPane(Seat seat) {
         Rectangle rectangle = new Rectangle(35, 40);
         rectangle.setFill(seat.isAvailable() ? Color.GREEN : Color.GRAY);
-        //rectangle.setStroke(Color.BLACK);
         rectangle.setArcHeight(10);
         rectangle.setArcWidth(10);
         rectangle.setCursor(Cursor.HAND);
@@ -230,7 +231,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
 
     private void handleSeatSelection(Seat seat, StackPane seatPane) {
         if (!seat.isAvailable()) {
-            return;  // Don't allow selection of unavailable seats
+            return; 
         }
 
         if (selectedSeats.contains(seat)) {
@@ -254,10 +255,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
             showAlert("Please select at least one seat.");
             return;
         }
-
         TicketPurchaseInfo purchaseInfo = new TicketPurchaseInfo(screening, selectedSeats, totalPrice);
-        // The purchase time is automatically set in the TicketPurchaseInfo constructor
-
         try {
             cleanup();
             App.setRoot("ticketsPayment", purchaseInfo);
@@ -274,6 +272,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
     public void initialize() {
         EventBus.getDefault().register(this);
     }

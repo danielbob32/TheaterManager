@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client.events;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Booking;
 import il.cshaifasweng.OCSFMediatorExample.entities.TicketTab;
 
 import java.util.List;

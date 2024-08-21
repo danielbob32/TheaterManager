@@ -57,12 +57,6 @@ public class SchedulerService {
         Customer c = (Customer)serverDB.getPersonById(link.getClientId());
         availableSoon.setCustomer(c);
         serverDB.saveNotification(availableSoon);
-//        try {
-//            server.sendToAllClients(new Message(0, "notification", message));
-//        } catch (Exception e) {
-//            System.out.println("DEBUG: Error sending notification: " + e.getMessage());
-//            e.printStackTrace();
-//        }
     }
 
     public static void schedulePremierNotification(Movie movie) {

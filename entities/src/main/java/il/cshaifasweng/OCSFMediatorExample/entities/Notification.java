@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "notifications")  // You can specify a table name if needed
+@Table(name = "notifications") 
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

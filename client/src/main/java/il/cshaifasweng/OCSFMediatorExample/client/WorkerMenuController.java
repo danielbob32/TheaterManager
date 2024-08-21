@@ -37,9 +37,6 @@ public class WorkerMenuController implements DataInitializable {
     }
 
     private void updateButtonVisibility() {
-        System.out.println("Checking button visibility for worker type: " + workerType); // Debug print
-    
-        // Make sure the string comparisons match the worker types as returned from the server.
         if (updateContentButton != null) {
             boolean showUpdateContent = "Content manager".equalsIgnoreCase(workerType) || "Chain manager".equalsIgnoreCase(workerType) || "CinemaManager".equalsIgnoreCase(workerType);
             updateContentButton.setVisible(showUpdateContent);
@@ -70,7 +67,7 @@ public class WorkerMenuController implements DataInitializable {
         if (data instanceof Worker) {
             Worker connectedWorker = (Worker) data;
             workerType = connectedWorker.getWorkerType();
-            System.out.println("Worker type after login: " + workerType); // Debug print
+            System.out.println("Worker type after login: " + workerType); 
         }
         updateButtonVisibility();
         updateWelcomeMessage();

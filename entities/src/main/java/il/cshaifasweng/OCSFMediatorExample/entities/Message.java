@@ -49,7 +49,8 @@ public class Message implements Serializable {
     }
 
 
-    // Add getter and setter for additionalData
+    // Add getter and setters
+     
     public String getAdditionalData() {
         return additionalData;
     }
@@ -58,7 +59,6 @@ public class Message implements Serializable {
         this.additionalData = additionalData;
     }
 
-    // Add getter and setter for extraData
     public int getExtraData() {
         return extraData;
     }
