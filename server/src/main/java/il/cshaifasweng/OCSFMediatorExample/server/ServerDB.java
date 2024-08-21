@@ -1049,47 +1049,59 @@ public class ServerDB {
     }
 
     public Booking purchaseTicketWithCreditCard(String name, int id, String email,
-                                                String paymentNum, int cinemaPrice, int screeningId, List<Integer> seatId) {
-        try(Session session = sessionFactory.openSession())
-        {
+                                                String paymentNum, int cinemaPrice, int screeningId, List<Integer> selectedSeatIds) {
+        try (Session session = sessionFactory.openSession()) {
             Booking newBooking = null;
             Date purchaseTime = new Date();
             Transaction transaction = null;
-
             try {
                 transaction = session.beginTransaction();
-
                 Customer customer = session.get(Customer.class, id);
                 if (customer == null) {
                     customer = new Customer(name, email, id);
                     session.save(customer);
                     session.flush();
                 }
-
                 newBooking = new Booking(customer, purchaseTime, email, paymentNum);
-                Ticket currentTicket;
                 Screening screening = getScreeningById(screeningId);
+                List<Ticket> tickets = new ArrayList<>();
+                boolean allSeatsAvailable = true;
 
-                for (Integer i : seatId) {
-                    Seat seat = session.get(Seat.class, i);
-                    seat.setAvailable(false); // make seat unavailable
-                    session.update(seat);
-                    currentTicket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
-                    session.save(currentTicket);
-
-                    customer.addProduct(currentTicket);
-                    newBooking.addTicket(currentTicket);
+                for (Integer selectedSeatId : selectedSeatIds) {
+                    Seat seat = session.get(Seat.class, selectedSeatId);
+                    if (seat.isAvailable()) {
+                        seat.setAvailable(false);
+                        session.update(seat);
+                        Ticket ticket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
+                        tickets.add(ticket);
+                    } else {
+                        allSeatsAvailable = false;
+                        break;
+                    }
                 }
 
-                customer.addBooking(newBooking);
-                session.save(newBooking);
-                transaction.commit();
-
-//                System.out.println("cinema tickets booking purchased");
+                if (allSeatsAvailable) {
+                    for (Ticket ticket : tickets) {
+                        session.save(ticket);
+                        customer.addProduct(ticket);
+                        newBooking.addTicket(ticket);
+                    }
+                    customer.addBooking(newBooking);
+                    session.save(newBooking);
+                    transaction.commit();
+                } else {
+                    if (transaction != null) {
+                        transaction.rollback();
+                    }
+                    return null;
+                }
             } catch (Exception e) {
                 System.out.println("Error in purchaseTicketWithCreditCard: " + e.getMessage());
-                if (transaction != null) transaction.rollback();
+                if (transaction != null) {
+                    transaction.rollback();
+                }
                 e.printStackTrace();
+                return null;
             }
             return newBooking;
         } catch (HibernateException e) {
@@ -1100,85 +1112,83 @@ public class ServerDB {
     }
 
     public Booking purchaseTicketWithTicketTab(String name, int id, String email,
-                                               String paymentNum, int screeningId, List<Integer> seatId) {
-
+                                               String paymentNum, int screeningId, List<Integer> selectedSeatIds) {
         System.out.println("handling purchase ticket with ticket tab");
-
-        try(Session session = sessionFactory.openSession())
-        {
+        try (Session session = sessionFactory.openSession()) {
             Transaction transaction = null;
             Booking newBooking = null;
             Date purchaseTime = new Date();
-
             try {
                 transaction = session.beginTransaction();
-
                 TicketTab ticketTab = session.get(TicketTab.class, Integer.parseInt(paymentNum));
-                if (ticketTab == null || ticketTab.getAmount() < seatId.size()) {
+                if (ticketTab == null || ticketTab.getAmount() < selectedSeatIds.size()) {
                     System.out.println("Not enough amount in tickettab to purchase");
                     return null;
                 }
-
                 Customer customer = session.get(Customer.class, id);
                 if (customer == null) {
                     customer = new Customer(name, email, id);
                     session.save(customer);
                 }
-
                 newBooking = new Booking(customer, purchaseTime, customer.getEmail(), paymentNum);
                 session.save(newBooking);
-
                 Screening screening = session.get(Screening.class, screeningId);
                 if (screening == null) {
                     System.out.println("No screening found for id: " + screeningId);
                     return null;
                 }
+                List<Ticket> tickets = new ArrayList<>();
+                boolean allSeatsAvailable = true;
+                for (Integer selectedSeatId : selectedSeatIds) {
+                    Seat seat = session.get(Seat.class, selectedSeatId);
+                    if (seat.isAvailable()) {
+                        seat.setAvailable(false);
+                        session.update(seat);
+                        Ticket ticket = new Ticket(id, 0, purchaseTime, screening, seat);
+                        tickets.add(ticket);
+                    } else {
+                        allSeatsAvailable = false;
+                        break;
+                    }
+                }
 
-                for (Integer i : seatId) {
-                    Seat seat = session.get(Seat.class, i);
-                    seat.setAvailable(false); // make seat unavailable
-                    session.update(seat);
-
-                    Ticket currentTicket = new Ticket(id, 0, purchaseTime, screening, seat);
-                    session.save(currentTicket);
-                    System.out.println("created a new ticket successfully #" + currentTicket.getProduct_id());
-
-                    ticketTab.addTicket(currentTicket);
-
-                    customer.addProduct(currentTicket);
-                    newBooking.addTicket(currentTicket);
-
-                    System.out.println("added a ticket to tickettab successfully");
-                    System.out.println("amount left: " + ticketTab.getAmount());
+                if (allSeatsAvailable) {
+                    for (Ticket ticket : tickets) {
+                        session.save(ticket);
+                        ticketTab.addTicket(ticket);
+                        customer.addProduct(ticket);
+                        newBooking.addTicket(ticket);
+                    }
+                    if (ticketTab.getAmount() == 0) {
+                        System.out.println("inactivating ticket tab");
+                        ticketTab.setActive(false);
+                    }
+                    customer.addBooking(newBooking);
+                    session.update(customer);
+                    session.update(newBooking);
                     session.update(ticketTab);
+                    transaction.commit();
+                    System.out.println("Cinema tickets booked using TicketTab");
+                } else {
+                    if (transaction != null) {
+                        transaction.rollback();
+                    }
+                    return null;
                 }
-                if (ticketTab.getAmount() == 0)
-                {
-                    System.out.println("inactivating ticket tab");
-                    ticketTab.setActive(false);
-                }
-
-                customer.addBooking(newBooking);
-
-                session.update(customer);
-                session.update(newBooking);
-
-                transaction.commit();
-                System.out.println("Cinema tickets booked using TicketTab");
-
             } catch (Exception e) {
-                System.out.println("Error in purchaseTicketWithCreditCard: " + e.getMessage());
-                if (transaction != null) transaction.rollback();
+                System.out.println("Error in purchaseTicketWithTicketTab: " + e.getMessage());
+                if (transaction != null) {
+                    transaction.rollback();
+                }
                 e.printStackTrace();
+                return null;
             }
             return newBooking;
-        }catch (HibernateException e) {
-            System.out.println("Hibernate error in purchaseTicketWithCreditCard: " + e.getMessage());
+        } catch (HibernateException e) {
+            System.out.println("Hibernate error in purchaseTicketWithTicketTab: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
-
-
     }
 
     public Booking purchaseTicketTab(String name, int id, String email, String creditCard) {

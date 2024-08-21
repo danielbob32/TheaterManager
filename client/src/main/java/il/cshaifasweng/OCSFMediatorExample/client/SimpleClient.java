@@ -102,6 +102,9 @@ public class SimpleClient extends AbstractClient {
                 case "addedTicketsSuccessfully":
                     handleAddedTicketsSuccessfully(message.getData());
                     break;
+                case "addingTicketsFailed":
+                    handleAddingTicketsFailed();
+                    break;
                 case "purchasedTicketTabSuccessfully":
                     handlePurchasedTicketTabSuccessfully(message);
                     break;
@@ -624,6 +627,15 @@ public class SimpleClient extends AbstractClient {
     private void handleAddedTicketsSuccessfully(String bookingDataJson) {
         try {
             EventBus.getDefault().post(new PurchaseResponseEvent(true, "purchase successful", bookingDataJson));
+        } catch (Exception e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
+        }
+    }
+
+    private void handleAddingTicketsFailed() {
+        try {
+            EventBus.getDefault().post(new PurchaseResponseEvent(false, "purchase failed"));
         } catch (Exception e) {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
