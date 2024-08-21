@@ -16,6 +16,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class SimpleClient extends AbstractClient {
@@ -514,11 +515,37 @@ public class SimpleClient extends AbstractClient {
 
     public static SimpleClient getClient() {
         if (client == null) {
-            client = new SimpleClient("localhost", 3000);
-            // client = new SimpleClient("2.tcp.eu.ngrok.io", 10379);
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.print("Enter host (default is localhost): ");
+            String host = scanner.nextLine().trim();
+            if (host.isEmpty()) {
+                host = "localhost";
+            }
+
+            int port = 3000;
+            while (true) {
+                try {
+                    System.out.print("Enter port number (default is 3000): ");
+                    String portInput = scanner.nextLine().trim();
+                    if (portInput.isEmpty()) {
+                        break;
+                    }
+                    port = Integer.parseInt(portInput);
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid port number. Please enter a valid integer.");
+                }
+            }
+
+            client = new SimpleClient(host, port);
+            System.out.println("Client initialized with host: " + host + " and port: " + port);
         }
         return client;
     }
+
+
+
 
     public static void setClient(SimpleClient newClient) {
         client = newClient;
