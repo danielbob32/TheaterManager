@@ -53,9 +53,11 @@ public class SimpleServer extends AbstractServer {
 				case "login":
 					handleLoginRequest(message, client);
 					break;
+
 				case "personLogout":
 					handleLogoutRequest(message);
 					break;
+
 				case "add movie":
 					synchronized (movieLock) {
 						handleAddMovieRequest(message, client);
@@ -243,6 +245,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// when connected person tries to log out
 	private void handleLogoutRequest(Message message) {
 		System.out.println("IN SIMPLE SERVER, GOT LOGOUT REQUEST, AFTER LOGIN CONNECTED IDS:");
 		for (Map.Entry<Integer, ConnectionToClient> entry : connectedClients.entrySet()) {
@@ -258,6 +261,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// when person wants to log in
 	private void handleLoginRequest(Message message, ConnectionToClient client) throws IOException {
 		String[] loginParts = message.getMessage().split(":", 2);
 		String person = loginParts.length > 1 ? loginParts[1] : "";
@@ -439,8 +443,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
-	
-
+	// handles seat availability
 	protected void handleGetSeatAvailability(Message message, ConnectionToClient client) throws Exception {
 		int screeningId = Integer.parseInt(message.getData());
 		List<Seat> seats = db.getSeatsForScreening(screeningId);
@@ -450,6 +453,7 @@ public class SimpleServer extends AbstractServer {
 		client.sendToClient(response);
 	}
 
+	// handles process payment
 	protected void handleProcessPaymentRequest(String data, ConnectionToClient client) throws Exception {
 		try {
 			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
@@ -523,6 +527,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles checking if ticket tab exits
 	protected void handleCheckTicketTab(Message message, ConnectionToClient client) throws IOException {
 		String[] data = message.getData().split(",");
 		int ticketTabId = Integer.parseInt(data[0]);
@@ -535,6 +540,7 @@ public class SimpleServer extends AbstractServer {
 		client.sendToClient(response);
 	}
 
+	// handles request to find screening by id
 	protected void handleGetScreeningByIdRequest(Message message, ConnectionToClient client) throws IOException {
 		System.out.println("getting screening #" + message.getData());
 		Screening screening = db.getScreeningById(Integer.parseInt(message.getData()));
@@ -544,6 +550,7 @@ public class SimpleServer extends AbstractServer {
 		client.sendToClient(message);
 	}
 
+	// handles purchasing a ticket tab
 	protected void handlePurchaseTicketTabRequest(String data, ConnectionToClient client) throws IOException {
 		try {
 			ObjectNode dataNode = (ObjectNode) objectMapper.readTree(data);
@@ -571,6 +578,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles purchasing a link
 	protected void handlePurchaseLinkRequest(String data, ConnectionToClient client) {
 		System.out.println("DEBUG: Processing purchase link");
 		try {
@@ -657,6 +665,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles log in request
 	private void processLogin(Object loginRequest, ConnectionToClient client) {
 		System.out.println("Handling login request");
 		Person p = (Person) loginRequest;
@@ -724,10 +733,12 @@ public class SimpleServer extends AbstractServer {
 
 	}
 
+	// check if logged in
 	private boolean isAlreadyLoggedIn(Person person) {
 		return connectedClients.containsKey(person.getPersonId());
 	}
 
+	// disconnect client
 	@Override
 	protected synchronized void clientDisconnected(ConnectionToClient client) {
 		Integer personId = null;
@@ -748,12 +759,14 @@ public class SimpleServer extends AbstractServer {
 		super.clientDisconnected(client);
 	}
 
+	// server started
 	@Override
 	protected void serverStarted() {
 		super.serverStarted();
 		System.out.println("Server started");
 	}
 
+	// server stopped
 	@Override
 	protected void serverStopped() {
 		super.serverStopped();
@@ -761,6 +774,7 @@ public class SimpleServer extends AbstractServer {
 		db.close(null);
 	}
 
+	// server closed
 	@Override
 	protected void serverClosed() {
 		super.serverClosed();
@@ -768,6 +782,7 @@ public class SimpleServer extends AbstractServer {
 		db.close(null);
 	}
 
+	// handles movie list request
 	protected void movieListRequest(Message message, ConnectionToClient client) throws Exception {
 		List<Movie> movies = db.getAllMovies();
 		String movieType = message.getData();
@@ -779,12 +794,13 @@ public class SimpleServer extends AbstractServer {
 
 	}
 
+	// handles cinema movies list request
 	private void handleGetCinemaList(ConnectionToClient client) throws IOException {
 		List<String> cinemas = db.getCinemaList();
 		client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
 	}
 
-
+	// handles generate report request
 	private void handleGenerateReportRequest(String data, ConnectionToClient client) throws IOException {
 		JsonNode dataNode = objectMapper.readTree(data);
 		String reportType = dataNode.get("reportType").asText();
@@ -818,6 +834,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles generate monthly ticket sales report
 	private void generateMonthlyTicketSalesReport(LocalDate month, String cinema, ConnectionToClient client)
 			throws IOException {
 		synchronized (ticketLock) {
@@ -826,6 +843,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles generate monthly ticket sales manager report
 	private void generateMonthlyTicketSalesManagerReport(LocalDate month, String cinema, ConnectionToClient client)
 			throws IOException {
 		synchronized (ticketLock) {
@@ -834,6 +852,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles generate ticket tab sales report
 	private void generateTicketTabSalesReport(LocalDate month, String cinema, ConnectionToClient client)
 			throws IOException {
 		synchronized (ticketTabLock) {
@@ -842,6 +861,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles generate home movie link sales report
 	private void generateHomeMovieLinkSalesReport(LocalDate month, String cinema, ConnectionToClient client)
 			throws IOException {
 		synchronized (movieLinkLock) {
@@ -850,6 +870,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles generate customer complaints report
 	private void generateCustomerComplaintsHistogramReport(LocalDate month, String cinema, ConnectionToClient client)
 			throws IOException {
 		synchronized (complaintLock) {
@@ -858,6 +879,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// send report to client
 	private void sendReportToClient(String reportType, String reportData, ConnectionToClient client)
 			throws IOException {
 		ObjectNode responseNode = objectMapper.createObjectNode();
@@ -867,6 +889,7 @@ public class SimpleServer extends AbstractServer {
 		client.sendToClient(new Message(0, "reportData", objectMapper.writeValueAsString(responseNode)));
 	}
 
+	// fetches random customer
 	protected void handleFetchRandomCustomer(Message message, ConnectionToClient client) {
 		try {
 			Person randomCustomer = db.fetchRandomCustomer();
@@ -879,6 +902,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// fetch customer's bookings
 	protected void handleFetchUserBookings(Message message, ConnectionToClient client) {
 		try {
 			int userId = Integer.parseInt(message.getData());
@@ -895,6 +919,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// fetch customer's ticket tabs
 	protected void handleFetchUserTicketTabs(Message message, ConnectionToClient client) {
 		try {
 			int userId = Integer.parseInt(message.getData());
@@ -913,6 +938,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles cancel booking
 	protected void handleCancelBooking(Message message, ConnectionToClient client) {
 		try {
 			int bookingId = Integer.parseInt(message.getData());
@@ -929,6 +955,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles submit complaint
 	protected void handleSubmitComplaint(Message message, ConnectionToClient client) {
 		try {
 			System.out.println("In SimpleServer, handleSubmitComplaint");
@@ -946,6 +973,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// fetch all complaints
 	protected void handleFetchAllComplaints(Message message, ConnectionToClient client) {
 		try {
 			List<Complaint> complaints = db.fetchAllComplaints();
@@ -957,6 +985,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// fetch customer's complaints
 	protected void handleFetchCustomerComplaints(Message message, ConnectionToClient client) {
 		try {
 			String customerId = message.getData();
@@ -970,6 +999,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// fetch complaints
 	protected void handleFetchComplaints(Message message, ConnectionToClient client) {
 		try {
 			String status = message.getData();
@@ -984,6 +1014,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handle response to complaint
 	protected void handleRespondToComplaint(Message message, ConnectionToClient client) {
 		try {
 			String[] data = message.getData().split(";");
@@ -1000,6 +1031,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handles update complaint
 	protected void handleUpdateComplaint(Message message, ConnectionToClient client) {
 		try {
 			Complaint complaint = objectMapper.readValue(message.getData(), Complaint.class);
@@ -1011,6 +1043,5 @@ public class SimpleServer extends AbstractServer {
 			e.printStackTrace();
 		}
 	}
-
 
 }

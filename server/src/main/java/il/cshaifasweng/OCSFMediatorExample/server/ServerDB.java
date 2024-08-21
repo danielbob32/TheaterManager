@@ -628,7 +628,7 @@ public class ServerDB {
     private List<Cinema> generateCinemas() {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            String[] cinemaNames = {"Cinema City", "Yes Planet", "Levgit HaMifratz", "Rav-Hen"};
+            String[] cinemaNames = {"Cinema City", "Yes Planet", "Lev HaMifratz", "Rav-Hen"};
             String[] locations = {"Haifa", "Tel Aviv", "Jerusalem", "Beer Sheva"};
     
             List<Cinema> cinemas = new ArrayList<>();
