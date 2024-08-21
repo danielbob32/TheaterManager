@@ -59,9 +59,9 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "add movie":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						handleAddMovieRequest(message, client);
-					}
+//					}
 					break;
 
 				case "getNotifications":
@@ -73,27 +73,27 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "getMovies":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						movieListRequest(message, client);
-					}
+//					}
 					break;
 
 				case "updatePrice":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						handleUpdatePriceRequest(message, client);
-					}
+//					}
 					break;
 
 				case "deleteMovie":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						handleDeleteMovieRequest(message, client);
-					}
+//					}
 					break;
 
 				case "updateMovie":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						handleUpdateMovieRequest(message, client);
-					}
+//					}
 					break;
 
 				case "addScreening":
@@ -103,33 +103,33 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "deleteScreening":
-					synchronized (screeningLock) {
+//					synchronized (screeningLock) {
 						handleDeleteScreeningRequest(message, client);
-					}
+//					}
 					break;
 
 				case "createPriceChangeRequest":
-					synchronized (priceChangeRequestLock) {
+//					synchronized (priceChangeRequestLock) {
 						handleCreatePriceChangeRequest(message, client);
-					}
+//					}
 					break;
 
 				case "getPriceChangeRequests":
-					synchronized (priceChangeRequestLock) {
+//					synchronized (priceChangeRequestLock) {
 						handleGetPriceChangeRequests(message, client);
-					}
+//					}
 					break;
 
 				case "approvePriceChangeRequest":
-					synchronized (priceChangeRequestLock) {
+//					synchronized (priceChangeRequestLock) {
 						handleApprovePriceChangeRequest(message, client);
-					}
+//					}
 					break;
 
 				case "denyPriceChangeRequest":
-					synchronized (priceChangeRequestLock) {
+//					synchronized (priceChangeRequestLock) {
 						handleDenyPriceChangeRequest(message, client);
-					}
+//					}
 					break;
 
 				case "getSeatAvailability":
@@ -139,33 +139,33 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "checkTicketTab":
-					synchronized (ticketTabLock) {
+//					synchronized (ticketTabLock) {
 						handleCheckTicketTab(message, client);
-					}
+//					}
 					break;
 
 				case "processPayment":
-					synchronized (ticketLock) {
+//					synchronized (ticketLock) {
 						handleProcessPaymentRequest(message.getData(), client);
-					}
+//					}
 					break;
 
 				case "getScreeningById":
-					synchronized (screeningLock) {
+//					synchronized (screeningLock) {
 						handleGetScreeningByIdRequest(message, client);
-					}
+//					}
 					break;
 
 				case "purchaseTicketTab":
-					synchronized (ticketTabLock) {
+//					synchronized (ticketTabLock) {
 						handlePurchaseTicketTabRequest(message.getData(), client);
-					}
+//					}
 					break;
 
 				case "purchaseLink":
-					synchronized (movieLinkLock) {
+//					synchronized (movieLinkLock) {
 						handlePurchaseLinkRequest(message.getData(), client);
-					}
+//					}
 					break;
 
 				case "getCinemaList":
@@ -177,9 +177,9 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "getMovieById":
-					synchronized (movieLock) {
+//					synchronized (movieLock) {
 						handleGetMovieByIdRequest(message, client);
-					}
+//					}
 					break;
 
 				case "fetchUserTicketTabs":
@@ -196,39 +196,39 @@ public class SimpleServer extends AbstractServer {
 					break;
 
 				case "submitComplaint":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleSubmitComplaint(message, client);
-					}
+//					}
 					break;
 
 				case "fetchAllComplaints":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleFetchAllComplaints(message, client);
-					}
+//					}
 					break;
 
 				case "fetchCustomerComplaints":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleFetchCustomerComplaints(message, client);
-					}
+//					}
 					break;
 
 				case "fetchComplaints":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleFetchComplaints(message, client);
-					}
+//					}
 					break;
 
 				case "respondToComplaint":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleRespondToComplaint(message, client);
-					}
+//					}
 					break;
 
 				case "updateComplaint":
-					synchronized (complaintLock) {
+//					synchronized (complaintLock) {
 						handleUpdateComplaint(message, client);
-					}
+//					}
 					break;
 
 				case "fetchRandomCustomer":
