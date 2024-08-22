@@ -385,8 +385,15 @@ public class SimpleServer extends AbstractServer {
 	// Handles the create price change request
 	private void handleCreatePriceChangeRequest(Message message, ConnectionToClient client) throws IOException {
 		PriceChangeRequest priceRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
-		db.createPriceChangeRequest(priceRequest);
-		client.sendToClient(new Message(0, "Price change request created successfully"));
+		PriceChangeRequest savedRequest = db.createPriceChangeRequest(priceRequest);
+		if(savedRequest != null)
+		{
+//			client.sendToClient(new Message(0, "PriceChangeRequestCreation:success", objectMapper.writeValueAsString(savedRequest)));
+			sendToAllClients(new Message(0, "PriceChangeRequestCreation:success", objectMapper.writeValueAsString(savedRequest)));
+		}
+		else {
+			client.sendToClient(new Message(0, "PriceChangeRequestCreation:fail"));
+		}
 	}
 
 	// Handles the get price change requests
@@ -403,10 +410,10 @@ public class SimpleServer extends AbstractServer {
 		if (priceSuccess) {
 			PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
 			String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
-			client.sendToClient(
-					new Message(0, "Price change request approved and price updated successfully", updatedRequestJson));
+//			client.sendToClient(new Message(0, "PriceChangeRequestApproved:success", updatedRequestJson));
+			sendToAllClients(new Message(0, "PriceChangeRequestApproved:success", updatedRequestJson));
 		} else {
-			client.sendToClient(new Message(0, "Failed to approve price change request. It may already be approved."));
+			client.sendToClient(new Message(0, "PriceChangeRequestApproved:fail"));
 		}
 	}
 
@@ -417,9 +424,10 @@ public class SimpleServer extends AbstractServer {
 		if (priceSuccess) {
 			PriceChangeRequest updatedRequest = db.getPriceChangeRequestById(requestId);
 			String updatedRequestJson = objectMapper.writeValueAsString(updatedRequest);
-			client.sendToClient(new Message(0, "Price change request denied", updatedRequestJson));
+//			client.sendToClient(new Message(0, "PriceChangeRequestDenied:success", updatedRequestJson));
+			sendToAllClients(new Message(0, "PriceChangeRequestDenied:success", updatedRequestJson));
 		} else {
-			client.sendToClient(new Message(0, "Failed to deny price change request. It may already be approved."));
+			client.sendToClient(new Message(0, "PriceChangeRequestDenied:fail"));
 		}
 	}
 

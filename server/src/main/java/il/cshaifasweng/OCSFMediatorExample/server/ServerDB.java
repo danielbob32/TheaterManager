@@ -830,11 +830,11 @@ public class ServerDB {
     public boolean addScreening(Screening screening) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
-            System.out.println("Attempting to save screening: " + screening);
+            System.out.println("ServerDB: addScreening: Attempting to save screening: " + screening);
 
             // Check if the screening date is in the past
             if (screening.getTime().before(new Date())) {
-                System.out.println("Cannot add screening with a date in the past");
+                System.out.println("ServerDB: addScreening: Cannot add screening with a date in the past");
                 transaction.commit();
                 return false;
             }
@@ -842,7 +842,7 @@ public class ServerDB {
             // Fetch the movie from the database
             Movie movie = session.get(Movie.class, screening.getMovie().getId());
             if (movie == null) {
-                System.err.println("Movie not found in database");
+                System.err.println("ServerDB: addScreening: Movie not found in database");
                 transaction.commit();
                 return false;
             }
@@ -850,7 +850,7 @@ public class ServerDB {
             // Fetch the cinema from the database
             Cinema cinema = session.get(Cinema.class, screening.getCinema().getCinema_id());
             if (cinema == null) {
-                System.err.println("Cinema not found in database");
+                System.err.println("ServerDB: addScreening: Cinema not found in database");
                 transaction.commit();
                 return false;
             }
@@ -860,16 +860,21 @@ public class ServerDB {
             if (isHallAvailable(screening.getCinema(), screening.getHall(), movie, screening.getTime(), endTime)) {
                 // Associate the screening with the movie
                 screening.setCinema(cinema);
+
+                // Adding the screening to the movie's screenings.
                 movie.addScreening(screening);
+
+                // setting the screening seats to  a new list of the hall seats, all available
+                screening.setSeats(duplicateHallSeats(screening.getHall()));
 
                 // Save or update the movie (this should cascade to the screening)
                 session.saveOrUpdate(movie);
 
                 transaction.commit();
-                System.out.println("Screening saved successfully");
+                System.out.println("ServerDB: addScreening: Screening saved successfully");
                 return true;
             } else {
-                System.out.println("Hall is not available at the specified time");
+                System.out.println("ServerDB: addScreening: Hall is not available at the specified time");
                 transaction.commit();
                 return false;
             }
@@ -877,6 +882,29 @@ public class ServerDB {
             System.err.println("Error in addScreening: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<Seat> duplicateHallSeats(MovieHall hall)
+    {
+        List<Seat> seats = new ArrayList<>();
+        try(Session session = sessionFactory.openSession()) {
+            Transaction t = session.beginTransaction();
+            hall = session.get(MovieHall.class, hall.getMovieHall_id());
+            for(Seat seat : hall.getSeats())
+            {
+                Seat newSeat = new Seat(seat.getSeatNumber(), seat.getSeatRow(), true, hall);
+                seats.add(newSeat);
+                session.save(newSeat);
+            }
+
+            t.commit();
+            return seats;
+        }catch(Exception e)
+        {
+            System.err.println("SeverDB: dupliocateHallSeats: Error, returning an empty seats list.");
+            e.printStackTrace();
+            return seats;
         }
     }
 
@@ -943,14 +971,17 @@ public class ServerDB {
     }
 
     // Update a screening in the database
-    public void createPriceChangeRequest(PriceChangeRequest request) {
+    public PriceChangeRequest createPriceChangeRequest(PriceChangeRequest request) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             session.save(request);
+            PriceChangeRequest newRequest = session.get(PriceChangeRequest.class, request.getId());
             transaction.commit();
+            return newRequest;
         } catch (HibernateException e) {
-            System.err.println("Error in createPriceChangeRequest: " + e.getMessage());
+            System.err.println("SeverDB: Error in createPriceChangeRequest: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -1392,21 +1423,6 @@ public class ServerDB {
             e.printStackTrace();
         }
     }
-
-//    // Retrieve all the cinemas from the database
-//    public List<String> getCinemaList() {
-//        try (Session session = sessionFactory.openSession()) {
-//            CriteriaBuilder builder = session.getCriteriaBuilder();
-//            CriteriaQuery<String> query = builder.createQuery(String.class);
-//            Root<Cinema> root = query.from(Cinema.class);
-//            query.select(root.get("cinemaName"));
-//            return session.createQuery(query).getResultList();
-//        } catch (HibernateException e) {
-//            System.out.println("Error in getCinemaList: " + e.getMessage());
-//            e.printStackTrace();
-//            return new ArrayList<>();
-//        }
-//    }
 
     // Retrieve all the cinemas from the database
     public List<Cinema> getCinemaList() {

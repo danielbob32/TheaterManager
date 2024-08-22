@@ -82,17 +82,18 @@ public class SimpleClient extends AbstractClient {
                 case "Movie update":
                     handleMovieUpdate(message, messageStatus);
                     break;
-                case "Price change request created":
-                    showSuccessAlert("Price change request created successfully");
+                case "PriceChangeRequestCreation":
+//                    showSuccessAlert("Price change request created successfully");
+                    handlePriceChangeRequestCreation(message, messageStatus);
                     break;
                 case "priceChangeRequests":
                     handlePriceChangeRequests(message);
                     break;
-                case "Price change request approved and price updated successfully":
-                    handlePriceChangeApproved(message);
+                case "PriceChangeRequestApproved":
+                    handlePriceChangeApproved(message, messageStatus);
                     break;
-                case "Price change request denied":
-                    handlePriceChangeDenied(message);
+                case "PriceChangeRequestDenied":
+                    handlePriceChangeDenied(message, messageStatus);
                     break;
                 case "Price change request error":
                     showErrorAlert(message.getData(), "An error occurred with the price change request");
@@ -413,18 +414,71 @@ public class SimpleClient extends AbstractClient {
         });
     }
 
+    private void handlePriceChangeRequestCreation(Message message, String status) {
+        if(status.equals("success")) {
+            try{
+                PriceChangeRequest request = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+                EventBus.getDefault().post(new PriceChangeRequestEvent("Created", request, true));
+            }catch(IOException e)
+            {
+                System.out.println("SimpleClient: handlePriceChangeRequestCreation: Failed to deserialize priceChangeRequest");
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            EventBus.getDefault().post(new PriceChangeRequestEvent("Created",null, false));
+        }
+    }
+
+
     private void handlePriceChangeRequests(Message message) {
-        EventBus.getDefault().post(new MessageEvent(new Message(0, "priceChangeRequests", message.getData())));
+        try{
+            String jsonString = message.getData();
+            List<PriceChangeRequest> requests = objectMapper.readValue(jsonString,
+                    new TypeReference<List<PriceChangeRequest>>() {});
+
+            EventBus.getDefault().post(new PriceChangeRequestsListEvent(requests, true));
+        }catch(IOException e)
+        {
+            System.out.println("SimpleClient: handlePriceChangeRequests: Failed to deserialize priceChangeRequests");
+            e.printStackTrace();
+        }
+
     }
 
-    private void handlePriceChangeApproved(Message message) {
-        showSuccessAlert("Price change request approved and price updated successfully");
-        EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
+    private void handlePriceChangeApproved(Message message, String status) {
+        System.out.println("SimpleClient: in handlePriceChangeApproved");
+        if(status.equals("success")) {
+            try{
+                PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+                EventBus.getDefault().post(new PriceChangeRequestEvent("Approved", updatedRequest, true));
+            }catch(IOException e)
+            {
+                System.out.println("SimpleClient: handlePriceChangeApproved: Failed to deserialize priceChangeRequest");
+                e.printStackTrace();
+            }
+        }else
+        {
+            EventBus.getDefault().post(new PriceChangeRequestEvent("Approved",null, false));
+        }
+
     }
 
-    private void handlePriceChangeDenied(Message message) {
-        showSuccessAlert("Price change request denied");
-        EventBus.getDefault().post(new MessageEvent(new Message(0, message.getMessage(), message.getData())));
+    private void handlePriceChangeDenied(Message message, String status) {
+        if(status.equals("success")) {
+            try{
+                PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+                EventBus.getDefault().post(new PriceChangeRequestEvent("Denied", updatedRequest, true));
+            }catch(IOException e)
+            {
+                System.out.println("SimpleClient: handlePriceChangeApproved: Failed to deserialize priceChangeRequest");
+                e.printStackTrace();
+            }
+        }else{
+            EventBus.getDefault().post(new PriceChangeRequestEvent("Denied",null, false));
+        }
+
     }
 
     private void handleSeatAvailabilityResponse(Message message) {

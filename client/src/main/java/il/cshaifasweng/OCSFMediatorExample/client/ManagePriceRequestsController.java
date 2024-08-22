@@ -3,6 +3,8 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.PriceChangeRequestEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.PriceChangeRequestsListEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.PriceChangeRequest;
@@ -18,6 +20,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -125,29 +128,82 @@ public class ManagePriceRequestsController implements DataInitializable {
         }
     }
 
+//    @Subscribe
+//    public void onMessageEvent(MessageEvent event) {
+//        Message message = event.getMessage();
+//        Platform.runLater(() -> {
+//            try {
+//                if (message.getMessage().equals("priceChangeRequests")) {
+//                    String jsonString = message.getData();
+//                    List<PriceChangeRequest> requests = objectMapper.readValue(jsonString,
+//                            new TypeReference<List<PriceChangeRequest>>() {});
+//                    requestsTable.getItems().setAll(requests);
+//                } else if (message.getMessage().contains("Price change request approved") ||
+//                        message.getMessage().contains("Price change request denied")) {
+//                    PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
+//                    updateTableRow(updatedRequest);
+//                } else if (message.getMessage().contains("Failed to approve") ||
+//                        message.getMessage().contains("Failed to deny")) {
+//                    showAlert("Error", message.getMessage());
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//    }
+
     @Subscribe
-    public void onMessageEvent(MessageEvent event) {
-        Message message = event.getMessage();
-        Platform.runLater(() -> {
-            try {
-                if (message.getMessage().equals("priceChangeRequests")) {
-                    String jsonString = message.getData();
-                    List<PriceChangeRequest> requests = objectMapper.readValue(jsonString,
-                            new TypeReference<List<PriceChangeRequest>>() {});
-                    requestsTable.getItems().setAll(requests);
-                } else if (message.getMessage().contains("Price change request approved") ||
-                        message.getMessage().contains("Price change request denied")) {
-                    PriceChangeRequest updatedRequest = objectMapper.readValue(message.getData(), PriceChangeRequest.class);
-                    updateTableRow(updatedRequest);
-                } else if (message.getMessage().contains("Failed to approve") ||
-                        message.getMessage().contains("Failed to deny")) {
-                    showAlert("Error", message.getMessage());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    public void onPriceChangeRequestsListEvent(PriceChangeRequestsListEvent event) {
+        if(event.isSuccess())
+        {
+            List<PriceChangeRequest> requests = event.getRequests();
+            Platform.runLater(() -> {
+                requestsTable.getItems().setAll(requests);
+            });
+        }
     }
+
+
+
+    @Subscribe
+    public void onPriceChangeRequestEvent(PriceChangeRequestEvent event) {
+        PriceChangeRequest updatedRequest = event.getRequest();
+        PriceChangeRequest selectedRequest = requestsTable.getSelectionModel().getSelectedItem();
+        boolean sameRequest = (selectedRequest != null && updatedRequest!=null && selectedRequest.getRequestDate().equals(updatedRequest.getRequestDate()));
+        if(event.getMessage().equals("Approved") && sameRequest)
+        {
+            if(event.isSuccess())
+            {
+                client.showSuccessAlert("Price change request approved and price updated successfully");
+                updateTableRow(updatedRequest);
+            }else {
+                client.showErrorAlert("Failed to approve the price change request");
+            }
+
+        } else if (event.getMessage().equals("Denied") && sameRequest) {
+            if(event.isSuccess())
+            {
+                client.showSuccessAlert("Price change request denied successfully");
+                updateTableRow(updatedRequest);
+            }else{
+                client.showErrorAlert("Failed to deny the request! It may already been approved.");
+            }
+        } else if (event.getMessage().equals("Created") && event.isSuccess()) {
+            client.showAlert("A new price change request submitted!", "Updating the list!");
+            Platform.runLater(() -> {
+                try{
+                    client.sendToServer(new Message(0, "getPriceChangeRequests"));
+                } catch (IOException e) {
+                    System.out.println("ManagePriceRequestsController: onPriceChangeRequestEvent: failed asking for" +
+                            "the price change requests");
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+
+
 
     private void updateTableRow(PriceChangeRequest updatedRequest) {
         for (int i = 0; i < requestsTable.getItems().size(); i++) {

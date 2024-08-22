@@ -2,6 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.PriceChangeRequestEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -32,6 +33,7 @@ public class UpdatePricesController implements DataInitializable {
     private Person connectedPerson;
     private boolean isUpdating = false;
     private ObjectMapper objectMapper;
+    private PriceChangeRequest request;
 
 
     @FXML
@@ -67,6 +69,7 @@ public class UpdatePricesController implements DataInitializable {
             }
         }
     }
+
     private void loadMovies() {
         String movieType = movieTypeComboBox.getValue();
         try {
@@ -122,18 +125,36 @@ public class UpdatePricesController implements DataInitializable {
                 String movieType = movieTypeComboBox.getValue();
                 int oldPrice = movieType.equals("Cinema Movies") ? selectedMovie.getCinemaPrice() : selectedMovie.getHomePrice();
 
-                PriceChangeRequest request = new PriceChangeRequest(selectedMovie, movieType, oldPrice, newPrice, new Date(), "Pending");
+                request = new PriceChangeRequest(selectedMovie, movieType, oldPrice, newPrice, new Date(), "Pending");
 
                 Message requestMsg = new Message(0, "createPriceChangeRequest", this.objectMapper.writeValueAsString(request));
                 client.sendToServer(requestMsg);
 
-                showAlert("Request Submitted", "Price change request has been submitted for approval.");
+//                showAlert("Request Submitted", "Price change request has been submitted for approval.");
             } catch (NumberFormatException e) {
                 showAlert("Invalid price", "Please enter a valid number for the price.");
             } catch (IOException e) {
                 e.printStackTrace();
                 showAlert("Error", "Failed to submit price change request.");
             }
+        }
+    }
+
+    @Subscribe
+    public void onPriceChangeRequestEvent(PriceChangeRequestEvent event)
+    {
+        System.out.println("UpdatePricesController: PriceChangeRequestEvent: " + event.getMessage());
+        if(event.getMessage().equals("Created"))
+        {
+            if(event.isSuccess() && request!=null && request.getRequestDate().equals(event.getRequest().getRequestDate()))
+            {
+                client.showSuccessAlert("The request was submitted successfully");
+            }else {
+                client.showErrorAlert("The request was not sent properly, please try again later!");
+            }
+        } else if (event.getMessage().equals("Approved") && event.isSuccess()){
+            client.showAlert("A new approve or deny submitted to a request!", "updating the prices");
+            loadMovies();
         }
     }
 

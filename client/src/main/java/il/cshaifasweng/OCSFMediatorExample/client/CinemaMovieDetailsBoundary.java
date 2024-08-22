@@ -334,7 +334,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
 
         ComboBox<MovieHall> hallComboBox = new ComboBox<>();
         List<MovieHall> movieHalls = selectedCinema.getMovieHalls();
-        System.out.println("Movie halls: " + movieHalls);
+//        System.out.println("CinemaMovieDetails: handleAddScreening: Movie halls: " + movieHalls);
         if (movieHalls != null && !movieHalls.isEmpty()) {
             hallComboBox.setItems(FXCollections.observableArrayList(movieHalls));
 
