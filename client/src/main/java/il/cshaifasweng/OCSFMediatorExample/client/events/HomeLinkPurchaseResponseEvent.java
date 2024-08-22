@@ -1,11 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client.events;
 
 public class HomeLinkPurchaseResponseEvent {
-    private boolean success;
-    private String message;
-    private Object data;
+    private final boolean success;
+    private final String message;
+    private final String data;
 
-    public HomeLinkPurchaseResponseEvent(boolean success, String message, Object data) {
+    public HomeLinkPurchaseResponseEvent(boolean success, String message, String data) {
         this.success = success;
         this.message = message;
         this.data = data;
@@ -19,7 +19,7 @@ public class HomeLinkPurchaseResponseEvent {
         return message;
     }
 
-    public Object getData() {
+    public String getData() {
         return data;
     }
 }

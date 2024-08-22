@@ -76,6 +76,9 @@ public class SimpleClient extends AbstractClient {
                 case "Movie add":
                     handleMovieAdd(message, messageStatus);
                     break;
+                case "movieResponse":
+                    handleMovieResponse(message, messageStatus);
+                    break;
                 case "Movie update":
                     handleMovieUpdate(message, messageStatus);
                     break;
@@ -100,8 +103,8 @@ public class SimpleClient extends AbstractClient {
                 case "ticketTabResponse":
                     handleTicketTabResponse(message);
                     break;
-                case "addedTicketsSuccessfully":
-                    handleAddedTicketsSuccessfully(message.getData());
+                case "addedTickets":
+                    handleAddedTickets(message, messageStatus, message.getData());
                     break;
                 case "purchasedTicketTabSuccessfully":
                     handlePurchasedTicketTabSuccessfully(message);
@@ -130,7 +133,7 @@ public class SimpleClient extends AbstractClient {
                     handleCancelBookingResponse(message);
                     break;
                 case "submitComplaintResponse":
-                    handleSubmitComplaintResponse(message);
+                    handleSubmitComplaintResponse(message, messageStatus);
                     break;
                 case "fetchComplaintsResponse":
                     handleFetchComplaintsResponse(message);
@@ -139,7 +142,7 @@ public class SimpleClient extends AbstractClient {
                     handleFetchCustomerComplaintsResponse(message);
                     break;
                 case "respondToComplaintResponse":
-                    handleRespondToComplaintResponse(message);
+                    handleRespondToComplaintResponse(message, messageStatus);
                     break;
                 case "fetchRandomPersonResponse":
                     handleFetchRandomPersonResponse(message);
@@ -167,7 +170,10 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    private void showSuccessAlert(String content) {
+
+
+
+    public void showSuccessAlert(String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Success");
@@ -177,7 +183,7 @@ public class SimpleClient extends AbstractClient {
         });
     }
 
-    private void showErrorAlert(String content) {
+    public void showErrorAlert(String content) {
         showErrorAlert(content, null);
     }
 
@@ -335,9 +341,19 @@ public class SimpleClient extends AbstractClient {
     }
 
     private void handleMovieDelete(Message message, String status) {
-        System.out.println("all movie delete message received");
+        System.out.println("SimpleClient: movie delete message received");
+
         if (status.equals("success")) {
-            showSuccessAlert("Movie deleted successfully");
+            try {
+                Movie deletedMovie = objectMapper.readValue(message.getData(), Movie.class);
+                String deletedMovieType = message.getAdditionalData();
+                EventBus.getDefault().post(new MovieDeleteEvent(deletedMovie, deletedMovieType));
+            }catch (IOException e)
+            {
+                System.out.println("SimpleClient: handleMovieDelete: couldn't read deleted movie");
+                e.printStackTrace();
+            }
+
         } else {
             showFailAlert("Movie is currently in use and cannot be deleted");
         }
@@ -354,12 +370,47 @@ public class SimpleClient extends AbstractClient {
     private void handleMovieAdd(Message message, String status) {
         System.out.println("add movie message received");
         if (status.equals("success")) {
-            showSuccessAlert("Movie have been added successfully");
+            try {
+                Movie addedMovie = objectMapper.readValue(message.getData(), Movie.class);
+//                showSuccessAlert("Movie have been added successfully");
+                EventBus.getDefault().post(new NewMovieEvent(addedMovie));
+
+            }catch(IOException e) {
+                System.out.println("SimpleClient: handleMovieAdd: Failed to read added movie");
+                e.printStackTrace();
+            }
         } else if (message.getData().equals("Movie already exists")) {
             showErrorAlert("This movie already exists in the database.");
         } else {
             showErrorAlert("Failed to add movie");
         }
+    }
+
+    private void handleMovieResponse(Message message, String messageStatus) {
+        if (messageStatus.equals("success")) {
+            try{
+                Movie m = objectMapper.readValue(message.getData(), Movie.class);
+                EventBus.getDefault().post(new MovieEvent(m, true));
+            }catch(IOException e)
+            {
+                System.out.println("SimpleClient: handleMovieResponse: Failed to deserialize movie");
+                e.printStackTrace();
+                EventBus.getDefault().post(new MovieEvent(null, false));
+            }
+        }else {
+            EventBus.getDefault().post(new MovieEvent(null, false));
+        }
+
+    }
+
+    public void showAlert(String title, String content) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(title);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
 
     private void handlePriceChangeRequests(Message message) {
@@ -380,8 +431,7 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             try {
                 System.out.println("got seatAvailabilityResponse");
-                List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {
-                });
+                List<Seat> seats = objectMapper.readValue(message.getData(), new TypeReference<List<Seat>>() {});
                 EventBus.getDefault()
                         .post(new SeatAvailabilityEvent(Integer.parseInt(message.getAdditionalData()), seats));
             } catch (IOException e) {
@@ -404,8 +454,10 @@ public class SimpleClient extends AbstractClient {
         Platform.runLater(() -> {
             System.out.println("got purchasedTicketTabSuccessfully");
             try {
-                App.setRoot("TicketTabDetails", message.getData());
-            } catch (IOException e) {
+                EventBus.getDefault().post(new TicketTabPurchaseEvent(true, message.getData()));
+//                App.setRoot("TicketTabDetails", message.getData());
+            } catch (Exception e) {
+                System.out.println("SimpleClient: handlePurchasedTicketTabSuccessfully: error posting an event");
                 e.printStackTrace();
             }
         });
@@ -414,7 +466,7 @@ public class SimpleClient extends AbstractClient {
     private void handlePurchasedHomeMovieLink(Message message, boolean isSuccessful) {
         Platform.runLater(() -> {
             if (isSuccessful) {
-                System.out.println("Received successful purchase response: " + message.getData());
+//                System.out.println("Received successful purchase response: " + message.getData());
                 EventBus.getDefault()
                         .post(new HomeLinkPurchaseResponseEvent(true, "Purchase successful", message.getData()));
             } else {
@@ -426,7 +478,7 @@ public class SimpleClient extends AbstractClient {
     private void handleFetchUserBookingsResponse(Message message) {
         try {
             System.out.println("got fetchUserBookingsResponse");
-            System.out.println("Received Data: " + message.getData());
+//            System.out.println("Received Data: " + message.getData());
             List<Booking> bookings = objectMapper.readValue(message.getData(), new TypeReference<List<Booking>>() {
             });
             System.out.println("Finished deserializing bookings - SimpleClient");
@@ -442,8 +494,8 @@ public class SimpleClient extends AbstractClient {
 
     private void handleFetchUserTicketTabsResponse(Message message) {
         try {
-            System.out.println("got handleFetchUserTicketTabsResponse");
-            System.out.println("Received Data: " + message.getData());
+            System.out.println("SimpleClient: got handleFetchUserTicketTabsResponse");
+//            System.out.println("Received Data: " + message.getData());
             List<TicketTab> ticketTabs = objectMapper.readValue(message.getData(),
                     new TypeReference<List<TicketTab>>() {
                     });
@@ -469,8 +521,20 @@ public class SimpleClient extends AbstractClient {
         EventBus.getDefault().post(new CancelBookingEvent(bookingId, refund));
     }
 
-    private void handleSubmitComplaintResponse(Message message) {
-        EventBus.getDefault().post(new SubmitComplaintEvent(message.getAdditionalData()));
+    private void handleSubmitComplaintResponse(Message message, String status) {
+        if(status.equals("success")) {
+            try {
+                Complaint s = objectMapper.readValue(message.getData(), Complaint.class);
+                EventBus.getDefault().post(new SubmitComplaintEvent(s));
+            }catch(IOException e) {
+                System.out.println("SimpleClient: error reading the complaint");
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            showErrorAlert("There was an error submitting the complaint, try again!");
+        }
     }
 
     private void handleFetchComplaintsResponse(Message message) {
@@ -499,8 +563,22 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    private void handleRespondToComplaintResponse(Message message) {
-        EventBus.getDefault().post(new RespondToComplaintEvent(message.getAdditionalData()));
+    private void handleRespondToComplaintResponse(Message message, String status) {
+        if(status.equals("success"))
+        {
+            try {
+                Complaint c = objectMapper.readValue(message.getData(), Complaint.class);
+                EventBus.getDefault().post(new RespondToComplaintEvent(c));
+            } catch (IOException e) {
+                e.printStackTrace();
+                EventBus.getDefault().post(new FailureEvent("SimpleClient: handleRespondToComplaintResponse: Failed to deserialize complaint"));
+            }
+        }
+        else
+        {
+            showErrorAlert("There was an error responding to the complaint");
+        }
+
     }
 
     private void handleFetchRandomPersonResponse(Message message) {
@@ -513,6 +591,10 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
+    public static SimpleClient getClient(String host, int port) {
+        client = new SimpleClient(host, port);
+        return client;
+    }
     public static SimpleClient getClient() {
         if (client == null) {
             Scanner scanner = new Scanner(System.in);
@@ -648,13 +730,38 @@ public class SimpleClient extends AbstractClient {
         sendToServer(message);
     }
 
-    private void handleAddedTicketsSuccessfully(String bookingDataJson) {
-        try {
-            EventBus.getDefault().post(new PurchaseResponseEvent(true, "purchase successful", bookingDataJson));
-        } catch (Exception e) {
-            e.printStackTrace();
-            EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
-        }
+    private void handleAddedTickets(Message message, String status, String bookingDataJson) {
+       if(status.equals("success"))
+       {
+           try {
+               EventBus.getDefault().post(new PurchaseResponseEvent(true, "purchase successful", bookingDataJson));
+           } catch (Exception e) {
+               e.printStackTrace();
+               EventBus.getDefault().post(new FailureEvent("Failed to process payment data"));
+           }
+       }
+       else
+       {
+           String errorStatus = message.getData();
+           switch(errorStatus)
+           {
+               case "screening deleted" -> {
+                   EventBus.getDefault().post(new PurchaseResponseEvent(false, "screening deleted"));
+                   return;
+               }
+               case "movie deleted" -> {
+                   EventBus.getDefault().post(new PurchaseResponseEvent(false, "movie deleted"));
+                   return;
+               }
+               case "seat unavailable" -> {
+                   EventBus.getDefault().post(new PurchaseResponseEvent(false, "seat unavailable"));;
+                   return;
+               }
+           }
+           EventBus.getDefault().post(new PurchaseResponseEvent(false, "error"));
+       }
+
+
     }
 
     public void purchaseTicketTab(String id, String name, String email, String cardNum) {
@@ -700,7 +807,7 @@ public class SimpleClient extends AbstractClient {
     public void handleCinemaList(String data) {
         System.out.println("Received cinema list data: " + data);
         try {
-            List<String> cinemas = objectMapper.readValue(data, new TypeReference<List<String>>() {
+            List<Cinema> cinemas = objectMapper.readValue(data, new TypeReference<List<Cinema>>() {
             });
             System.out.println("Parsed cinema list: " + cinemas);
             EventBus.getDefault().post(new CinemaListEvent(cinemas));
@@ -726,9 +833,16 @@ public class SimpleClient extends AbstractClient {
         }
     }
 
-    public void requestCinemaList() throws IOException {
-        System.out.println("Sending getCinemaList request to server");
-        sendToServer(new Message(0, "getCinemaList"));
+    public void requestCinemaList(){
+        try{
+            System.out.println("ServerDB: Sending getCinemaList request to server");
+            sendToServer(new Message(0, "getCinemaList"));
+        }catch (IOException e)
+        {
+            System.out.println("SimpleClient: Error when trying to request cinemas");
+            e.printStackTrace();
+        }
+
     }
 
     public void requestReport(String reportType, LocalDate month, String cinema) throws IOException {
@@ -765,6 +879,11 @@ public class SimpleClient extends AbstractClient {
             e.printStackTrace();
             EventBus.getDefault().post(new FailureEvent("Failed to update movie"));
         }
+    }
+
+    public boolean isPersonNullOrCustomer()
+    {
+        return (client.getConnectedPerson()==null || client.getConnectedPerson() instanceof Customer);
     }
 
     public void login(Person p) {

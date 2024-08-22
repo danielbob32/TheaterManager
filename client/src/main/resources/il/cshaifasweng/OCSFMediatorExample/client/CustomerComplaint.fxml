@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane minHeight="900.0" minWidth="1080.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomerComplaintHandlingBoundary">
+<AnchorPane minHeight="900.0" minWidth="1080.0" style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.CustomerComplaintBoundary">
 
     <VBox alignment="CENTER" spacing="10" style="-fx-background-radius: 20; -fx-background-color: #d4d7de;" styleClass="complaints-root" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
         <Label style="-fx-font-size: 20; -fx-font-weight: bold;" styleClass="complaints-label" text="Complaints" />

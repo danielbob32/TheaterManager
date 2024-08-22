@@ -1,5 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.client.events.TicketTabListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.TicketTabPurchaseEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.TicketTab;
 import javafx.application.Platform;
@@ -53,7 +56,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
 
     @Override
     public void initData(Object data) {
-        initialize();
+//        initialize();
         ticketTabTable.setVisible(false);
         if (data instanceof Customer) {
             isConnected = true;
@@ -71,9 +74,12 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
 
     @FXML
     public void initialize() {
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+//        if (!EventBus.getDefault().isRegistered(this)) {
+        System.out.println("registerd TicketTabBoundary ");
+        EventBus.getDefault().register(this);
+        if (!EventBus.getDefault().isRegistered(this))
+            System.out.println("TICKET TAB REGISTRATION DIDN'T WORK");
+//        }
 
         totalText.setText("₪200");
         addTextListener(cardNumTextField);
@@ -93,6 +99,33 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
         if (client.getConnectedPerson() != null) {
             client.fetchUserTicketTabs();
         }
+    }
+
+
+    @Subscribe
+    public void onTicketTabPurchaseEvent(TicketTabPurchaseEvent event) {
+        try{
+            String currentCustomerId = idTextField.getText().trim();
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode bookingData = objectMapper.readTree(event.getData());
+            String buyerId = bookingData.path("customerId").asText("");
+            if(currentCustomerId.equals(buyerId)) {
+//                Platform.runLater(() -> {
+                client.showAlert("Payment successful!", "Your ticket tab has been booked.");
+                try {
+                    cleanup();
+                    App.setRoot("TicketTabDetails", event.getData());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    client.showErrorAlert("Error navigating to order details");
+                }
+//                });
+            }
+        } catch (IOException e) {
+            System.out.println("PurchaseTicketTabBoundary: couldn't read purchased tab's data");
+            e.printStackTrace();
+        }
+
     }
 
     @Subscribe
@@ -200,6 +233,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
         });
     }
+
 
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);

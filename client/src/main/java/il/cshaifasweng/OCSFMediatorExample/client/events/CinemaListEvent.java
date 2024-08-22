@@ -1,15 +1,17 @@
 package il.cshaifasweng.OCSFMediatorExample.client.events;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.Cinema;
+
 import java.util.List;
 
 public class CinemaListEvent {
-    private List<String> cinemas;
+    private List<Cinema> cinemas;
 
-    public CinemaListEvent(List<String> cinemas) {
+    public CinemaListEvent(List<Cinema> cinemas) {
         this.cinemas = cinemas;
     }
 
-    public List<String> getCinemas() {
+    public List<Cinema> getCinemas() {
         return cinemas;
     }
 }

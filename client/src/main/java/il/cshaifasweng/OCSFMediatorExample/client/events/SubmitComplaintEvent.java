@@ -1,13 +1,15 @@
 package il.cshaifasweng.OCSFMediatorExample.client.events;
 
-public class SubmitComplaintEvent {
-    private final Object response;
+import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 
-    public SubmitComplaintEvent(Object response) {
-        this.response = response;
+public class SubmitComplaintEvent {
+    private final Complaint complaint;
+
+    public SubmitComplaintEvent(Complaint complaint) {
+        this.complaint = complaint;
     }
 
-    public Object getResponse() {
-        return response;
+    public Complaint getComplaint() {
+        return this.complaint;
     }
 }

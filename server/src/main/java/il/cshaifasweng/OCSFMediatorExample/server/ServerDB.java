@@ -97,9 +97,9 @@ public class ServerDB {
                 System.out.println("Deleted all existing data");
 
                 // Add test workers
-                Worker contentManager = new Worker("Content Manager", "Content manager", "password123", 1001);
-                Worker regularWorker = new Worker("Regular Worker", "Regular", "password456", 1002);
-                Worker chainManager = new Worker("Chain Worker", "Chain manager", "password789", 1003);
+                Worker contentManager = new Worker("Content Manager", "Content manager", "1", 1001);
+                Worker regularWorker = new Worker("Regular Worker", "Regular", "2", 1002);
+                Worker chainManager = new Worker("Chain Worker", "Chain manager", "3", 1003);
                 session.save(contentManager);
                 session.save(regularWorker);
                 session.save(chainManager);
@@ -402,7 +402,7 @@ public class ServerDB {
     }
 
     // Adds a new movie to the database
-    public boolean addMovie(Movie movie) {
+    public Movie addMovie(Movie movie) {
         try (Session session = sessionFactory.openSession()) {
             try {
                 session.beginTransaction();
@@ -412,18 +412,19 @@ public class ServerDB {
                 if (movie.getIsCinema())
                     SchedulerService.schedulePremierNotification(movie);
 
-                return true;
+                Movie addedMovie = session.get(Movie.class, movie.getId());
+                return addedMovie;
             } catch (Exception e) {
                 if (session.getTransaction() != null) {
                     session.getTransaction().rollback();
                 }
                 e.printStackTrace();
-                return false;
+                return null;
             }
         } catch (Exception e) {
             System.err.println("Error in addMovie: " + e.getMessage());
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -668,7 +669,7 @@ public class ServerDB {
                 // print cinema created
                 System.out.println("Cinema created: " + cinemaNames[i]);
                 // Create a CinemaManager for each cinema
-                Worker w = new CinemaManager("Cinema Manager " + (i + 1), "" + (i + 1), 1004 + i, cinema);
+                Worker w = new CinemaManager("Cinema Manager " + (i + 1), "" + (i + 4), 1004 + i, cinema);
                 cinema.setManager((CinemaManager) w);
 
                 session.save(w);
@@ -756,35 +757,35 @@ public class ServerDB {
 
     }
     // Delete a movie from the database
-    public boolean deleteMovie(int movieId, String movieType) {
+    public Movie deleteMovie(int movieId, String movieType) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             Movie movie = session.get(Movie.class, movieId);
             if (movie == null)
-                return false;
+                return null;
             // Cinema movie case
             if (movieType.equals("cinema")) {
                 movie.setIsCinema(false);
                 session.update(movie);
                 transaction.commit();
-                return true;
+                return movie;
             // Home movie case
             } else if (movieType.equals("home")) {
                 movie.setIsHome(false);
                 session.update(movie);
                 transaction.commit();
-                return true;
+                return movie;
             }
             transaction.commit();
-            return true;
+            return movie;
         } catch (Exception e) {
             System.out.println("Error in deleteMovie: " + e.getMessage());
             if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
     // Update a movie in the database and send notifications to customers
@@ -1100,9 +1101,30 @@ public class ServerDB {
                 newBooking = new Booking(customer, purchaseTime, email, paymentNum);
                 Ticket currentTicket;
                 Screening screening = getScreeningById(screeningId);
-
+                if(screening == null)
+                {
+                    System.out.println("ServerDB: purchaseTicketWithCreditCard: SCREENING NOT FOUND");
+                    transaction.rollback();
+                    newBooking.setCreditCard("screening deleted");
+                    return newBooking;
+                }
+                Movie m = screening.getMovie();
+                if(m == null || !m.getIsCinema())
+                {
+                    System.out.println("ServerDB: purchaseTicketWithCreditCard: MOVIE NOT FOUND OR NOT IN CINEMAS");
+                    transaction.rollback();
+                    newBooking.setCreditCard("movie deleted");
+                    return newBooking;
+                }
                 for (Integer i : seatId) {
                     Seat seat = session.get(Seat.class, i);
+                    if(!seat.isAvailable())
+                    {
+                        System.out.println("ServerDB: purchaseTicketWithCreditCard: A SEAT IS ALREADY TAKEN");
+                        transaction.rollback();
+                        newBooking.setCreditCard("seat unavailable");
+                        return newBooking;
+                    }
                     seat.setAvailable(false); // make seat unavailable
                     session.update(seat);
                     currentTicket = new Ticket(id, cinemaPrice, purchaseTime, screening, seat);
@@ -1134,7 +1156,7 @@ public class ServerDB {
     public Booking purchaseTicketWithTicketTab(String name, int id, String email,
             String paymentNum, int screeningId, List<Integer> seatId) {
 
-        System.out.println("handling purchase ticket with ticket tab");
+        System.out.println("ServerDB: purchaseTicketWithTicketTab: handling purchase ticket with ticket tab");
 
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = null;
@@ -1146,7 +1168,8 @@ public class ServerDB {
 
                 TicketTab ticketTab = session.get(TicketTab.class, Integer.parseInt(paymentNum));
                 if (ticketTab == null || ticketTab.getAmount() < seatId.size()) {
-                    System.out.println("Not enough amount in tickettab to purchase");
+                    System.out.println("ServerDB: purchaseTicketWithTicketTab: Not enough amount in tickettab to purchase");
+                    transaction.rollback();
                     return null;
                 }
 
@@ -1162,30 +1185,50 @@ public class ServerDB {
 
                 Screening screening = session.get(Screening.class, screeningId);
                 if (screening == null) {
-                    System.out.println("No screening found for id: " + screeningId);
+                    System.out.println("ServerDB: purchaseTicketWithTicketTab: No screening found for id: " + screeningId);
+                    transaction.rollback();
+                    return null;
+                }
+
+                Movie m = screening.getMovie();
+                if(m == null)
+                {
+                    System.out.println("ServerDB: purchaseTicketWithCreditCard: MOVIE NOT FOUND");
+                    transaction.rollback();
+                    return null;
+                }
+                else if(!m.getIsCinema()) {
+                    System.out.println("ServerDB: purchaseTicketWithCreditCard: MOVIE NOT IN CINEMAS ANYMORE");
+                    transaction.rollback();
                     return null;
                 }
 
                 for (Integer i : seatId) {
                     Seat seat = session.get(Seat.class, i);
+                    if(!seat.isAvailable())
+                    {
+                        System.out.println("ServerDB: purchaseTicketWithCreditCard: A SEAT IS ALREADY TAKEN");
+                        transaction.rollback();
+                        return null;
+                    }
                     seat.setAvailable(false); // make seat unavailable
                     session.update(seat);
 
                     Ticket currentTicket = new Ticket(id, 0, purchaseTime, screening, seat);
                     session.save(currentTicket);
-                    System.out.println("created a new ticket successfully #" + currentTicket.getProduct_id());
+//                    System.out.println("ServerDB: purchaseTicketWithCreditCard: created a new ticket successfully #" + currentTicket.getProduct_id());
 
                     ticketTab.addTicket(currentTicket);
 
                     customer.addProduct(currentTicket);
                     newBooking.addTicket(currentTicket);
 
-                    System.out.println("added a ticket to tickettab successfully");
-                    System.out.println("amount left: " + ticketTab.getAmount());
+//                    System.out.println("added a ticket to tickettab successfully");
+//                    System.out.println("amount left: " + ticketTab.getAmount());
                     session.update(ticketTab);
                 }
                 if (ticketTab.getAmount() == 0) {
-                    System.out.println("inactivating ticket tab");
+                    System.out.println("ServerDB: purchaseTicketWithCreditCard: inactivating ticket tab");
                     ticketTab.setActive(false);
                 }
 
@@ -1195,7 +1238,7 @@ public class ServerDB {
                 session.update(newBooking);
 
                 transaction.commit();
-                System.out.println("Cinema tickets booked using TicketTab");
+                System.out.println("ServerDB: purchaseTicketWithCreditCard: Cinema tickets booked using TicketTab");
 
             } catch (Exception e) {
                 System.out.println("Error in purchaseTicketWithCreditCard: " + e.getMessage());
@@ -1268,7 +1311,9 @@ public class ServerDB {
     // Retrieve movie by its ID
     public Movie getMovieById(int movieId) {
         try (Session session = sessionFactory.openSession()) {
-            return session.get(Movie.class, movieId);
+            Movie m = session.get(Movie.class, movieId);
+            Hibernate.initialize(m.getGenres());
+            return m;
         } catch (HibernateException e) {
             System.out.println("Error in getMovieById: " + e.getMessage());
             e.printStackTrace();
@@ -1348,18 +1393,32 @@ public class ServerDB {
         }
     }
 
+//    // Retrieve all the cinemas from the database
+//    public List<String> getCinemaList() {
+//        try (Session session = sessionFactory.openSession()) {
+//            CriteriaBuilder builder = session.getCriteriaBuilder();
+//            CriteriaQuery<String> query = builder.createQuery(String.class);
+//            Root<Cinema> root = query.from(Cinema.class);
+//            query.select(root.get("cinemaName"));
+//            return session.createQuery(query).getResultList();
+//        } catch (HibernateException e) {
+//            System.out.println("Error in getCinemaList: " + e.getMessage());
+//            e.printStackTrace();
+//            return new ArrayList<>();
+//        }
+//    }
+
     // Retrieve all the cinemas from the database
-    public List<String> getCinemaList() {
+    public List<Cinema> getCinemaList() {
         try (Session session = sessionFactory.openSession()) {
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<String> query = builder.createQuery(String.class);
-            Root<Cinema> root = query.from(Cinema.class);
-            query.select(root.get("cinemaName"));
+            CriteriaQuery<Cinema> query = builder.createQuery(Cinema.class);
+            query.from(Cinema.class);
             return session.createQuery(query).getResultList();
         } catch (HibernateException e) {
             System.out.println("Error in getCinemaList: " + e.getMessage());
             e.printStackTrace();
-            return new ArrayList<>();
+            return null;
         }
     }
 
@@ -1648,14 +1707,17 @@ public class ServerDB {
     }
 
     // Add a new complaint to the database
-    public void addComplaint(Complaint c) {
+    public Complaint addComplaint(Complaint c) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
             session.save(c);
             session.getTransaction().commit();
+            return session.get(Complaint.class, c.getComplaint_id());
+
         } catch (Exception e) {
             System.out.println("Error in ServerDB addComplaint" + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -1715,7 +1777,7 @@ public class ServerDB {
         }
     }
     // Respond to a complaint
-    public void respondToComplaint(int complaintId, String responseText, int refund) {
+    public Complaint respondToComplaint(int complaintId, String responseText, int refund) {
         try (Session session = sessionFactory.openSession()) {
             Transaction transaction = session.beginTransaction();
             String hql = "FROM Complaint C WHERE C.id = :complaintId";
@@ -1728,15 +1790,17 @@ public class ServerDB {
                 complaint.setActive(false);
                 complaint.setResponse(responseText);
                 session.update(complaint);
-                System.out.println("Responded to complaint ID: " + complaintId);
+                System.out.println("ServerDB: Responded to complaint ID: " + complaintId);
             } else {
-                System.out.println("Complaint not found for ID: " + complaintId);
+                System.out.println("ServerDB: Complaint not found for ID: " + complaintId);
             }
 
             transaction.commit();
+            return complaint;
         } catch (Exception e) {
             System.err.println("Error responding to complaint: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 

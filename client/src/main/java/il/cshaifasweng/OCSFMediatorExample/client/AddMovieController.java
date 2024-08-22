@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import il.cshaifasweng.OCSFMediatorExample.client.events.NewMovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
@@ -245,6 +246,18 @@ public class AddMovieController implements DataInitializable {
             Stage stage = (Stage) mainContainer.getScene().getWindow();
             stage.setTitle("Add Movie/Home Movie");
         });
+    }
+
+    /**
+     * The next function will run when a new movie is added
+     * The movies list will be refreshed automatically
+     * @param event - the event that is posted by the EventBus.
+     */
+
+    @Subscribe
+    public void onNewMovieEvent(NewMovieEvent event) {
+        System.out.println("AddMovieController: new movie added");
+        client.showSuccessAlert("The movie was added successfully!");
     }
 
     private void clearForms() {

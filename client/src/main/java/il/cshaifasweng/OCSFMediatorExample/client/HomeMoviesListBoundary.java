@@ -1,6 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.NewMovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -46,14 +49,13 @@ public class HomeMoviesListBoundary implements DataInitializable {
     @FXML
     private void showHomeMovies() {
         System.out.println("in showHomeMovies");
-        moviesContainer.getChildren().clear();
+//        moviesContainer.getChildren().clear();
         client.getMovies();
     }
 
     @Override
     public void initData(Object data) {
-        System.out.println("in initData with the next data" + data);
-        System.out.println("in showHomeMovies here daniel");
+//        System.out.println("HomeMovieListBoundary: in initData with the next data" + data);
         showHomeMovies();
     }
 
@@ -203,12 +205,15 @@ public class HomeMoviesListBoundary implements DataInitializable {
     }
 
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(title);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
+
 
     @FXML
     private void handleBackButton(ActionEvent event) throws IOException {
@@ -220,6 +225,45 @@ public class HomeMoviesListBoundary implements DataInitializable {
             App.setRoot("UpdateContent", connectedPerson);
         } else {
             App.setRoot("Loginpage", null);
+        }
+    }
+
+
+    /**
+     * The next function will run when a new movie is added
+     * The movies list will be refreshed automatically
+     * @param event - the NewMovieEvent event that is posted by the EventBus.
+     */
+
+    @Subscribe
+    public void onNewMovieEvent(NewMovieEvent event) {
+        Movie addedMovie = event.getMovie();
+        if(addedMovie.getIsHome())
+        {
+            System.out.println("HomeMoviesList: new movie added");
+            client.showAlert("A New Movie Was Just Added!", "Refreshing your list to see the last update!");
+            showHomeMovies();
+        }
+    }
+
+    /**
+     * The next function will run when a new movie is deleted
+     * The movies list will be refreshed automatically
+     * @param event - the event that is posted by the EventBus.
+     */
+
+    @Subscribe
+    public void onMovieDeleteEvent(MovieDeleteEvent event) {
+        Movie addedMovie = event.getMovie();
+        String deletedType = event.getMovieType();
+        if(deletedType.equals("home"))
+        {
+            if(client.getConnectedPerson() == null || client.getConnectedPerson() instanceof Customer)
+                client.showAlert("A New Movie Was Just Deleted!", "Refreshing your list to see the last update!");
+            else
+                client.showSuccessAlert("The movie has been deleted successfully!");
+
+            showHomeMovies();
         }
     }
 

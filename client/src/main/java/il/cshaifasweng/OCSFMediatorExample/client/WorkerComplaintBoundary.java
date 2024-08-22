@@ -2,6 +2,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.ComplaintListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.RespondToComplaintEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -185,6 +186,15 @@ public class WorkerComplaintBoundary implements DataInitializable {
     private void handleBackButton(ActionEvent event) throws IOException {
         cleanup();
         App.setRoot("WorkerMenu", null);
+    }
+
+    @Subscribe
+    public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
+        Complaint c = event.getComplaint();
+        client.showAlert("New Complaint Received", "A new complaint has been submitted, adding it to the list.");
+        Platform.runLater(() -> {
+            complaintTable.getItems().add(c);
+        });
     }
 
     public void cleanup() {

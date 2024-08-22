@@ -1,5 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import javafx.application.Platform;
@@ -293,20 +295,66 @@ public class TicketsPaymentBoundary implements DataInitializable {
 
     @Subscribe
     public void onPaymentResponse(PurchaseResponseEvent event) {
-        Platform.runLater(() -> {
-            if (event.isSuccess()) {
-                showAlert("Payment successful! Your tickets have been booked.");
-                try {
-                    cleanup();
-                    App.setRoot("TicketDetails", event.getData());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showAlert("Error navigating to order details.");
-                }
-            } else {
-                showAlert("Payment failed: " + event.getMessage());
+        if(event.isSuccess())
+        {
+            try{
+                String currentCustomerId = idField.getText().trim();
+                String data = event.getData();
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode bookingData = objectMapper.readTree(data);
+                String buyerId = bookingData.path("customerId").asText("");
+                if(currentCustomerId.equals(buyerId))
+                    Platform.runLater(() -> {
+                            showAlert("Payment successful! Your tickets have been booked.");
+                            try {
+                                cleanup();
+                                App.setRoot("TicketDetails", event.getData());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                showAlert("Error navigating to order details.");
+                            }
+                    });
+            }catch(Exception e) {
+                System.out.println("TicketPaymentBoundary: Error reading the booking data");
+                e.printStackTrace();
             }
-        });
+        }
+        else {
+            String errorStatus = event.getMessage();
+            try{
+                switch(errorStatus)
+                {
+                    case "screening deleted" -> {
+                        client.showErrorAlert("The screening was just deleted! \n Moving you back to the movie page!");
+                        cleanup();
+                        App.setRoot("CinemaMovieDetails", screening.getMovie());
+                        return;
+                    }
+                    case "movie deleted" -> {
+                        client.showErrorAlert("The movie was just deleted! \n Moving you back to the movies list!");
+                        cleanup();
+                        App.setRoot("CinemaMovieList", null);
+                        return;
+                    }
+                    case "seat unavailable" -> {
+                        client.showErrorAlert("Oops! \n The seats you're trying to buy were just caught \n " +
+                                "Moving you back to the movie page!");
+                        cleanup();
+                        App.setRoot("CinemaMovieDetails", screening.getMovie());
+                        return;
+                    }
+                }
+                client.showErrorAlert("There was an error, try again later.");
+                cleanup();
+                App.setRoot("CinemaMovieDetails", null);
+            }catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Error navigating to order details.");
+            }
+
+
+        }
+
     }
 
     public void cleanup() {

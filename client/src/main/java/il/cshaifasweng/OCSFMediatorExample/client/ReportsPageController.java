@@ -17,6 +17,8 @@ import org.greenrobot.eventbus.Subscribe;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReportsPageController implements DataInitializable {
 
@@ -61,12 +63,7 @@ public class ReportsPageController implements DataInitializable {
     public void setClient(SimpleClient client) {
         this.client = client;
         if (client != null) {
-            try {
-                client.requestCinemaList();
-            } catch (IOException e) {
-                e.printStackTrace();
-                showAlert("Error requesting cinema list: " + e.getMessage());
-            }
+            client.requestCinemaList();
         }
     }
     
@@ -215,6 +212,37 @@ public class ReportsPageController implements DataInitializable {
             }
         });
     }
+
+    @Subscribe
+    public void onPurchaseResponseEvent(PurchaseResponseEvent event)
+    {
+        if(event.isSuccess())
+            generateReport();
+    }
+
+    @Subscribe
+    public void onSubmitComplaintEvent(SubmitComplaintEvent event)
+    {
+        generateReport();
+    }
+
+    @Subscribe
+    public void onTicketTabPurchaseEvent(TicketTabPurchaseEvent event) {
+        if(event.isSuccess())
+            generateReport();
+    }
+
+    @Subscribe
+    public void onHomeLinkPurchaseResponseEvent(HomeLinkPurchaseResponseEvent event)
+    {
+        System.out.println("ReportsPageController: onHomeLinkPurchaseResponseEvent: success:"+event.isSuccess());
+        if(event.isSuccess())
+        {
+            generateReport();
+        }
+    }
+
+
     
     private void displayTicketSalesReport(String reportData, String reportType) {
         try {
@@ -442,10 +470,15 @@ public class ReportsPageController implements DataInitializable {
     }
 
     @Subscribe
-    public void onCinemaListReceived(CinemaListEvent event) {
+    public void onCinemaListEvent(CinemaListEvent event) {
         Platform.runLater(() -> {
             cinemaComboBox.getItems().clear();
-            cinemaComboBox.getItems().addAll(event.getCinemas());
+            List<String> cinemaNames = new ArrayList<>();
+            for(Cinema c : event.getCinemas())
+            {
+                cinemaNames.add(c.getCinemaName());
+            }
+            cinemaComboBox.getItems().addAll(cinemaNames);
             cinemaComboBox.getItems().add(0, "All");
             cinemaComboBox.getSelectionModel().selectFirst();
         });

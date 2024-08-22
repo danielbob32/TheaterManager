@@ -295,10 +295,10 @@ public class SimpleServer extends AbstractServer {
 		if (movieExists) {
 			client.sendToClient(new Message(0, "Movie add:failed", "Movie already exists"));
 		} else {
-			boolean addSuccess = db.addMovie(movie);
-			if (addSuccess) {
-				client.sendToClient(new Message(0, "Movie add:success"));
-				sendToAllClients(new Message(0, "new_movie_added", objectMapper.writeValueAsString(movie)));
+			Movie addedMovie = db.addMovie(movie);
+			if (addedMovie!=null) {
+				sendToAllClients(new Message(0, "Movie add:success", objectMapper.writeValueAsString(movie)));
+//				sendToAllClients(new Message(0, "NewMovieAdded", objectMapper.writeValueAsString(movie)));
 			} else {
 				client.sendToClient(new Message(0, "Movie add:failed"));
 			}
@@ -340,9 +340,10 @@ public class SimpleServer extends AbstractServer {
 	private void handleDeleteMovieRequest(Message message, ConnectionToClient client) throws IOException {
 		String deleteMovieType = message.getMessage().split(":")[1];
 		int movieId = Integer.parseInt(message.getData());
-		boolean deleteSuccess = db.deleteMovie(movieId, deleteMovieType);
-		if (deleteSuccess) {
-			client.sendToClient(new Message(0, "Movie delete:success"));
+		Movie deletedMovie = db.deleteMovie(movieId, deleteMovieType);
+		if (deletedMovie!=null) {
+//			client.sendToClient(new Message(0, "Movie delete:success"));
+			sendToAllClients(new Message(0, "Movie delete:success", objectMapper.writeValueAsString(deletedMovie), deleteMovieType));
 		} else {
 			client.sendToClient(new Message(0, "Movie delete:failed", "Movie is currently in use"));
 		}
@@ -426,10 +427,15 @@ public class SimpleServer extends AbstractServer {
 	private void handleGetMovieByIdRequest(Message message, ConnectionToClient client) throws IOException {
 		int movieId = message.getExtraData();
 		Movie movie = db.getMovieById(movieId);
-		String jsonMovie = objectMapper.writeValueAsString(movie);
-		message.setData(jsonMovie);
-		message.setMessage("movie refreshed");
-		client.sendToClient(message);
+		if(movie!=null) {
+			String jsonMovie = objectMapper.writeValueAsString(movie);
+			message.setData(jsonMovie);
+			message.setMessage("movieResponse:success");
+			client.sendToClient(message);
+		} else {
+			client.sendToClient(new Message(0, "movieResponse:fail", String.valueOf(movieId)));
+		}
+
 	}
 
 	// Handles I/O exceptions
@@ -484,6 +490,22 @@ public class SimpleServer extends AbstractServer {
 			}
 
 			if (newBooking != null) {
+				String status = newBooking.getCreditCard();
+                switch (status) {
+                    case "screening deleted" -> {
+                        client.sendToClient(new Message(0, "addedTickets:fail", "screening deleted"));
+                        return;
+                    }
+                    case "movie deleted" -> {
+                        client.sendToClient(new Message(0, "addedTickets:fail", "movie deleted"));
+                        return;
+                    }
+                    case "seat unavailable" -> {
+                        client.sendToClient(new Message(0, "addedTickets:fail", "seat unavailable"));
+                        return;
+                    }
+                }
+
 				System.out.println("created booking successfully " + newBooking.getBookingId());
 
 				int ticketNum = newBooking.getProducts().size();
@@ -500,6 +522,7 @@ public class SimpleServer extends AbstractServer {
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
 				bookingNode.put("name", name);
+				bookingNode.put("customerId", newBooking.getCustomer().getPersonId());
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketNum", ticketNum);
 				bookingNode.put("seats", seats);
@@ -517,13 +540,14 @@ public class SimpleServer extends AbstractServer {
 					}
 				}
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-				client.sendToClient(new Message(0, "addedTicketsSuccessfully", jsonBooking));
+//				client.sendToClient(new Message(0, "addedTickets:success", jsonBooking));
+				sendToAllClients(new Message(0, "addedTickets:success", jsonBooking));
 
 			} else {
-				client.sendToClient(new Message(0, "addingTicketsFailed"));
+				client.sendToClient(new Message(0, "addedTickets:fail"));
 			}
 		} catch (Exception e) {
-			client.sendToClient(new Message(0, "failedSendingBookingInfo"));
+			client.sendToClient(new Message(0, "addedTickets:fail"));
 		}
 	}
 
@@ -564,12 +588,14 @@ public class SimpleServer extends AbstractServer {
 			if (newBooking != null) {
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
+				bookingNode.put("customerId", newBooking.getCustomer().getPersonId());
 				bookingNode.put("name", name);
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("ticketTabId", newBooking.getTicketTabId());
 
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-				client.sendToClient(new Message(0, "purchasedTicketTabSuccessfully", jsonBooking));
+//				client.sendToClient(new Message(0, "purchasedTicketTabSuccessfully", jsonBooking));
+				sendToAllClients(new Message(0, "purchasedTicketTabSuccessfully", jsonBooking));
 			} else {
 				client.sendToClient(new Message(0, "purchasingTicketTabFailed"));
 			}
@@ -640,6 +666,7 @@ public class SimpleServer extends AbstractServer {
 				ObjectNode bookingNode = objectMapper.createObjectNode();
 				bookingNode.put("bookingId", newBooking.getBookingId());
 				bookingNode.put("name", name);
+				bookingNode.put("clientId", String.valueOf(id));
 				bookingNode.put("purchaseTime", newBooking.getPurchaseTime().getTime());
 				bookingNode.put("movie", movie.getEnglishName());
 				bookingNode.put("openTime", link.getOpenTime().getTime());
@@ -649,7 +676,8 @@ public class SimpleServer extends AbstractServer {
 				System.out.println("SimpleServer DEBUG: Purchase link successful");
 
 				String jsonBooking = objectMapper.writeValueAsString(bookingNode);
-				client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
+//				client.sendToClient(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
+				sendToAllClients(new Message(0, "purchasedHomeMovieLinkSuccessfully", jsonBooking));
 			} else {
 				client.sendToClient(new Message(0, "purchasingHomeMovieLinkFailed"));
 			}
@@ -796,8 +824,13 @@ public class SimpleServer extends AbstractServer {
 
 	// handles cinema movies list request
 	private void handleGetCinemaList(ConnectionToClient client) throws IOException {
-		List<String> cinemas = db.getCinemaList();
-		client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
+		List<Cinema> cinemas = db.getCinemaList();
+		if (cinemas != null) {
+			client.sendToClient(new Message(0, "cinemaList", objectMapper.writeValueAsString(cinemas)));
+		} else
+		{
+			System.out.println("SimpleServer: handleGetCinemaList: No cinema list found");
+		}
 	}
 
 	// handles generate report request
@@ -959,14 +992,23 @@ public class SimpleServer extends AbstractServer {
 	protected void handleSubmitComplaint(Message message, ConnectionToClient client) {
 		try {
 			System.out.println("In SimpleServer, handleSubmitComplaint");
-			System.out.println("Received message data: " + message.getData());
+//			System.out.println("Received message data: " + message.getData());
 			Complaint c = objectMapper.readValue(message.getData(), Complaint.class);
 
-			db.addComplaint(c);
-			System.out.println("Complaint submitted, got back from serverDB");
+			Complaint s = db.addComplaint(c); // the saved complaint
+//			System.out.println("Complaint submitted, got back from serverDB");
+			Message response;
+			if (s!=null)
+			{
+				 response = new Message(0, "submitComplaintResponse:success", objectMapper.writeValueAsString(s));
+				sendToAllClients(response);
+			}
+			else {
+				response = new Message(0, "submitComplaintResponse:fail", "Complaint submitted");
+				client.sendToClient(response);
+			}
 
-			Message response = new Message(0, "submitComplaintResponse", "Complaint submitted");
-			client.sendToClient(response);
+
 		} catch (Exception e) {
 			System.err.println("Error in handleSubmitComplaint: " + e.getMessage());
 			e.printStackTrace();
@@ -1021,10 +1063,17 @@ public class SimpleServer extends AbstractServer {
 			int complaintId = Integer.parseInt(data[0]);
 			String responseText = data[1];
 			int refund = Integer.parseInt(data[2]);
-			db.respondToComplaint(complaintId, responseText, refund);
-
-			Message response = new Message(0, "respondToComplaintResponse", "Response submitted");
-			client.sendToClient(response);
+			Complaint c = db.respondToComplaint(complaintId, responseText, refund);
+			if(c!=null)
+			{
+				Message response = new Message(0, "respondToComplaintResponse:success", objectMapper.writeValueAsString(c));
+				sendToAllClients(response);
+			}
+			else
+			{
+				Message response = new Message(0, "respondToComplaintResponse:fail", objectMapper.writeValueAsString(c));
+				client.sendToClient(response);
+			}
 		} catch (Exception e) {
 			System.err.println("Error in handleRespondToComplaint: " + e.getMessage());
 			e.printStackTrace();

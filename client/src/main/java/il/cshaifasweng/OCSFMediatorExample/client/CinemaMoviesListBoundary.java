@@ -1,6 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.NewMovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -8,10 +11,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -77,20 +77,20 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 	@FXML
 	private void showMovies() {
 		System.out.println("in showMovies");
-		moviesContainer.getChildren().clear();
 		client.getMovies();
 	}
 
 	@Override
 	public void initData(Object data) {
-		Person connectedPerson = client.getConnectedPerson();
-		System.out.println("in initData with the next data" + data);
+//		System.out.println("CinemaMoviesList: in initData with the next data" + data);
 		showMovies();
 	}
 
+
 	@Subscribe
 	public void onMovieListEvent(MovieListEvent event) {
-		System.out.println("in onMovieListEvent");
+		System.out.println("CinemaMoviesList: in onMovieListEvent");
+
 		allMovies = event.getMovies();
 		displayFilteredMovies(allMovies);
 	}
@@ -250,6 +250,37 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		} else {
 			App.setRoot("Loginpage", null);
 		}
+	}
+
+	@Subscribe
+	public void onNewMovieEvent(NewMovieEvent event) {
+		if(event.getMovie().getIsCinema())
+		{
+			System.out.println("In CinemaListController NewMovieEvent: new movie added!");
+			client.showAlert("A New Movie Was Just Added!", "Refreshing your list to see the last update!");
+			showMovies();
+		}
+
+	}
+
+	@Subscribe
+	public void onMovieDeleteEvent(MovieDeleteEvent event) {
+		String deletedType = event.getMovieType();
+		if(deletedType.equals("cinema"))
+		{
+			client.showAlert("A Movie Was Just Deleted!", "Refreshing your list to see the last update!");
+			showMovies();
+		}
+	}
+
+	private void showAlert(String title, String content) {
+		Platform.runLater(() -> {
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setTitle(title);
+			alert.setHeaderText(title);
+			alert.setContentText(content);
+			alert.showAndWait();
+		});
 	}
 
 

@@ -2,20 +2,20 @@ package il.cshaifasweng.OCSFMediatorExample.client.events;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 
-public class MovieEvent {
+public class MovieDeleteEvent {
     private final Movie movie;
-    private final boolean success;
+    private final String movieType;
 
-    public MovieEvent(Movie movie, boolean success) {
+    public MovieDeleteEvent(Movie movie, String movieType) {
         this.movie = movie;
-        this.success = success;
+        this.movieType = movieType;
     }
 
     public Movie getMovie() {
         return movie;
     }
 
-    public boolean getSuccess() {
-        return success;
+    public String getMovieType() {
+        return movieType;
     }
 }

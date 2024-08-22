@@ -1,7 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
@@ -71,10 +73,25 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     public void initData(Object data) {
         if (data instanceof Movie) {
             currentMovie = (Movie) data;
-            displayMovieDetails();
-            System.out.println("in cinema movie details boundary, current movie:" + currentMovie);
-            populateCinemas();
-            checkUserPermissions();
+            client.getMovieById(currentMovie.getId());
+        }
+    }
+
+    @Subscribe
+    public void onMovieEvent(MovieEvent event) {
+        if(event.getSuccess())
+        {
+            currentMovie = event.getMovie();
+            System.out.println("CinemaMovieDetails: Got Current Movie:" + currentMovie.getEnglishName());
+            Platform.runLater(() -> {
+                displayMovieDetails();
+//                populateCinemas();
+                client.requestCinemaList();
+                checkUserPermissions();
+            });
+        }
+        else {
+            client.showErrorAlert("Oops! Couldn't find the asked movie!");
         }
     }
 
@@ -142,11 +159,32 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         }
     }
 
-    private void populateCinemas() {
-        List<Cinema> cinemas = currentMovie.getScreenings().stream()
-                .map(Screening::getCinema)
-                .distinct()
-                .collect(Collectors.toList());
+//    private void populateCinemas() {
+//        List<Cinema> cinemas = currentMovie.getScreenings().stream()
+//                .map(Screening::getCinema)
+//                .distinct()
+//                .collect(Collectors.toList());
+//        cinemaComboBox.setItems(FXCollections.observableArrayList(cinemas));
+//
+//        cinemaComboBox.setConverter(new StringConverter<Cinema>() {
+//            @Override
+//            public String toString(Cinema cinema) {
+//                return cinema != null ? cinema.getCinemaName() : "";
+//            }
+//
+//            @Override
+//            public Cinema fromString(String string) {
+//                return cinemaComboBox.getItems().stream()
+//                        .filter(cinema -> cinema.getCinemaName().equals(string))
+//                        .findFirst()
+//                        .orElse(null);
+//            }
+//        });
+//    }
+    @Subscribe
+    public void onCinemaListEvent(CinemaListEvent event) {
+        List<Cinema> cinemas = event.getCinemas();
+        cinemaComboBox.getItems().clear();
         cinemaComboBox.setItems(FXCollections.observableArrayList(cinemas));
 
         cinemaComboBox.setConverter(new StringConverter<Cinema>() {
@@ -169,10 +207,11 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     private void handleCinemaSelection() {
         Cinema selectedCinema = cinemaComboBox.getSelectionModel().getSelectedItem();
         if (selectedCinema != null) {
+            System.out.println("CinemaMovieDetailsBoundary: handleCinemaSelection: in if");
             List<Screening> screenings = currentMovie.getScreenings().stream()
-                    .filter(s -> s.getCinema().equals(selectedCinema))
+                    .filter(s -> s.getCinema().getCinemaName().equals(selectedCinema.getCinemaName()))
                     .collect(Collectors.toList());
-
+            System.out.println("CinemaMovieDetailsBoundary: handleCinemaSelection: screenings size:" + screenings.size());
             ObservableList<Screening> screeningItems = FXCollections.observableArrayList(screenings);
             screeningListView.setItems(screeningItems);
 
@@ -195,9 +234,8 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
 
     @FXML
     private void handleBackButton() throws IOException {
-        Person connectedPerson = client.getConnectedPerson();
         cleanup();
-        App.setRoot("CinemaMovieList", connectedPerson);
+        App.setRoot("CinemaMovieList", null);
     }
 
     @FXML
@@ -206,7 +244,7 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
         if (selectedScreening != null) {
             selectedScreening.setMovie(currentMovie);
             cleanup();
-            App.setRoot("purchaseTickets", selectedScreening);
+            App.setRoot("PurchaseTickets", selectedScreening);
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("No Screening Selected");
@@ -228,8 +266,8 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
                 try {
                     client.sendToServer(new Message(0, "deleteMovie:cinema", String.valueOf(currentMovie.getId())));
                     Person connectedPerson = client.getConnectedPerson();
-                    cleanup();
-                    App.setRoot("CinemaMovieList", connectedPerson);
+//                    cleanup();
+//                    App.setRoot("CinemaMovieList", connectedPerson);
                 } catch (IOException e) {
                     e.printStackTrace();
                     showAlert("Error", "Failed to delete movie. Please try again.");
@@ -411,12 +449,32 @@ public class CinemaMovieDetailsBoundary implements DataInitializable {
     }
 
     @Subscribe
+    public void onMovieDeleteEvent(MovieDeleteEvent event) {
+        Movie deletedMovie = event.getMovie();
+        String deletedType = event.getMovieType();
+        if(deletedType.equals("cinema") && deletedMovie.getId()==currentMovie.getId())
+        {
+            if(client.isPersonNullOrCustomer()) {
+                client.showAlert("Error", "This movie has been deleted, returning back to the movies list");
+            }
+            else {
+                client.showSuccessAlert("The movie has been deleted successfully!");
+            }
+            cleanup();
+            try {
+                cleanup();
+                App.setRoot("CinemaMovieList", null);
+            } catch (IOException e) {
+                System.out.println("CinemaMovieDetails: failed to get you back to CinemaMovieList");
+                e.printStackTrace();
+
+            }
+        }
+    }
+
+    @Subscribe
     public void onMessageEvent(MessageEvent event) {
         Platform.runLater(this::handleCinemaSelection);
     }
 
-    @Subscribe
-    public void onMovieEvent(MovieEvent event) {
-        currentMovie = event.getMovie();
-    }
 }

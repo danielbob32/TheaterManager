@@ -25,14 +25,14 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         EventBus.getDefault().register(this);
-        client = SimpleClient.getClient();
-        client.openConnection();
+//        client = SimpleClient.getClient();
+//        client.openConnection();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Loginpage.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("ConnectionPage.fxml"));
         Parent root = loader.load();
         Object controller = loader.getController();
-        ((DataInitializable)controller).setClient(client);
-        ((DataInitializable)controller).initData(null);
+//        ((DataInitializable)controller).setClient(client);
+//        ((DataInitializable)controller).initData(null);
 
         // Get screen dimensions
         javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
@@ -53,6 +53,9 @@ public class App extends Application {
         scene.setRoot(loadFXML(fxml));
     }
 
+    public static void setClient(SimpleClient newClient) {
+        client = newClient;
+    }
 
     public static void setRoot(String fxml,Object controllerData) throws IOException  {
         FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));

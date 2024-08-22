@@ -258,7 +258,7 @@ public class PurchaseTicketsBoundary implements DataInitializable {
         TicketPurchaseInfo purchaseInfo = new TicketPurchaseInfo(screening, selectedSeats, totalPrice);
         try {
             cleanup();
-            App.setRoot("ticketsPayment", purchaseInfo);
+            App.setRoot("TicketsPayment", purchaseInfo);
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Error proceeding to payment.");

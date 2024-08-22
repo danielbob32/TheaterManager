@@ -1,6 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.NewMovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -45,7 +47,7 @@ public class AllMoviesListController implements DataInitializable {
 
     @FXML
     private void showAllMovies() {
-        moviesContainer.getChildren().clear();
+//        moviesContainer.getChildren().clear();
         client.getMovies();
     }
 
@@ -147,4 +149,22 @@ public class AllMoviesListController implements DataInitializable {
         }
     }
 
+    @Subscribe
+    public void onNewMovieEvent(NewMovieEvent event) {
+        System.out.println("AllMoviesList: new movie added");
+        client.showAlert("A New Movie Was Just Added!", "Refreshing your list to see the last update!");
+        showAllMovies();
+    }
+
+    /**
+     * The next function will run when a new movie is deleted
+     * The movies list will be refreshed automatically
+     * @param event - the event that is posted by the EventBus.
+     */
+
+    @Subscribe
+    public void onMovieDeleteEvent(MovieDeleteEvent event) {
+        client.showAlert("A New Movie Was Just Deleted!", "Refreshing your list to see the last update!");
+        showAllMovies();
+    }
 }

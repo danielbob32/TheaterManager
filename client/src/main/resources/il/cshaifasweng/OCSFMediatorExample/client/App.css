@@ -320,3 +320,48 @@
     -fx-border-color: #cccccc;
     -fx-border-width: 0 0 1px 0;
 }
+
+.connection-container {
+    -fx-background-color: rgba(255, 255, 255, 0.95); /* White background with slight transparency */
+    -fx-background-radius: 20;
+    -fx-padding: 30px;
+    -fx-spacing: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 20, 0, 0, 0);
+    -fx-border-radius: 20;
+}
+
+.header-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e3c72; /* Dark blue text */
+    -fx-effect: dropshadow(one-pass-box, rgba(0, 0, 0, 0.2), 5, 0, 0, 1);
+}
+
+.input-field {
+    -fx-background-color: rgba(30, 60, 114, 0.1); /* Light blue background */
+    -fx-text-fill: #1e3c72; /* Dark blue text */
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-border-color: #1e3c72; /* Dark blue border */
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+}
+
+.input-field:focused {
+    -fx-border-color: #2a5298; /* Brighter blue border when focused */
+}
+
+.connect-button {
+    -fx-background-color: #1e3c72; /* Dark blue button */
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 30px;
+    -fx-cursor: hand;
+}
+
+.connect-button:hover {
+    -fx-background-color: #2a5298; /* Lighter blue on hover */
+}
+

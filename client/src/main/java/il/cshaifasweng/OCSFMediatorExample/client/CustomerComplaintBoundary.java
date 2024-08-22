@@ -2,7 +2,9 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.CinemaListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.CustomerComplaintListEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.RespondToComplaintEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.SubmitComplaintEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Cinema;
 import il.cshaifasweng.OCSFMediatorExample.entities.Complaint;
 import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Message;
@@ -19,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomerComplaintHandlingBoundary implements DataInitializable {
+public class CustomerComplaintBoundary implements DataInitializable {
 
     @FXML
     private TableView<Complaint> complaintTableView;
@@ -84,15 +86,12 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
             showAlert("Error", "No customer is connected.");
             return;
         }
-
-        List<Complaint> complaints = customer.getComplaints();
-        if (complaints == null) {
-            System.out.println("Complaints list is null. Initializing to an empty list.");
-            complaints = new ArrayList<>(); // Initialize to an empty list if null
+        try {
+            client.fetchCustomerComplaints();
+        }catch(IOException e) {
+            System.out.println("CustomerComplaintBoundary: cannot fetch the customer's complaint");
+            e.printStackTrace();
         }
-
-        System.out.println("Loaded complaints: " + complaints.size() + " items.");
-        complaintTableView.getItems().setAll(complaints);
     }
 
     private void handleViewComplaint(ActionEvent event) {
@@ -116,6 +115,8 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         System.out.println("Loaded complaints: " + complaints.size() + " items.");
         complaintTableView.getItems().setAll(complaints);
     }
+
+
 
     void showComplaintDetails(Complaint complaint) {
         Dialog<Void> dialog = new Dialog<>();
@@ -217,8 +218,11 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
         System.out.println("Received cinema list event");
         Platform.runLater(() -> {
             cinemaComboBox.getItems().clear();
-            cinemaComboBox.getItems().add("No Cinema"); // Add "No Cinema" option
-            cinemaComboBox.getItems().addAll(event.getCinemas());
+            cinemaComboBox.getItems().add("No Cinema");// Add "No Cinema" option
+            ArrayList<String> cinemaNames = new ArrayList<>();
+            for(Cinema c: event.getCinemas())
+                cinemaNames.add(c.getCinemaName());
+            cinemaComboBox.getItems().addAll(cinemaNames);
             System.out.println("Added cinemas to combo box: " + cinemaComboBox.getItems());
         });
     }
@@ -226,7 +230,7 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
     @Subscribe
     public void onSubmitComplaintEvent(SubmitComplaintEvent event) {
         Platform.runLater(() -> {
-            showAlert("Success", "Complaint submitted successfully!");
+            showAlert("Success", "The Complaint " + event.getComplaint().getTitle() + " was submitted successfully!");
         });
         try {
             client.fetchCustomerComplaints();
@@ -234,7 +238,20 @@ public class CustomerComplaintHandlingBoundary implements DataInitializable {
             showAlert("Error", "Failed to fetch customer complaints.");
             e.printStackTrace();
         }
+    }
 
+    @Subscribe
+    public void onRespondToComplaintEvent(RespondToComplaintEvent event) {
+        Complaint c = event.getComplaint();
+        if(c.getCustomer().getPersonId() == client.getConnectedPerson().getPersonId())
+            Platform.runLater(() -> {
+                showAlert("Got a response!", "A response to one of your complaint was just received, refreshing your list!");
+                try {
+                    client.fetchCustomerComplaints();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
     }
 
     private void showAlert(String title, String content) {

@@ -1,6 +1,8 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MessageEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.Customer;
 import il.cshaifasweng.OCSFMediatorExample.entities.Movie;
 import il.cshaifasweng.OCSFMediatorExample.entities.Person;
 import il.cshaifasweng.OCSFMediatorExample.entities.Worker;
@@ -180,7 +182,7 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
     @FXML
     private void handleBackButton() throws IOException {
         Person connectedPerson = client.getConnectedPerson();
-        App.setRoot("HomeMovieList", connectedPerson);
+        App.setRoot("HomeMovieList", null);
     }
 
     private void showAlert(String title, String content) {
@@ -189,6 +191,30 @@ public class HomeMovieDetailsBoundary implements DataInitializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    @Subscribe
+    public void onMovieDeleteEvent(MovieDeleteEvent event) {
+        Movie deletedMovie = event.getMovie();
+        String deletedType = event.getMovieType();
+        if(deletedType.equals("home") && deletedMovie.getId()==currentMovie.getId())
+        {
+            if(client.isPersonNullOrCustomer()) {
+                client.showAlert("Error", "This movie has been deleted, returning back to the movies list");
+            }
+            else {
+                client.showSuccessAlert("The movie has been deleted successfully!");
+            }
+            cleanup();
+            try {
+                cleanup();
+                App.setRoot("HomeMovieList", null);
+            } catch (IOException e) {
+                System.out.println("HomeMovieDetails: failed to get you back to HomeMovieList");
+                e.printStackTrace();
+
+            }
+        }
     }
 
     @Subscribe

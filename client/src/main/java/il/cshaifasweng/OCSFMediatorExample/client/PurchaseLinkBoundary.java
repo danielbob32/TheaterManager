@@ -1,5 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -171,19 +173,37 @@ public class PurchaseLinkBoundary implements DataInitializable {
     public void onHomeLinkPurchaseResponse(HomeLinkPurchaseResponseEvent event) {
         Platform.runLater(() -> {
             if (event.isSuccess()) {
-                System.out.println("Purchase successful. Response data: " + event.getData());
-                showAlert("Payment successful! An email has been sent with the movie link details.");
-                try {
-                    cleanup();
-                    App.setRoot("LinkDetails", event.getData());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showAlert("Error navigating to link details.");
+                try{
+                    String currentCustomerId = idField.getText().trim();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode bookingData = objectMapper.readTree(event.getData());
+                    if(!bookingData.has("customerId")) {
+                        System.out.println("NO CUSTOMER ID IN THE JSON");
+                    }
+                    String buyerId = bookingData.path("clientId").asText("");
+                    if (currentCustomerId.equals(buyerId)) {
+                        System.out.println("Purchase successful. Response data: " + event.getData());
+                        showAlert("Payment successful! An email has been sent with the movie link details.");
+                        try {
+                            cleanup();
+                            App.setRoot("LinkDetails", event.getData());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            showAlert("Error navigating to link details.");
+                        }
+                    }
                 }
-            } else {
+                catch (Exception e)
+                {
+                    System.out.println("PurchaseLinkBoundary: Error processing purchase response.");
+                    e.printStackTrace();
+                }
+
+            }else {
                 showAlert("Purchase failed: " + event.getMessage());
             }
         });
+
     }
 
     public void cleanup() {
