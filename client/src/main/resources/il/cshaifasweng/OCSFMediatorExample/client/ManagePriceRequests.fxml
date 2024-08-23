@@ -2,15 +2,15 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <?import javafx.scene.text.Text?>
+<?import javafx.geometry.Insets?>
+
 <AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ManagePriceRequestsController"
-            style="-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298);">
-    <VBox alignment="CENTER" spacing="20" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50" AnchorPane.topAnchor="50" AnchorPane.bottomAnchor="50" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
-        <Text text="Manage Price Change Requests"
-              style="-fx-font-size: 28px; -fx-font-weight: bold;
-                             -fx-fill: #1e3c72;" />
-        <TableView fx:id="requestsTable" styleClass="table-view">
+            styleClass="main-anchor-pane">
+    <VBox spacing="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.topAnchor="20" AnchorPane.bottomAnchor="20"
+          styleClass="content-box">
+        <Text text="Manage Price Change Requests" styleClass="title-text"/>
+        <TableView fx:id="requestsTable" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn text="Movie" fx:id="movieColumn"/>
                 <TableColumn text="Type" fx:id="typeColumn"/>
@@ -19,10 +19,13 @@
                 <TableColumn text="Request Date" fx:id="requestDateColumn"/>
                 <TableColumn text="Status" fx:id="statusColumn"/>
             </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
         </TableView>
         <HBox spacing="10" alignment="CENTER">
             <Button text="Back" onAction="#goBack" styleClass="back-button"/>
-            <Button text="Approve" onAction="#approveRequest" styleClass="confirm-button"/>
+            <Button text="Approve" onAction="#approveRequest" styleClass="approve-button"/>
             <Button text="Deny" onAction="#denyRequest" styleClass="deny-button"/>
         </HBox>
     </VBox>
