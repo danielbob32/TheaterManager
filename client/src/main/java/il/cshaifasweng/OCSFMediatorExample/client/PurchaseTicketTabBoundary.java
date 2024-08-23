@@ -160,7 +160,7 @@ public class PurchaseTicketTabBoundary implements DataInitializable{
     @FXML
     void handleBackButton(ActionEvent event) throws IOException {
         if (isConnected) App.setRoot("CustomerMenu", customer);
-        else App.setRoot("Loginpage", null);
+        else App.setRoot("LoginPage", null);
     }
 
     private void clearInputFields() {
