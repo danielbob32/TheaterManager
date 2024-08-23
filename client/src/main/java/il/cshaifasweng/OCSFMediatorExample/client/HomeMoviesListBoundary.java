@@ -219,7 +219,7 @@ public class HomeMoviesListBoundary implements DataInitializable {
         Person connectedPerson = client.getConnectedPerson();
         cleanup();
         if (connectedPerson instanceof Customer) {
-            App.setRoot("customerMenu", connectedPerson);
+            App.setRoot("CustomerMenu", connectedPerson);
         } else if (connectedPerson instanceof Worker) {
             App.setRoot("UpdateContent", connectedPerson);
         } else {
