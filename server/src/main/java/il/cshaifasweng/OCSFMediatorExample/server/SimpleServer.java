@@ -396,6 +396,7 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+
 	// Handles the get price change requests
 	private void handleGetPriceChangeRequests(Message message, ConnectionToClient client) throws IOException {
 		List<PriceChangeRequest> requests = db.getPriceChangeRequests();
@@ -1088,6 +1089,34 @@ public class SimpleServer extends AbstractServer {
 		}
 	}
 
+	// handle auto  response to complaint
+	protected void autoRespondToComplaint(Complaint complaint) {
+		try {
+			Object result = db.complaintAutoRespond(complaint);
+			if(result instanceof Complaint c)
+			{
+                Message response = new Message(0, "respondToComplaintResponse:success", objectMapper.writeValueAsString(c));
+				sendToAllClients(response);
+			}else if(result.equals("inActive"))
+			{
+				System.err.println("SimpleServer: handleRespondToComplaint: Complaint "
+						+ complaint.getComplaint_id() + " was already handled");
+			}
+			else if(result.equals("null"))
+			{
+				System.err.println("SimpleServer: handleRespondToComplaint: Didn't find complaint: "
+						+ complaint.getComplaint_id());
+			} else{
+				System.err.println("SimpleServer: handleRespondToComplaint: Error when connecting to database" +
+						" for complaint: " + complaint.getComplaint_id());
+
+			}
+		} catch (Exception e) {
+			System.err.println("Error in handleRespondToComplaint: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
 	// handles update complaint
 	protected void handleUpdateComplaint(Message message, ConnectionToClient client) {
 		try {
@@ -1100,5 +1129,4 @@ public class SimpleServer extends AbstractServer {
 			e.printStackTrace();
 		}
 	}
-
 }

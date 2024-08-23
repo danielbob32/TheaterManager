@@ -985,6 +985,8 @@ public class ServerDB {
         }
     }
 
+
+
     // Get all price change requests from the database
     public List<PriceChangeRequest> getPriceChangeRequests() {
         try (Session session = sessionFactory.openSession()) {
@@ -1728,12 +1730,53 @@ public class ServerDB {
             session.beginTransaction();
             session.save(c);
             session.getTransaction().commit();
+            SchedulerService.scheduleComplaintAutoResponse(c); // if the complaint isn't figured in 24 hours, auto respond.
             return session.get(Complaint.class, c.getComplaint_id());
 
         } catch (Exception e) {
             System.out.println("Error in ServerDB addComplaint" + e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // Auto respond to a complaint
+    public Object complaintAutoRespond(Complaint c)
+    {
+        String responseStatus = "";
+        int complaintId = c.getComplaint_id();
+        int autoRefund = 50;
+        String autoResponse = "This is an automatic response. We couldn't answer your complaint in 24 hours. \n " +
+                "We apologize about the case, we refund you with 50 shekels. \n Thank you, \n The Cinema Staff.";
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            String hql = "FROM Complaint C WHERE C.id = :complaintId";
+            Query<Complaint> query = session.createQuery(hql, Complaint.class);
+            query.setParameter("complaintId", complaintId);
+            Complaint complaint = query.uniqueResult();
+
+            if (complaint != null && complaint.isActive()) {
+                complaint.setRefund(autoRefund);
+                complaint.setActive(false);
+                complaint.setResponse(autoResponse);
+                session.update(complaint);
+                System.out.println("ServerDB: complaintAutoRespond: Auto responded to complaint ID: " + complaintId);
+                transaction.commit();
+                return complaint;
+            } else if(complaint==null) {
+                System.out.println("ServerDB: complaintAutoRespond: Complaint not found for ID: " + complaintId);
+                responseStatus = "null";
+            } else {
+                System.out.println("ServerDB: complaintAutoRespond: Complaint not found for ID: " + complaintId);
+                responseStatus = "inActive";
+            }
+            transaction.commit();
+            return responseStatus;
+        } catch (Exception e) {
+            System.err.println("ServerDB: complaintAutoRespond: Error responding to complaint: " + e.getMessage());
+            e.printStackTrace();
+            return "error";
         }
     }
 

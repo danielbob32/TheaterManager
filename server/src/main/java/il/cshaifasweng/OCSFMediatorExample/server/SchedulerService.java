@@ -83,4 +83,17 @@ public class SchedulerService {
             serverDB.saveNotification(notification); // Implement this method to save notification to DB
         }
     }
+
+    public static void scheduleComplaintAutoResponse(Complaint complaint) {
+        // Calculate the delay for 24 hours in milliseconds
+        long delay = TimeUnit.HOURS.toMillis(24);
+//        long delay = TimeUnit.MINUTES.toMillis(1);
+        // Schedule the autoRespondToComplaint method to run after the delay
+        scheduler.schedule(() -> autoRespondToComplaint(complaint), delay, TimeUnit.MILLISECONDS);
+    }
+
+    private static void autoRespondToComplaint(Complaint complaint) {
+        System.out.println("SchedulerService DEBUG: Auto-responding to complaint: " + complaint.getComplaint_id());
+        server.autoRespondToComplaint(complaint);
+    }
 }
