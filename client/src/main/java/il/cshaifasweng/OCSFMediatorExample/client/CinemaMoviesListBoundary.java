@@ -1,7 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieDeleteEvent;
-import il.cshaifasweng.OCSFMediatorExample.client.events.MovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.MovieListEvent;
 import il.cshaifasweng.OCSFMediatorExample.client.events.NewMovieEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.*;
@@ -246,9 +245,9 @@ public class CinemaMoviesListBoundary implements DataInitializable {
 		if (connectedPerson instanceof Worker) {
 			App.setRoot("UpdateContent", connectedPerson);
 		} else if (connectedPerson instanceof Customer) {
-			App.setRoot("customerMenu", connectedPerson);
+			App.setRoot("CustomerMenu", connectedPerson);
 		} else {
-			App.setRoot("Loginpage", null);
+			App.setRoot("LoginPage", null);
 		}
 	}
 

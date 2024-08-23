@@ -276,7 +276,7 @@ public class TicketsPaymentBoundary implements DataInitializable {
     private void handleBack() {
         try {
             cleanup();
-            App.setRoot("purchaseTickets", purchaseInfo.getScreening());
+            App.setRoot("PurchaseTickets", purchaseInfo.getScreening());
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Error returning to ticket selection.");

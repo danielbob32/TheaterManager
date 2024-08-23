@@ -143,9 +143,9 @@ public class AllMoviesListController implements DataInitializable {
         if (connectedPerson instanceof Worker) {
             App.setRoot("UpdateContent", connectedPerson);
         } else if (connectedPerson instanceof Customer) {
-            App.setRoot("customerMenu", connectedPerson);
+            App.setRoot("CustomerMenu", connectedPerson);
         } else {
-            App.setRoot("Loginpage", null);
+            App.setRoot("LoginPage", null);
         }
     }
 

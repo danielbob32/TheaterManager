@@ -114,7 +114,7 @@ public class WorkerMenuController implements DataInitializable {
         workerType = null;
         client.logout();
         cleanup();
-        App.setRoot("Loginpage", null);
+        App.setRoot("LoginPage", null);
     }
 
     @FXML

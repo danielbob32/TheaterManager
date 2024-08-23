@@ -80,7 +80,7 @@ public class TicketTabDetailsBoundary implements DataInitializable{
             App.setRoot("CustomerMenu", null);
         }
         else {
-            App.setRoot("Loginpage", null);
+            App.setRoot("LoginPage", null);
         }
     }
 }

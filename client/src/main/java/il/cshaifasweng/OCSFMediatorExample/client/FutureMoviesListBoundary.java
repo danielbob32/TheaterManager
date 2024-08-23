@@ -177,7 +177,7 @@ public class FutureMoviesListBoundary implements DataInitializable {
         } else if (connectedPerson instanceof Worker) {
             App.setRoot("UpdateContent", connectedPerson);
         } else {
-            App.setRoot("Loginpage", null);
+            App.setRoot("LoginPage", null);
         }
     }
 

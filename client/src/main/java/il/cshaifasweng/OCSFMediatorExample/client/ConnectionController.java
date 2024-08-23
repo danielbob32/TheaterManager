@@ -70,7 +70,7 @@ public class ConnectionController {
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
                 try {
-                    App.setRoot("Loginpage", null);
+                    App.setRoot("LoginPage", null);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -25,7 +25,7 @@
         </TableView>
         <HBox spacing="10" alignment="CENTER">
             <Button text="Back" onAction="#goBack" styleClass="back-button"/>
-            <Button text="Approve" onAction="#approveRequest" styleClass="approve-button"/>
+            <Button text="Approve" onAction="#approveRequest" styleClass="confirm-button"/>
             <Button text="Deny" onAction="#denyRequest" styleClass="deny-button"/>
         </HBox>
     </VBox>
